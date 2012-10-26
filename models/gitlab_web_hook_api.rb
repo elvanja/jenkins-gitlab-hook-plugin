@@ -60,7 +60,7 @@ private
       repo_url, payload = get_repo_url_from_params
       LOGGER.info("gitlab web hook triggered for repo url #{repo_url}")
       messages = []
-      get_projects_for_repo_url_and_commit_branch(repo_url, payload["ref"]).each do |project|
+      get_projects_for_repo_url_and_commit_branch(repo_url, payload).each do |project|
         messages << yield(project, repo_url, payload)
       end
       LOGGER.info(messages.join("\n"))
@@ -84,6 +84,7 @@ private
 
   def get_repo_url_from_params
     return params[:repo_url] if params[:repo_url] && !params[:repo_url].empty?
+    return params[:url] if params[:url] && !params[:url].empty?
 
     begin
       request.body.rewind
@@ -96,9 +97,9 @@ private
     return repo_url, payload
   end
 
-  def get_projects_for_repo_url_and_commit_branch(repo_url, ref)
+  def get_projects_for_repo_url_and_commit_branch(repo_url, payload)
     payload_repo_uri = URIish.new(repo_url)
-    commit_branch = ref.split("/").last
+    commit_branch = payload["ref"].split("/").last if payload && payload["ref"]
 
     projects = Java.jenkins.model.Jenkins.instance.getAllItems(AbstractProject.java_class).select do |project|
       scm = project.scm

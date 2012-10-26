@@ -6,7 +6,7 @@ Plugin details can be found at https://wiki.jenkins-ci.org/display/JENKINS/Gitla
 
 ## Why?
 
-For [Gitlab|http://gitlabhq.com] there is an existing solution that might work for you.
+For [Gitlab](http://gitlabhq.com) there is an existing solution that might work for you.
 You can just use the notifyCommit hook on [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) like this:
 
 ```

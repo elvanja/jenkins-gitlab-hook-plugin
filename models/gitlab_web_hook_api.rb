@@ -1,5 +1,7 @@
 require 'sinatra/base'
 
+require_relative 'gitlab_project'
+
 include Java
 
 java_import Java.hudson.model.AbstractProject
@@ -13,6 +15,12 @@ java_import Java.org.acegisecurity.Authentication
 java_import Java.org.acegisecurity.context.SecurityContextHolder
 java_import Java.hudson.security.ACL
 
+# TODO: bring this into the UI / project configuration
+SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES = false
+MASTER_BRANCH = "master"
+TEMPLATE_PROJECT_TAG = "template"
+NEW_PROJET_NAME = '#{REPO_NAME}_#{BRANCH_NAME}'
+
 class GitlabWebHookApi < Sinatra::Base
   LOGGER = Logger.getLogger(GitlabWebHookApi.class.name)
 
@@ -21,28 +29,26 @@ class GitlabWebHookApi < Sinatra::Base
   end
 
   notify_commit = lambda do
-    process_projects do |project|
-      next "#{project.fullName} is configured to ignore notify commit, skipping scheduling for polling" if is_ignoring_notify_commit?(project)
-      next "#{project.fullName} could not be scheduled for polling, it is disabled or has no SCM trigger" unless project.schedulePolling()
-      "#{project.fullName} scheduled for polling"
+    get_projects_to_process do |project|
+      next "#{project} is configured to ignore notify commit, skipping scheduling for polling" if project.is_ignoring_notify_commit?
+      next "#{project} could not be scheduled for polling, it is disabled or has no SCM trigger" unless project.schedulePolling()
+      "#{project} scheduled for polling"
     end
   end
-
   get '/notify_commit', &notify_commit
   post '/notify_commit', &notify_commit
 
   build_now = lambda do
-    process_projects do |project, repo_url, payload|
+    get_projects_to_process do |project, repo_url, payload|
       cause = prepare_build_cause(repo_url, payload)
-      next "#{project.fullName} could not be scheduled for build, it is disabled or not saved" unless project.scheduleBuild(cause)
-      "#{project.fullName} scheduled for build"
+      next "#{project} could not be scheduled for build, it is disabled or not saved" unless project.scheduleBuild(cause)
+      "#{project} scheduled for build"
     end
   end
-
   get '/build_now', &build_now
   post '/build_now', &build_now
 
-private
+  private
 
   class BadRequestException < Exception
   end
@@ -50,7 +56,7 @@ private
   class NotFoundException < Exception
   end
 
-  def process_projects
+  def get_projects_to_process
     begin
       # set system priviledges to be able to see all projects
       # see https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin hudson.plugins.git.GitStatus#doNotifyCommit comments for details
@@ -101,15 +107,23 @@ private
     payload_repo_uri = URIish.new(repo_url)
     commit_branch = payload["ref"].split("/").last if payload && payload["ref"]
 
-    projects = Java.jenkins.model.Jenkins.instance.getAllItems(AbstractProject.java_class).select do |project|
-      scm = project.scm
-      next unless scm_is_git?(scm)
-      next unless scm_repo_urls_match_payload_repo_url?(scm, payload_repo_uri)
-      scm_branches_match_commit_branch?(scm, commit_branch)
+    projects = all_jenkins_projects.select do |project|
+      project.matches_repo_uri_and_branch?(payload_repo_uri, commit_branch)
     end
-    raise NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
+
+    if SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES && commit_branch != MASTER_BRANCH
+      LOGGER.info("separating branches !!!")
+      projects.select! { |project| project.is_exact_match?(commit_branch) }
+      #projects << create_project_for_branch(repo_url, commit_branch) if projects.empty?
+    end
+
+    raise NotFoundException.new("no project references the given repo url #{repo_url} and commit branch #{commit_branch}") if projects.empty?
 
     projects
+  end
+
+  def all_jenkins_projects
+    Java.jenkins.model.Jenkins.instance.getAllItems(AbstractProject.java_class).map { |jenkins_project| GitlabProject.new(jenkins_project) }
   end
 
   def prepare_build_cause(repo_url, payload)
@@ -134,39 +148,10 @@ private
     Cause::RemoteCause.new(repo_uri.host, notes.join("<br/>"))
   end
 
-  def is_ignoring_notify_commit?(project)
-    project.scm.isIgnoreNotifyCommit()
-  end
+  def create_project_for_branch(commit_branch)
+    template_project = all_jenkins_projects.find { |project| project.is_template? }
+    raise NotFoundException.new("missing template project to use for #{commit_branch} branch on #{repo_url} project") unless template_project
 
-  def scm_is_git?(scm)
-    scm && scm.java_kind_of?(GitSCM)
-  end
-
-  def scm_repo_urls_match_payload_repo_url?(scm, payload_repo_uri)
-    scm.repositories.find do |repo|
-      repo.getURIs().find { |uri| repo_urls_match?(uri, payload_repo_uri) }
-    end
-  end
-
-  def scm_branches_match_commit_branch?(scm, commit_branch)
-    matched_branch = scm.branches.find do |scm_branch|
-      scm.repositories.find do |repo|
-        scm_branch.matches("#{repo.name}/#{commit_branch}")
-      end
-    end
-    build_chooser = scm.buildChooser
-
-    build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? !matched_branch : matched_branch
-  end
-
-  def repo_urls_match?(first, second)
-    first.host == second.host && normalize_path(first.path) == normalize_path(second.path)
-  end
-
-  def normalize_path(path)
-    path.slice!(0) if path.start_with?('/')
-    path.slice!(-1) if path.end_with?('/')
-    path.slice!(-4..-1) if path.end_with?('.git')
-    path
+    # TODO: create a copy of the template project and save it
   end
 end

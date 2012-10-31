@@ -33,8 +33,9 @@ It will then scan all Git projects in Jenkins and start the build for those that
 * match url of the Gitlab repo
 * match committed Gitlab branch
 
-# TODO: add option to git/gitlab plugin settings page in project configuration
-# TODO: enable definition of "master", maybe someone uses another branch for templating or releases
+# TODO describe parametrized build
+
+# TODO describe automatic branch project creation
 
 If "separate projects for non master branches" option is checked, plugin will:
 
@@ -47,7 +48,7 @@ If "separate projects for non master branches" option is checked, plugin will:
   * set the branch to be built on that project to the commit branch
   * build the new project
 
-# TODO gitlab delete hook should be covered even in normal cases (e.g. no build performed)
+# TODO describe deleting of feature branches projects
 
 * in case Gitlab is triggering the deletetion of a branch
   * delete the appropriate project

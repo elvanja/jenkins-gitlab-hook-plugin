@@ -1,9 +1,26 @@
 require 'forwardable'
 
+include Java
+
+java_import Java.hudson.model.ParametersDefinitionProperty
+java_import Java.hudson.model.ParametersAction
+java_import Java.hudson.model.StringParameterDefinition
+java_import Java.hudson.model.StringParameterValue
+java_import Java.hudson.plugins.git.GitSCM
+java_import Java.hudson.plugins.git.util.InverseBuildChooser
+
+java_import Java.java.util.logging.Logger
+
 class GitlabProject
+  LOGGER = Logger.getLogger(GitlabProject.class.name)
+
   extend Forwardable
 
-  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName
+  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :getDefaultParametersValues
+
+  alias_method :is_parametrized?, :isParameterized
+  alias_method :is_buildable?, :isBuildable
+  alias_method :to_s, :fullName
 
   def initialize(jenkins_project)
     @jenkins_project = jenkins_project
@@ -12,6 +29,7 @@ class GitlabProject
   def matches_repo_uri_and_branch?(repo_uri, branch)
     return false unless is_git?
     return false unless matches_repo_uri?(repo_uri)
+    LOGGER.info("matching project #{to_s} against branch #{branch}")
     matches_branch?(branch)
   end
 
@@ -27,41 +45,73 @@ class GitlabProject
     matches_branch?(branch, true)
   end
 
-  def is_ignoring_notify_commit?
-    scm.isIgnoreNotifyCommit()
+  def notify_commit
+    return "#{to_s} is configured to ignore notify commit, skipping scheduling for polling" if is_ignoring_notify_commit?
+    return "#{to_s} could not be scheduled for polling, it is disabled or has no SCM trigger" unless schedulePolling
+    "#{to_s} scheduled for polling"
   end
 
-  def to_s
-    fullName
+  def build_now(cause, branch)
+    return "#{to_s} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
+
+    if is_parametrized?
+      parameters_values = getDefaultParametersValues()
+      branch_parameter = get_branch_name_parameter
+      parameters_values = parameters_values.reject { |value| value.name == branch_parameter.name }
+      parameters_values << StringParameterValue.new(branch_parameter.name, branch)
+      actions = ParametersAction.new(parameters_values)
+    end
+
+    return "#{to_s} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, actions)
+    "#{to_s} scheduled for build"
   end
 
   private
+
+  def is_ignoring_notify_commit?
+    scm.isIgnoreNotifyCommit()
+  end
 
   def is_git?
     scm && scm.java_kind_of?(GitSCM)
   end
 
-  def matches_repo_uri?(given_repo_uri)
+  def matches_repo_uri?(repo_uri)
     scm.repositories.find do |repo|
-      repo.getURIs().find { |project_repo_uri| repo_uris_match?(project_repo_uri, given_repo_uri) }
+      repo.getURIs().find { |project_repo_uri| repo_uris_match?(project_repo_uri, repo_uri) }
     end
   end
 
-  def matches_branch?(given_branch, exact = false)
+  def matches_branch?(branch, exact = false)
     matched_branch = scm.branches.find do |scm_branch|
       scm.repositories.find do |repo|
-        token = "#{repo.name}/#{given_branch}"
+        token = "#{repo.name}/#{branch}"
         exact ? scm_branch.name == token : scm_branch.matches(token)
       end
     end
-    return matched_branch if exact
+
+    matched_branch = get_branch_name_parameter if !matched_branch && is_parametrized?
 
     build_chooser = scm.buildChooser
     build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? !matched_branch : matched_branch
   end
 
-  def repo_uris_match?(project_repo_uri, given_repo_uri)
-    project_repo_uri.host == given_repo_uri.host && normalize_path(project_repo_uri.path) == normalize_path(given_repo_uri.path)
+  def get_branch_name_parameter
+    params = getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
+    branch_name_param = params.find do |param|
+      scm.branches.find do |scm_branch|
+        scm.repositories.find do |repo|
+          scm_branch.name.include?("${#{param.name}}")
+        end
+      end
+    end
+
+    raise GitlabWebHook::ConfigurationException.new("Only string parameters in branch specification are supported") if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
+    branch_name_param
+  end
+
+  def repo_uris_match?(project_repo_uri, repo_uri)
+    project_repo_uri.host == repo_uri.host && normalize_path(project_repo_uri.path) == normalize_path(repo_uri.path)
   end
 
   def normalize_path(path)

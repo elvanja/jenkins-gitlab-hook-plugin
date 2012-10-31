@@ -34,7 +34,6 @@ NEW_PROJET_NAME = '#{REPO_NAME}_#{BRANCH_NAME}'
 #   a hook to delete artifacts from the feature branches would be nice
 
 class GitlabWebHookApi < Sinatra::Base
-  # TODO Logger aleray initialized warning
   LOGGER = Logger.getLogger(GitlabWebHookApi.class.name)
 
   get '/ping' do

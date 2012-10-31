@@ -12,8 +12,6 @@ java_import Java.hudson.plugins.git.util.InverseBuildChooser
 java_import Java.java.util.logging.Logger
 
 class GitlabProject
-  LOGGER = Logger.getLogger(GitlabProject.class.name)
-
   extend Forwardable
 
   def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :getDefaultParametersValues
@@ -22,6 +20,8 @@ class GitlabProject
   alias_method :is_buildable?, :isBuildable
   alias_method :to_s, :fullName
 
+  LOGGER = Logger.getLogger(GitlabProject.class.name)
+
   def initialize(jenkins_project)
     @jenkins_project = jenkins_project
   end
@@ -29,20 +29,7 @@ class GitlabProject
   def matches_repo_uri_and_branch?(repo_uri, branch)
     return false unless is_git?
     return false unless matches_repo_uri?(repo_uri)
-    LOGGER.info("matching project #{to_s} against branch #{branch}")
-    matches_branch?(branch)
-  end
-
-  def is_template?
-    fullName.include?(TEMPLATE_PROJECT_TAG)
-  end
-
-  def is_master?
-    matches_branch?(MASTER_BRANCH, true)
-  end
-
-  def is_exact_match?(branch)
-    matches_branch?(branch, true)
+    matches_branch?(branch).tap { |matches| LOGGER.info("project #{to_s} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
   end
 
   def notify_commit
@@ -55,6 +42,18 @@ class GitlabProject
     return "#{to_s} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
     return "#{to_s} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, get_build_actions(branch))
     "#{to_s} scheduled for build"
+  end
+
+  def is_template?
+    fullName.include?(TEMPLATE_PROJECT_TAG)
+  end
+
+  def is_master?
+    matches_branch?(MASTER_BRANCH, true)
+  end
+
+  def is_exact_match?(branch)
+    matches_branch?(branch, true)
   end
 
   private

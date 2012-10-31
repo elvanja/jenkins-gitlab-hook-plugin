@@ -31,11 +31,21 @@ Plugin will parse the Gitlab payload and extract the branch for which the commit
 It will then scan all Git projects in Jenkins and start the build for those that:
 
 * match url of the Gitlab repo
-* match committed Gitlab branch
+* and match committed Gitlab branch
 
-# TODO describe parametrized build
+Notes:
 
-# TODO describe automatic branch project creation
+* for branch comparison, it will take into account both the branch definition and the strategy (this is different from the original notifyCommit)
+* the project must be enabled
+* you don't have to setup polling for the project
+
+#### Parametrized projects
+
+Plugin will recognize projects that are parametrized and will use the default parameter values for the build.
+In case you define a parameter inside the branch specifier, plugin will replace the parameter value with the commit branch from the payload.
+Replacing is done by matching **${PARAMETER\_KEY}** in branch specifier to the parameter list for the project.
+
+#### Automatic branch project creation
 
 If "separate projects for non master branches" option is checked, plugin will:
 
@@ -47,17 +57,6 @@ If "separate projects for non master branches" option is checked, plugin will:
   * copy the template project
   * set the branch to be built on that project to the commit branch
   * build the new project
-
-# TODO describe deleting of feature branches projects
-
-* in case Gitlab is triggering the deletetion of a branch
-  * delete the appropriate project
-
-Notes:
-
-* for branch comparison, it will take into account both the branch definition and the strategy (this is different from the original notifyCommit)
-* the project must be enabled
-* you don't have to setup polling for the project
 
 ### Notify commit hook
 
@@ -72,7 +71,12 @@ The procedure is the same as for the build now hook, the difference is that this
 Additional notes:
 
 * the project must be configured not to skip notifyCommit
+* parametrized projects can be polled, but subsequent build will use the default parametere values (can't propagate the branch to the polling)
 
+### Delete branch commits
+
+In case Gitlab is triggering the deletion of a branch, the plugin will skip processing entirely unless automatic branch projects creation is enabled.
+In that case, it will find the Jenkins project for that branch and delete it.
 
 ### Hook data related
 

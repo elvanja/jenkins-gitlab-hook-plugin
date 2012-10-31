@@ -65,14 +65,17 @@ class GitlabWebHookApi < Sinatra::Base
     SecurityContextHolder.getContext().setAuthentication(ACL::SYSTEM)
 
     repo_url, payload = get_repo_url_from_params
-    LOGGER.info("gitlab web hook triggered for repo url #{repo_url}")
+    LOGGER.info("gitlab web hook triggered for repo url #{repo_url} and #{get_commit_branch(payload)} branch")
     LOGGER.info("with payload: #{payload || "N/A"}")
 
     messages = []
-    get_projects_for_repo_url_and_commit_branch(repo_url, payload).each do |project|
-      messages << yield(project, repo_url, payload)
+    if is_delete_branch_commit?(payload)
+      messages << "branch is deleted, nothing to build"
+    else
+      get_projects_for_repo_url_and_commit_branch(repo_url, payload).each do |project|
+        messages << yield(project, repo_url, payload)
+      end
     end
-
     LOGGER.info(messages.join("\n"))
     messages.join("<br/>")
   rescue GitlabWebHook::BadRequestException => e
@@ -120,7 +123,7 @@ class GitlabWebHookApi < Sinatra::Base
       #projects << create_project_for_branch(repo_url, commit_branch) if projects.empty?
     end
 
-    raise GitlabWebHook::NotFoundException.new("no project references the given repo url #{repo_url} and commit branch #{commit_branch}") if projects.empty?
+    raise GitlabWebHook::NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
 
     projects
   end
@@ -131,6 +134,11 @@ class GitlabWebHookApi < Sinatra::Base
 
   def get_commit_branch(payload)
     payload["ref"].split("/").last if payload && payload["ref"]
+  end
+
+  def is_delete_branch_commit?(payload)
+    return false unless payload
+    payload["after"].squeeze == "0" if payload && payload["after"]
   end
 
   def create_project_for_branch(commit_branch)

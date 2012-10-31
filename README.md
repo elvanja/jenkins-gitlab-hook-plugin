@@ -73,6 +73,7 @@ Additional notes:
 
 * the project must be configured not to skip notifyCommit
 
+
 ### Hook data related
 
 Gitlab uses JSON POST to send the information to the defined hook.
@@ -125,3 +126,9 @@ The plugin expects the request to have the appropriate structure, like this exam
 
 * [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.10 or higher
 * [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.24 or higer
+
+
+## Logging
+
+In case you might wan't to inspect hook triggering (e.g. to check payload data), you can setup logging in Jenkins as [usual](https://wiki.jenkins-ci.org/display/JENKINS/Logging).
+Just add a new logger for **Class** (this is because of JRuby internals).

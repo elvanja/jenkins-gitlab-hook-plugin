@@ -7,9 +7,11 @@ include Java
 java_import Java.hudson.model.Cause
 java_import Java.hudson.model.AbstractProject
 java_import Java.hudson.security.ACL
+
 java_import Java.org.eclipse.jgit.transport.URIish
 java_import Java.org.acegisecurity.Authentication
 java_import Java.org.acegisecurity.context.SecurityContextHolder
+
 java_import Java.java.util.logging.Logger
 
 module GitlabWebHook
@@ -58,35 +60,36 @@ class GitlabWebHookApi < Sinatra::Base
   private
 
   def get_projects_to_process
-    begin
-      # set system priviledges to be able to see all projects
-      # see https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin hudson.plugins.git.GitStatus#doNotifyCommit comments for details
-      old_authentication_level = SecurityContextHolder.getContext().getAuthentication()
-      SecurityContextHolder.getContext().setAuthentication(ACL::SYSTEM)
+    # set system priviledges to be able to see all projects
+    # see https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin hudson.plugins.git.GitStatus#doNotifyCommit comments for details
+    old_authentication_level = SecurityContextHolder.getContext().getAuthentication()
+    SecurityContextHolder.getContext().setAuthentication(ACL::SYSTEM)
 
-      repo_url, payload = get_repo_url_from_params
-      LOGGER.info("gitlab web hook triggered for repo url #{repo_url}")
-      messages = []
-      get_projects_for_repo_url_and_commit_branch(repo_url, payload).each do |project|
-        messages << yield(project, repo_url, payload)
-      end
-      LOGGER.info(messages.join("\n"))
-      messages.join("<br/>")
-    rescue GitlabWebHook::BadRequestException => e
-      LOGGER.warning(e.message)
-      status 400
-      e.message
-    rescue GitlabWebHook::NotFoundException => e
-      LOGGER.warning(e.message)
-      status 404
-      e.message
-    rescue Exception => e
-      LOGGER.severe(e.message)
-      status 500
-      e.message
-    ensure
-      SecurityContextHolder.getContext().setAuthentication(old_authentication_level) if old_authentication_level
+    repo_url, payload = get_repo_url_from_params
+    LOGGER.info("gitlab web hook triggered for repo url #{repo_url}")
+    LOGGER.info("with payload: #{payload || "N/A"}")
+
+    messages = []
+    get_projects_for_repo_url_and_commit_branch(repo_url, payload).each do |project|
+      messages << yield(project, repo_url, payload)
     end
+
+    LOGGER.info(messages.join("\n"))
+    messages.join("<br/>")
+  rescue GitlabWebHook::BadRequestException => e
+    LOGGER.warning(e.message)
+    status 400
+    e.message
+  rescue GitlabWebHook::NotFoundException => e
+    LOGGER.warning(e.message)
+    status 404
+    e.message
+  rescue Exception => e
+    LOGGER.severe(e.message)
+    status 500
+    e.message
+  ensure
+    SecurityContextHolder.getContext().setAuthentication(old_authentication_level) if old_authentication_level
   end
 
   def get_repo_url_from_params

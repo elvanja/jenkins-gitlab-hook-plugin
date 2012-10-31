@@ -53,16 +53,7 @@ class GitlabProject
 
   def build_now(cause, branch)
     return "#{to_s} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
-
-    if is_parametrized?
-      parameters_values = getDefaultParametersValues()
-      branch_parameter = get_branch_name_parameter
-      parameters_values = parameters_values.reject { |value| value.name == branch_parameter.name }
-      parameters_values << StringParameterValue.new(branch_parameter.name, branch)
-      actions = ParametersAction.new(parameters_values)
-    end
-
-    return "#{to_s} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, actions)
+    return "#{to_s} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, get_build_actions(branch))
     "#{to_s} scheduled for build"
   end
 
@@ -108,6 +99,17 @@ class GitlabProject
 
     raise GitlabWebHook::ConfigurationException.new("Only string parameters in branch specification are supported") if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
     branch_name_param
+  end
+
+  def get_build_actions(branch)
+    return unless is_parametrized?
+
+    parameters_values = getDefaultParametersValues()
+    branch_parameter = get_branch_name_parameter
+    parameters_values = parameters_values.reject { |value| value.name == branch_parameter.name }
+    parameters_values << StringParameterValue.new(branch_parameter.name, branch)
+
+    ParametersAction.new(parameters_values)
   end
 
   def repo_uris_match?(project_repo_uri, repo_uri)

@@ -20,19 +20,6 @@ module GitlabWebHook
   class NotFoundException < Exception; end
 end
 
-# TODO: bring this into the UI / project configuration
-
-# TODO: automatic separating of branches into separate jenkins projects
-SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES = false
-MASTER_BRANCH = "master" # TODO: enable definition of "master", maybe someone uses another branch for templating or releases
-TEMPLATE_PROJECT_TAG = "template"
-NEW_PROJET_NAME = '#{REPO_NAME}_#{BRANCH_NAME}'
-
-# TODO gitlab delete hook should be covered
-#   project for the branch should be deleted
-#   even in normal cases (e.g. no build performed)
-#   a hook to delete artifacts from the feature branches would be nice
-
 class GitlabWebHookApi < Sinatra::Base
   LOGGER = Logger.getLogger(GitlabWebHookApi.class.name)
 
@@ -116,13 +103,6 @@ class GitlabWebHookApi < Sinatra::Base
     projects = all_jenkins_projects.select do |project|
       project.matches_repo_uri_and_branch?(repo_uri, commit_branch)
     end
-
-    if SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES && commit_branch != MASTER_BRANCH
-      LOGGER.info("separating branches !!!")
-      projects.select! { |project| project.is_exact_match?(commit_branch) }
-      #projects << create_project_for_branch(repo_url, commit_branch) if projects.empty?
-    end
-
     raise GitlabWebHook::NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
 
     projects
@@ -139,13 +119,6 @@ class GitlabWebHookApi < Sinatra::Base
   def is_delete_branch_commit?(payload)
     return false unless payload
     payload["after"].squeeze == "0" if payload && payload["after"]
-  end
-
-  def create_project_for_branch(commit_branch)
-    template_project = all_jenkins_projects.find { |project| project.is_template? }
-    raise GitlabWebHook::NotFoundException.new("missing template project to use for #{commit_branch} branch on #{repo_url} project") unless template_project
-
-    # TODO: create a copy of the template project and save it
   end
 
   def get_build_cause(repo_url, payload)

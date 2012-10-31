@@ -45,19 +45,6 @@ Plugin will recognize projects that are parametrized and will use the default pa
 In case you define a parameter inside the branch specifier, plugin will replace the parameter value with the commit branch from the payload.
 Replacing is done by matching **${PARAMETER\_KEY}** in branch specifier to the parameter list for the project.
 
-#### Automatic branch project creation
-
-If "separate projects for non master branches" option is checked, plugin will:
-
-* try to find a project that exactly maches the commited branch
-* if found
-  * build only the specific project
-* else
-  * find the template project - template is the one that explicitely specifies master branch to be built
-  * copy the template project
-  * set the branch to be built on that project to the commit branch
-  * build the new project
-
 ### Notify commit hook
 
 Add this web hook on your Gitlab project: 
@@ -75,8 +62,7 @@ Additional notes:
 
 ### Delete branch commits
 
-In case Gitlab is triggering the deletion of a branch, the plugin will skip processing entirely unless automatic branch projects creation is enabled.
-In that case, it will find the Jenkins project for that branch and delete it.
+In case Gitlab is triggering the deletion of a branch, the plugin will skip processing entirely.
 
 ### Hook data related
 

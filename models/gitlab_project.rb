@@ -20,6 +20,8 @@ class GitlabProject
   alias_method :is_buildable?, :isBuildable
   alias_method :to_s, :fullName
 
+  attr_reader :jenkins_project
+
   LOGGER = Logger.getLogger(GitlabProject.class.name)
 
   def initialize(jenkins_project)
@@ -27,6 +29,7 @@ class GitlabProject
   end
 
   def matches_repo_uri_and_branch?(repo_uri, branch)
+    return false unless is_buildable?
     return false unless is_git?
     return false unless matches_repo_uri?(repo_uri)
     matches_branch?(branch).tap { |matches| LOGGER.info("project #{to_s} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
@@ -34,6 +37,7 @@ class GitlabProject
 
   def notify_commit
     return "#{to_s} is configured to ignore notify commit, skipping scheduling for polling" if is_ignoring_notify_commit?
+    return "#{to_s} is not buildable (it is disabled or not saved), skipping polling" unless is_buildable?
     return "#{to_s} could not be scheduled for polling, it is disabled or has no SCM trigger" unless schedulePolling
     "#{to_s} scheduled for polling"
   end
@@ -45,25 +49,25 @@ class GitlabProject
   end
 
   def is_template?
-    fullName.include?(TEMPLATE_PROJECT_TAG)
+    fullName == GitlabWebHook::TEMPLATE_PROJECT
   end
 
   def is_master?
-    matches_branch?(MASTER_BRANCH, true)
+    matches_branch?(GitlabWebHook::MASTER_BRANCH, true)
   end
 
   def is_exact_match?(branch)
     matches_branch?(branch, true)
   end
 
+  def is_git?
+    scm && scm.java_kind_of?(GitSCM)
+  end
+
   private
 
   def is_ignoring_notify_commit?
     scm.isIgnoreNotifyCommit()
-  end
-
-  def is_git?
-    scm && scm.java_kind_of?(GitSCM)
   end
 
   def matches_repo_uri?(repo_uri)

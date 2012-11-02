@@ -18,6 +18,18 @@ module GitlabWebHook
   class ConfigurationException < Exception; end
   class BadRequestException < Exception; end
   class NotFoundException < Exception; end
+
+  # TODO: bring this into the UI / project configuration
+
+  # TODO gitlab delete hook should be covered
+  #   project for the branch should be deleted
+  #   a hook to delete artifacts from the feature branches would be nice
+
+  # TODO: automatic separating of branches into separate jenkins projects
+  SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES = true
+  MASTER_BRANCH = "master" # TODO: enable definition of "master", maybe someone uses another branch for templating or releases
+  TEMPLATE_PROJECT = "template"
+  NEW_PROJET_NAME = '#{REPO_NAME}_#{BRANCH_NAME}'
 end
 
 class GitlabWebHookApi < Sinatra::Base
@@ -103,6 +115,14 @@ class GitlabWebHookApi < Sinatra::Base
     projects = all_jenkins_projects.select do |project|
       project.matches_repo_uri_and_branch?(repo_uri, commit_branch)
     end
+
+    # TODO: instead of checking master branch, see if it is parametrized and then decide on what to do
+    if GitlabWebHook::SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES && commit_branch != GitlabWebHook::MASTER_BRANCH
+      LOGGER.info("separating branches !!!")
+      projects.select! { |project| project.is_exact_match?(commit_branch) }
+      projects << create_project_for_branch(repo_url, commit_branch) if projects.empty?
+    end
+
     raise GitlabWebHook::NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
 
     projects
@@ -136,5 +156,45 @@ class GitlabWebHookApi < Sinatra::Base
     end
 
     Cause::RemoteCause.new(repo_uri.host, notes.join("<br/>"))
+  end
+
+  def create_project_for_branch(repo_url, branch)
+    # locate project to copy from
+    #
+    # template
+    #   must be defined in root configuration
+    #   after copy, change
+    #     enable
+    #     title - repo name + branch name
+    #     github
+    #     git scm
+    #       browse url
+    #       git url
+    #       branch
+    #       default strategy
+    #
+    # master for the repo url
+    #   of all the projects that match the repo url
+    #   use the one that builds the master by default strategy (or not, by inverse ?)
+    #   could be parametrized or direct reference
+    #   if master not found, use any other
+    #   after copy, change
+    #     enable
+    #     title - existing name + branch name
+    #     git scm
+    #       branch
+    #       default strategy
+    #   master could be configured a bit different than feature projects (e.g. will not publish, but that could be set in master too - e.g. SNAPSHOT filter)
+
+    template_project = all_jenkins_projects.find { |project| project.is_template? }
+    raise GitlabWebHook::NotFoundException.new("missing template project, please define one in project configuration") unless template_project
+    raise GitlabWebHook::NotFoundException.new("template project found, but is not a Git type of project") unless template_project.is_git?
+
+    # TODO: create a copy of the template project and save it
+    branch_job = Java.jenkins.model.Jenkins.instance.copy(template_project.jenkins_project, "MyNewProject")
+    #branch_job.scm = new hudson.scm.SubversionSCM("http://base/branches/mybranche")
+    branch_job.makeDisabled(false)
+    branch_job.save
+    GitlabProject.new(branch_job)
   end
 end

@@ -18,6 +18,7 @@ class GitlabProject
 
   alias_method :is_parametrized?, :isParameterized
   alias_method :is_buildable?, :isBuildable
+  alias_method :name, :fullName
   alias_method :to_s, :fullName
 
   attr_reader :jenkins_project
@@ -49,7 +50,7 @@ class GitlabProject
   end
 
   def is_template?
-    fullName == GitlabWebHook::TEMPLATE_PROJECT
+    name == GitlabWebHook::TEMPLATE_PROJECT
   end
 
   def is_master?
@@ -105,10 +106,14 @@ class GitlabProject
   end
 
   def get_build_actions(branch)
+    # no need to process if not parameterized
     return unless is_parametrized?
 
-    parameters_values = getDefaultParametersValues()
+    # no need to process if parameter list does not contain branch spec
     branch_parameter = get_branch_name_parameter
+    return unless branch_parameter
+
+    parameters_values = getDefaultParametersValues()
     parameters_values = parameters_values.reject { |value| value.name == branch_parameter.name }
     parameters_values << StringParameterValue.new(branch_parameter.name, branch)
 

@@ -12,6 +12,13 @@ java_import Java.org.eclipse.jgit.transport.URIish
 java_import Java.org.acegisecurity.Authentication
 java_import Java.org.acegisecurity.context.SecurityContextHolder
 
+java_import Java.hudson.model.ParametersDefinitionProperty
+java_import Java.hudson.plugins.git.GitSCM
+java_import Java.hudson.plugins.git.BranchSpec
+java_import Java.hudson.plugins.git.UserRemoteConfig
+java_import Java.hudson.plugins.git.browser.GitLab
+java_import Java.hudson.plugins.git.util.DefaultBuildChooser
+
 java_import Java.java.util.logging.Logger
 
 module GitlabWebHook
@@ -20,16 +27,19 @@ module GitlabWebHook
   class NotFoundException < Exception; end
 
   # TODO: bring this into the UI / project configuration
+  # TODO: default params should be available, configuration overrides them
+  # TODO: see build per branch project on how to find template project (regex)
 
   # TODO gitlab delete hook should be covered
   #   project for the branch should be deleted
   #   a hook to delete artifacts from the feature branches would be nice
 
   # TODO: automatic separating of branches into separate jenkins projects
-  SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES = true
-  MASTER_BRANCH = "master" # TODO: enable definition of "master", maybe someone uses another branch for templating or releases
+  CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY = true
+  MASTER_BRANCH = "master"
+  ANY_BRANCH = "**"
   TEMPLATE_PROJECT = "template"
-  NEW_PROJET_NAME = '#{REPO_NAME}_#{BRANCH_NAME}'
+  NEW_PROJET_NAME = "${REPO_NAME}_${BRANCH_NAME}"
 end
 
 class GitlabWebHookApi < Sinatra::Base
@@ -117,10 +127,9 @@ class GitlabWebHookApi < Sinatra::Base
     end
 
     # TODO: instead of checking master branch, see if it is parametrized and then decide on what to do
-    if GitlabWebHook::SEPARATE_PROJECTS_FOR_NON_MASTER_BRANCHES && commit_branch != GitlabWebHook::MASTER_BRANCH
-      LOGGER.info("separating branches !!!")
+    if GitlabWebHook::CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY && commit_branch != GitlabWebHook::MASTER_BRANCH
       projects.select! { |project| project.is_exact_match?(commit_branch) }
-      projects << create_project_for_branch(repo_url, commit_branch) if projects.empty?
+      projects << create_project_for_branch(repo_url, commit_branch, payload) if projects.empty?
     end
 
     raise GitlabWebHook::NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
@@ -133,6 +142,7 @@ class GitlabWebHookApi < Sinatra::Base
   end
 
   def get_commit_branch(payload)
+    # TODO: allow for branches like feature/some_new_feature or any depth from refs/heads
     payload["ref"].split("/").last if payload && payload["ref"]
   end
 
@@ -158,43 +168,81 @@ class GitlabWebHookApi < Sinatra::Base
     Cause::RemoteCause.new(repo_uri.host, notes.join("<br/>"))
   end
 
-  def create_project_for_branch(repo_url, branch)
-    # locate project to copy from
-    #
-    # template
-    #   must be defined in root configuration
-    #   after copy, change
-    #     enable
-    #     title - repo name + branch name
-    #     github
-    #     git scm
-    #       browse url
-    #       git url
-    #       branch
-    #       default strategy
-    #
-    # master for the repo url
-    #   of all the projects that match the repo url
-    #   use the one that builds the master by default strategy (or not, by inverse ?)
-    #   could be parametrized or direct reference
-    #   if master not found, use any other
-    #   after copy, change
-    #     enable
-    #     title - existing name + branch name
-    #     git scm
-    #       branch
-    #       default strategy
-    #   master could be configured a bit different than feature projects (e.g. will not publish, but that could be set in master too - e.g. SNAPSHOT filter)
+  def create_project_for_branch(repo_url, branch, payload)
+    copy_from = find_template_project(repo_url)
 
-    template_project = all_jenkins_projects.find { |project| project.is_template? }
-    raise GitlabWebHook::NotFoundException.new("missing template project, please define one in project configuration") unless template_project
-    raise GitlabWebHook::NotFoundException.new("template project found, but is not a Git type of project") unless template_project.is_git?
+    safe_branch_name = branch.gsub("/", "_")
+    new_project_name = "#{copy_from.is_template? ? payload["repository"]["name"] : copy_from.name}_#{safe_branch_name}"
 
-    # TODO: create a copy of the template project and save it
-    branch_job = Java.jenkins.model.Jenkins.instance.copy(template_project.jenkins_project, "MyNewProject")
-    #branch_job.scm = new hudson.scm.SubversionSCM("http://base/branches/mybranche")
+    # TODO: check if new project title already exists (this means that repo url is not matched but the project name exists) !!!
+    branch_job = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
+    # TODO: set github url, requires github plugin reference
+    # TODO: remove branch parameter if exists, leave other params, maybe not needed because default will be used !!! branch_job.removeProperty(ParametersDefinitionProperty.java_class) if (branch_job.isParameterized)
+    branch_job.scm = prepare_scm_from_template(copy_from.scm, repo_url, branch, payload)
     branch_job.makeDisabled(false)
     branch_job.save
+
     GitlabProject.new(branch_job)
+  end
+
+  def find_template_project(repo_url)
+    # use template project if configured
+    template_project = all_jenkins_projects.find { |project| project.is_template? }
+    raise GitlabWebHook::ConfigurationException.new("the configured template project #{GitlabWebHook::TEMPLATE_PROJECT} does not exist, can't proceed") if GitlabWebHook::TEMPLATE_PROJECT && !template_project
+
+    # find project for the repo and master branch
+    repo_uri = URIish.new(repo_url)
+    unless template_project
+      template_project = all_jenkins_projects.find { |project| project.matches_repo_uri_and_branch?(repo_uri, GitlabWebHook::MASTER_BRANCH) }
+    end
+
+    # use any other branch matching the repo
+    unless template_project
+      template_project = all_jenkins_projects.find { |project| project.matches_repo_uri_and_branch?(repo_uri, GitlabWebHook::ANY_BRANCH) }
+    end
+
+    raise GitlabWebHook::NotFoundException.new("could not determine template project, please configure one or manually create a project for the repo (usually for the master branch)") unless template_project
+    raise GitlabWebHook::ConfigurationException.new("template project found: #{template_project}, but is not a Git type of project, can't proceed") unless template_project.is_git?
+
+    template_project
+  end
+
+  def prepare_scm_from_template(template_scm, repo_url, branch, payload)
+    scm_name = template_scm.getScmName() && template_scm.getScmName().size > 0 ? "#{template_scm.getScmName()}_#{branch}" : nil
+    remote_name = nil
+    template_scm.getUserRemoteConfigs().first.tap do |config|
+      remote_name = config.getName()
+    end
+    remote_branch = remote_name ? "#{remote_name}/#{branch}" : branch
+
+    GitSCM.new(
+      scm_name,
+      [UserRemoteConfig.new(repo_url, remote_name, nil)],
+      [BranchSpec.new(remote_branch)],
+      template_scm.getUserMergeOptions(),
+      template_scm.getDoGenerate(),
+      template_scm.getSubmoduleCfg(),
+      template_scm.getClean(),
+      template_scm.getWipeOutWorkspace(),
+      DefaultBuildChooser.new,
+      GitLab.new(payload["repository"]["homepage"]),
+      template_scm.getGitTool,
+      template_scm.getAuthorOrCommitter(),
+      template_scm.getRelativeTargetDir(),
+      template_scm.getReference(),
+      template_scm.getExcludedRegions(),
+      template_scm.getExcludedUsers(),
+      template_scm.getLocalBranch(),
+      template_scm.getDisableSubmodules(),
+      template_scm.getRecursiveSubmodules(),
+      template_scm.getPruneBranches(),
+      template_scm.getRemotePoll(),
+      template_scm.getGitConfigName(),
+      template_scm.getGitConfigEmail(),
+      template_scm.getSkipTag(),
+      template_scm.getIncludedRegions(),
+      template_scm.isIgnoreNotifyCommit(),
+      template_scm.getUseShallowClone()
+    )
   end
 end

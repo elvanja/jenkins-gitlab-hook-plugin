@@ -67,8 +67,6 @@ Disadvantages:
 * Jenkins can't resolve dependencies between Maven projects automatically because Jenkins projects reference different branches at different times
 * job / branch monitoring is not easy because all builds are contained within the same Jenkins project
 
-# TODO: test branches with deep paths... e.g. origin/feature/branch\_name
-
 #### Automatic branch project creation
 
 # TODO: add screenshots of settings
@@ -77,17 +75,30 @@ In case you might want to approach multiple branches by having a separate Jenkin
 This use case workflow:
 
 * if exists a Jenkins project that exactly maches the commited branch
-  * build only the specific project
+  * build the matching project
 * else
-  * copy the template project and enable the new project if needed
+  * copy the master project
   * name the project according to the repository and commited branch name
   * adjust SCM settings to reflect the commited branch and repository
   * build the new project
 
 Notes:
 
-* template project can be a single Jenkins project that is disabled
-* read the delete commit section and how such commits reflect this use case
+* it can be one of the following (determined in given order):
+  * project that references the given repo url and master branch
+    master branch can be set in Jenkins main configuration, "master" is the default
+  * project that references the given repo url for any other branch
+* the master project for the given repo is required because
+  this is currently the only way to copy git settings
+  (e.g. you could use ssh or http access)
+* everything you set on the master project will be copied to branch project
+  the only difference is that the branch project will be set to pull from the payload commit branch
+* copying includes parameters for the job
+  note that branch parameters will be unused but not removed from job definition
+* the new project name is constructed like this:
+  * if using master project name, "#{master project name}\_#{branch name}"
+  * else "#{repo name from payload}\_#{branch name}"
+* read the delete commit section below to see how branch deletion reflects this use case
 
 Advantages of this approach:
 
@@ -120,6 +131,8 @@ Additional notes:
 
 In case Gitlab is triggering the deletion of a branch, the plugin will skip processing entirely unless automatic branch projects creation is enabled.
 In that case, it will find the Jenkins project for that branch and delete it.
+This applies only to non master branches (master is defined in plugin configuration).
+Master branch project is never deleted.
 
 ### Hook data related
 

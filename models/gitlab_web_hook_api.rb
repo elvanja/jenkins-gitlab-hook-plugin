@@ -26,20 +26,15 @@ module GitlabWebHook
   class BadRequestException < Exception; end
   class NotFoundException < Exception; end
 
+  # TODO a hook to delete artifacts from the feature branches would be nice
+
   # TODO: bring this into the UI / project configuration
-  # TODO: default params should be available, configuration overrides them
-  # TODO: see build per branch project on how to find template project (regex)
-
-  # TODO gitlab delete hook should be covered
-  #   project for the branch should be deleted
-  #   a hook to delete artifacts from the feature branches would be nice
-
-  # TODO: automatic separating of branches into separate jenkins projects
+  # default params should be available, configuration overrides them
   CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY = true
   MASTER_BRANCH = "master"
+  USE_MASTER_PROJECT_NAME = false
+  DESCRIPTION = "automatically created by Gitlab Web Hook plugin"
   ANY_BRANCH = "**"
-  TEMPLATE_PROJECT = "template"
-  NEW_PROJET_NAME = "${REPO_NAME}_${BRANCH_NAME}"
 end
 
 class GitlabWebHookApi < Sinatra::Base
@@ -79,7 +74,7 @@ class GitlabWebHookApi < Sinatra::Base
 
     messages = []
     if is_delete_branch_commit?(payload)
-      messages << "branch is deleted, nothing to build"
+      messages += process_delete_commit(payload)
     else
       get_projects_for_repo_url_and_commit_branch(repo_url, payload).each do |project|
         messages << yield(project, repo_url, payload)
@@ -126,8 +121,7 @@ class GitlabWebHookApi < Sinatra::Base
       project.matches_repo_uri_and_branch?(repo_uri, commit_branch)
     end
 
-    # TODO: instead of checking master branch, see if it is parametrized and then decide on what to do
-    if GitlabWebHook::CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY && commit_branch != GitlabWebHook::MASTER_BRANCH
+    if GitlabWebHook::CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY
       projects.select! { |project| project.is_exact_match?(commit_branch) }
       projects << create_project_for_branch(repo_url, commit_branch, payload) if projects.empty?
     end
@@ -142,8 +136,7 @@ class GitlabWebHookApi < Sinatra::Base
   end
 
   def get_commit_branch(payload)
-    # TODO: allow for branches like feature/some_new_feature or any depth from refs/heads
-    payload["ref"].split("/").last if payload && payload["ref"]
+    payload["ref"].gsub("refs/heads/", "") if payload && payload["ref"]
   end
 
   def is_delete_branch_commit?(payload)
@@ -169,80 +162,100 @@ class GitlabWebHookApi < Sinatra::Base
   end
 
   def create_project_for_branch(repo_url, branch, payload)
-    copy_from = find_template_project(repo_url)
+    copy_from = find_master_project(repo_url)
 
     safe_branch_name = branch.gsub("/", "_")
-    new_project_name = "#{copy_from.is_template? ? payload["repository"]["name"] : copy_from.name}_#{safe_branch_name}"
+    new_project_name = "#{GitlabWebHook::USE_MASTER_PROJECT_NAME ? copy_from.name : payload["repository"]["name"]}_#{safe_branch_name}"
 
-    # TODO: check if new project title already exists (this means that repo url is not matched but the project name exists) !!!
-    branch_job = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
+    # check if new project title already exists (this means that repo url and branch is not matched but the project name exists)
+    all_jenkins_projects.each do |project|
+      raise GitlabWebHook::ConfigurationException.new("project #{new_project_name} already exists but doesn't match the repo url #{repo_url} and #{branch} branch, can't create the new project") if project.name == new_project_name
+    end
+
     # TODO: set github url, requires github plugin reference
-    # TODO: remove branch parameter if exists, leave other params, maybe not needed because default will be used !!! branch_job.removeProperty(ParametersDefinitionProperty.java_class) if (branch_job.isParameterized)
-    branch_job.scm = prepare_scm_from_template(copy_from.scm, repo_url, branch, payload)
-    branch_job.makeDisabled(false)
-    branch_job.save
+    branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
+    branch_project.scm = prepare_scm_from(copy_from.scm, branch, payload)
+    branch_project.makeDisabled(false)
+    branch_project.description = GitlabWebHook::DESCRIPTION
+    branch_project.save
 
-    GitlabProject.new(branch_job)
+    GitlabProject.new(branch_project)
   end
 
-  def find_template_project(repo_url)
-    # use template project if configured
-    template_project = all_jenkins_projects.find { |project| project.is_template? }
-    raise GitlabWebHook::ConfigurationException.new("the configured template project #{GitlabWebHook::TEMPLATE_PROJECT} does not exist, can't proceed") if GitlabWebHook::TEMPLATE_PROJECT && !template_project
-
-    # find project for the repo and master branch
+  def find_master_project(repo_url)
     repo_uri = URIish.new(repo_url)
-    unless template_project
-      template_project = all_jenkins_projects.find { |project| project.matches_repo_uri_and_branch?(repo_uri, GitlabWebHook::MASTER_BRANCH) }
-    end
-
+    # find project for the repo and master branch
+    master_project = all_jenkins_projects.find { |project| project.matches_repo_uri_and_branch?(repo_uri, GitlabWebHook::MASTER_BRANCH) }
     # use any other branch matching the repo
-    unless template_project
-      template_project = all_jenkins_projects.find { |project| project.matches_repo_uri_and_branch?(repo_uri, GitlabWebHook::ANY_BRANCH) }
+    unless master_project
+      master_project = all_jenkins_projects.find { |project| project.matches_repo_uri_and_branch?(repo_uri, GitlabWebHook::ANY_BRANCH) }
     end
 
-    raise GitlabWebHook::NotFoundException.new("could not determine template project, please configure one or manually create a project for the repo (usually for the master branch)") unless template_project
-    raise GitlabWebHook::ConfigurationException.new("template project found: #{template_project}, but is not a Git type of project, can't proceed") unless template_project.is_git?
+    raise GitlabWebHook::NotFoundException.new("could not determine master project, please create a project for the repo (usually for the master branch)") unless master_project
+    raise GitlabWebHook::ConfigurationException.new("master project found: #{master_project}, but is not a Git type of project, can't proceed") unless master_project.is_git?
 
-    template_project
+    master_project
   end
 
-  def prepare_scm_from_template(template_scm, repo_url, branch, payload)
-    scm_name = template_scm.getScmName() && template_scm.getScmName().size > 0 ? "#{template_scm.getScmName()}_#{branch}" : nil
-    remote_name = nil
-    template_scm.getUserRemoteConfigs().first.tap do |config|
+  def prepare_scm_from(source_scm, branch, payload)
+    scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{branch}" : nil
+
+    # refspec is skipped, we will build specific commit branch
+    remote_url, remote_name, remote_refspec = nil, nil, nil
+    source_scm.getUserRemoteConfigs().first.tap do |config|
+      remote_url = config.getUrl()
       remote_name = config.getName()
     end
-    remote_branch = remote_name ? "#{remote_name}/#{branch}" : branch
+    raise GitlabWebHook::ConfigurationException("remote repo clone url not found") unless remote_url
+
+    remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{branch}" : branch
 
     GitSCM.new(
       scm_name,
-      [UserRemoteConfig.new(repo_url, remote_name, nil)],
+      [UserRemoteConfig.new(remote_url, remote_name, remote_refspec)],
       [BranchSpec.new(remote_branch)],
-      template_scm.getUserMergeOptions(),
-      template_scm.getDoGenerate(),
-      template_scm.getSubmoduleCfg(),
-      template_scm.getClean(),
-      template_scm.getWipeOutWorkspace(),
+      source_scm.getUserMergeOptions(),
+      source_scm.getDoGenerate(),
+      source_scm.getSubmoduleCfg(),
+      source_scm.getClean(),
+      source_scm.getWipeOutWorkspace(),
       DefaultBuildChooser.new,
       GitLab.new(payload["repository"]["homepage"]),
-      template_scm.getGitTool,
-      template_scm.getAuthorOrCommitter(),
-      template_scm.getRelativeTargetDir(),
-      template_scm.getReference(),
-      template_scm.getExcludedRegions(),
-      template_scm.getExcludedUsers(),
-      template_scm.getLocalBranch(),
-      template_scm.getDisableSubmodules(),
-      template_scm.getRecursiveSubmodules(),
-      template_scm.getPruneBranches(),
-      template_scm.getRemotePoll(),
-      template_scm.getGitConfigName(),
-      template_scm.getGitConfigEmail(),
-      template_scm.getSkipTag(),
-      template_scm.getIncludedRegions(),
-      template_scm.isIgnoreNotifyCommit(),
-      template_scm.getUseShallowClone()
+      source_scm.getGitTool,
+      source_scm.getAuthorOrCommitter(),
+      source_scm.getRelativeTargetDir(),
+      source_scm.getReference(),
+      source_scm.getExcludedRegions(),
+      source_scm.getExcludedUsers(),
+      source_scm.getLocalBranch(),
+      source_scm.getDisableSubmodules(),
+      source_scm.getRecursiveSubmodules(),
+      source_scm.getPruneBranches(),
+      source_scm.getRemotePoll(),
+      source_scm.getGitConfigName(),
+      source_scm.getGitConfigEmail(),
+      source_scm.getSkipTag(),
+      source_scm.getIncludedRegions(),
+      source_scm.isIgnoreNotifyCommit(),
+      source_scm.getUseShallowClone()
     )
+  end
+
+  def process_delete_commit(payload)
+    commit_branch = get_commit_branch(payload)
+    messages = []
+    if GitlabWebHook::CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY && commit_branch != GitlabWebHook::MASTER_BRANCH
+      all_jenkins_projects.each do |project|
+        if project.is_exact_match?(commit_branch)
+          messages << "project #{project} matches deleted branch but is not automatically created by the plugin, skipping" and next unless project.description.match /#{GitlabWebHook::DESCRIPTION}/
+          project.delete
+          messages << "deleted #{project} project"
+        end
+      end
+      messages << "no project matches the #{commit_branch} branch" if messages.empty?
+    else
+      messages << "#{commit_branch} branch is deleted, but not configured for automatic branch projects creation, skipping processing"
+    end
+    messages
   end
 end

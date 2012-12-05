@@ -1,9 +1,13 @@
-GEM
-  remote: http://rubygems.org/
+PATH
+  remote: /home/elvanja/infobip/projects/jenkins/jenkins.rb/ruby-runtime
   specs:
     jenkins-plugin-runtime (0.2.2)
       json
       slop (~> 3.0.2)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
     json (1.7.5-java)
     rack (1.4.1)
     rack-protection (1.2.0)
@@ -19,5 +23,5 @@ PLATFORMS
   java
 
 DEPENDENCIES
-  jenkins-plugin-runtime (~> 0.2.0)
+  jenkins-plugin-runtime!
   sinatra

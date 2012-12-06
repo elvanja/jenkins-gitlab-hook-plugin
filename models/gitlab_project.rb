@@ -14,11 +14,14 @@ java_import Java.java.util.logging.Logger
 class GitlabProject
   extend Forwardable
 
-  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :getDefaultParametersValues
+  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :getDefaultParametersValues, :delete, :description
 
   alias_method :is_parametrized?, :isParameterized
   alias_method :is_buildable?, :isBuildable
+  alias_method :name, :fullName
   alias_method :to_s, :fullName
+
+  attr_reader :jenkins_project
 
   LOGGER = Logger.getLogger(GitlabProject.class.name)
 
@@ -27,33 +30,34 @@ class GitlabProject
   end
 
   def matches_repo_uri_and_branch?(repo_uri, branch)
-    return false unless is_git?
+    return false unless is_buildable?
     return false unless matches_repo_uri?(repo_uri)
-    matches_branch?(branch).tap { |matches| LOGGER.info("project #{to_s} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
+    matches_branch?(branch).tap { |matches| LOGGER.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
   end
 
   def notify_commit
-    return "#{to_s} is configured to ignore notify commit, skipping scheduling for polling" if is_ignoring_notify_commit?
-    return "#{to_s} could not be scheduled for polling, it is disabled or has no SCM trigger" unless schedulePolling
-    "#{to_s} scheduled for polling"
+    return "#{self} is configured to ignore notify commit, skipping scheduling for polling" if is_ignoring_notify_commit?
+    return "#{self} is not buildable (it is disabled or not saved), skipping polling" unless is_buildable?
+    return "#{self} could not be scheduled for polling, it is disabled or has no SCM trigger" unless schedulePolling
+    "#{self} scheduled for polling"
   end
 
   def build_now(cause, branch)
-    return "#{to_s} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
-    return "#{to_s} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, get_build_actions(branch))
-    "#{to_s} scheduled for build"
-  end
-
-  def is_template?
-    fullName.include?(TEMPLATE_PROJECT_TAG)
+    return "#{self} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
+    return "#{self} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, get_build_actions(branch))
+    "#{self} scheduled for build"
   end
 
   def is_master?
-    matches_branch?(MASTER_BRANCH, true)
+    matches_branch?(GitlabWebHook::MASTER_BRANCH, true)
   end
 
   def is_exact_match?(branch)
     matches_branch?(branch, true)
+  end
+
+  def is_git?
+    scm && scm.java_kind_of?(GitSCM)
   end
 
   private
@@ -62,17 +66,17 @@ class GitlabProject
     scm.isIgnoreNotifyCommit()
   end
 
-  def is_git?
-    scm && scm.java_kind_of?(GitSCM)
-  end
-
   def matches_repo_uri?(repo_uri)
+    return false unless is_git?
+
     scm.repositories.find do |repo|
       repo.getURIs().find { |project_repo_uri| repo_uris_match?(project_repo_uri, repo_uri) }
     end
   end
 
   def matches_branch?(branch, exact = false)
+    return false unless is_git?
+
     matched_branch = scm.branches.find do |scm_branch|
       scm.repositories.find do |repo|
         token = "#{repo.name}/#{branch}"
@@ -101,10 +105,14 @@ class GitlabProject
   end
 
   def get_build_actions(branch)
+    # no need to process if not parameterized
     return unless is_parametrized?
 
-    parameters_values = getDefaultParametersValues()
+    # no need to process if parameter list does not contain branch spec
     branch_parameter = get_branch_name_parameter
+    return unless branch_parameter
+
+    parameters_values = getDefaultParametersValues()
     parameters_values = parameters_values.reject { |value| value.name == branch_parameter.name }
     parameters_values << StringParameterValue.new(branch_parameter.name, branch)
 

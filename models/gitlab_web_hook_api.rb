@@ -138,7 +138,7 @@ class GitlabWebHookApi < Sinatra::Base
   def get_commit_branch(payload)
     return unless payload && payload["ref"]
     refs = payload["ref"].split("/")
-    refs.reject {|ref| ref =~ /(head|ref).*/}.join("/")
+    refs.reject {|ref| ref =~ /\A(ref|head)s?\z/}.join("/")
   end
 
   def is_delete_branch_commit?(payload)

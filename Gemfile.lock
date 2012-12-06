@@ -28,6 +28,6 @@ PLATFORMS
   java
 
 DEPENDENCIES
-  jenkins-plugin-runtime (>= 0.2.0)
-  jpi (>= 0.3.1)
+  jenkins-plugin-runtime (>= 0.2.3)
+  jpi (>= 0.3.8)
   sinatra

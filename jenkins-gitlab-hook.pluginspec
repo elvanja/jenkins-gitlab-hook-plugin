@@ -1,7 +1,7 @@
 Jenkins::Plugin::Specification.new do |plugin|
   plugin.name = "gitlab-hook"
   plugin.display_name = "Gitlab Hook Plugin"
-  plugin.version = '0.2.2'
+  plugin.version = '0.2.3'
   plugin.description = 'Enables Gitlab web hooks to be used to trigger SMC polling on Gitlab projects'
 
   plugin.url = 'https://wiki.jenkins-ci.org/display/JENKINS/Gitlab+Hook+Plugin'
@@ -9,5 +9,5 @@ Jenkins::Plugin::Specification.new do |plugin|
   plugin.uses_repository :github => "elvanja/jenkins-gitlab-hook-plugin"
 
   plugin.depends_on 'ruby-runtime', '0.10'
-  plugin.depends_on 'git', '1.1.24'
+  plugin.depends_on 'git', '1.1.26'
 end

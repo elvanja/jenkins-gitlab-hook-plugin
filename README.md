@@ -45,6 +45,73 @@ Plugin will recognize projects that are parametrized and will use the default pa
 In case you define a parameter inside the branch specifier, plugin will replace the parameter value with the commit branch from the payload.
 Replacing is done by matching **${PARAMETER\_KEY}** in branch specifier to the parameter list for the project.
 
+This is usefull e.g. when you want to define a single project for all the branches in the repository.
+Setup might look like this:
+
+* parametrized build with string parametere **BRANCH\_TO\_BUILD**, default = master
+* branch specifier: **origin/${BRANCH\_NAME\_TO\_BUILD}**
+
+With this configuration:
+
+* you can start a manual build of a project, it will ask for a branch to build
+* gitlab build now hook will set the branch to be built using the specified parameter
+
+Advantages of this approach:
+
+* one Jenkins project per Git(lab) repository
+* builds all branches
+* no concurrent builds occur for the same Git(lab) repository
+
+Disadvantages:
+
+* Jenkins can't resolve dependencies between Maven projects automatically because Jenkins projects reference different branches at different times
+* job / branch monitoring is not easy because all builds are contained within the same Jenkins project
+
+#### Automatic branch project creation
+
+# TODO: add screenshots of settings
+
+In case you might want to approach multiple branches by having a separate Jenkins project for each Git(lab) repository, you can turn on the appropriate plugin option.
+This use case workflow:
+
+* if exists a Jenkins project that exactly maches the commited branch
+  * build the matching project
+* else
+  * copy the master project
+  * name the project according to the repository and commited branch name
+  * adjust SCM settings to reflect the commited branch and repository
+  * build the new project
+
+Notes:
+
+* it can be one of the following (determined in given order):
+  * project that references the given repo url and master branch
+    master branch can be set in Jenkins main configuration, "master" is the default
+  * project that references the given repo url for any other branch
+* the master project for the given repo is required because
+  this is currently the only way to copy git settings
+  (e.g. you could use ssh or http access)
+* everything you set on the master project will be copied to branch project
+  the only difference is that the branch project will be set to pull from the payload commit branch
+* copying includes parameters for the job
+  note that branch parameters will be unused but not removed from job definition
+* the new project name is constructed like this:
+  * if using master project name, "#{master project name}\_#{branch name}"
+  * else "#{repo name from payload}\_#{branch name}"
+* read the delete commit section below to see how branch deletion reflects this use case
+
+Advantages of this approach:
+
+* Jenkins can resolve dependencies between Maven projects automatically because Jenkins projects reference a single branch
+* job / branch monitoring is easier because a Jenkins project is related to a single branch
+* builds all branches
+
+Disadvantages:
+
+* multiple Jenkins project per Git(lab) repository
+* concurrent builds occur for the same Git(lab) repository
+* job / branch monitoring is not easy because of a large number of projects for a single Git(lab) repository
+
 ### Notify commit hook
 
 Add this web hook on your Gitlab project: 
@@ -62,7 +129,10 @@ Additional notes:
 
 ### Delete branch commits
 
-In case Gitlab is triggering the deletion of a branch, the plugin will skip processing entirely.
+In case Gitlab is triggering the deletion of a branch, the plugin will skip processing entirely unless automatic branch projects creation is enabled.
+In that case, it will find the Jenkins project for that branch and delete it.
+This applies only to non master branches (master is defined in plugin configuration).
+Master branch project is never deleted.
 
 ### Hook data related
 

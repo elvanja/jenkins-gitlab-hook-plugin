@@ -30,7 +30,7 @@ module GitlabWebHook
 
   # TODO: bring this into the UI / project configuration
   # default params should be available, configuration overrides them
-  CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY = true
+  CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY = false
   MASTER_BRANCH = "master"
   USE_MASTER_PROJECT_NAME = false
   DESCRIPTION = "automatically created by Gitlab Web Hook plugin"

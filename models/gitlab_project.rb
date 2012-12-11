@@ -43,6 +43,7 @@ class GitlabProject
   end
 
   def build_now(cause, branch)
+    return "#{self} is configured to ignore notify commit, skipping the build" if is_ignoring_notify_commit?
     return "#{self} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
     return "#{self} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, get_build_actions(branch))
     "#{self} scheduled for build"

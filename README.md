@@ -10,7 +10,7 @@ For [Gitlab](http://gitlabhq.com) there is an existing solution that might work 
 You can just use the notifyCommit hook on [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) like this:
 
 ```
-http://yourserver/jenkins/git/notifyCommit?url=<URL of the Git repository for the Gitlab project>
+http://your-jenkins-server/git/notifyCommit?url=<URL of the Git repository for the Gitlab project>
 ```
 
 But, with a large number of projects that are mostly polling (no hooks), the project might actually be built with a great delay (5 to 20 minutes).
@@ -24,7 +24,7 @@ It gives you the option to use build\_now or notify\_commit hook, whichever suit
 Add this web hook on your Gitlab project: 
 
 ```
-http://yourserver/jenkins/gitlab/build_now
+http://your-jenkins-server/gitlab/build_now
 ```
 
 Plugin will parse the Gitlab payload and extract the branch for which the commit is being pushed and changes made.
@@ -117,7 +117,7 @@ Disadvantages:
 Add this web hook on your Gitlab project: 
 
 ```
-http://yourserver/jenkins/gitlab/notify_commit
+http://your-jenkins-server/gitlab/notify_commit
 ```
 
 The procedure is the same as for the build now hook, the difference is that this hook schedules polling of the project, much like the original notifyCommit.

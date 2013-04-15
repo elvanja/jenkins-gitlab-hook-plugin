@@ -4,6 +4,10 @@ Enables Gitlab web hooks to be used to trigger SMC polling on Gitlab projects
 
 Plugin details can be found at https://wiki.jenkins-ci.org/display/JENKINS/Gitlab+Hook+Plugin
 
+## What’s new in this fork?
+
+Original plugin doesn’t work well with enabled access control in Jenkins. We need [UnprotectedRootAction](http://javadoc.jenkins-ci.org/hudson/model/UnprotectedRootAction.html) to disable authentication for `/gitlab` URL (as in the [GitHub Plugin](https://github.com/jenkinsci/github-plugin)) but this cannot be used from JRuby (Jenkins uses `instanceof` to determine if an Action is unprotected one). Workaround is simple, use ordinary Java class which implements the `UnprotectedRootAction` that just registers unprotected path. All other stuff is handled by JRuby code as in the original plugin.
+
 ## Why?
 
 For [Gitlab](http://gitlabhq.com) there is an existing solution that might work for you.

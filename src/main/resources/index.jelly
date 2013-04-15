@@ -1,0 +1,3 @@
+<div>
+  Enables <a href="http://gitlab.org/">GitLab</a> web hooks to be used to trigger SMC polling on GitLab projects.
+</div>

@@ -1,0 +1,2 @@
+Plugin-Class: ruby.RubyPlugin
+Bundle-Path: vendor/gems

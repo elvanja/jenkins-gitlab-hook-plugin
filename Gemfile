@@ -1,4 +1,4 @@
-source :rubygems
+source "https://rubygems.org"
 
 # Use this line instead if you want to bundle from a local copy.
 #gem "jenkins-plugin-runtime", :path => "#{File.dirname(__FILE__)}/../jenkins-plugin-runtime"

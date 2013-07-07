@@ -8,6 +8,6 @@ Jenkins::Plugin::Specification.new do |plugin|
   plugin.developed_by "elvanja", "Vanja Radovanovic <elvanja@gmail.com>"
   plugin.uses_repository :github => "elvanja/jenkins-gitlab-hook-plugin"
 
-  plugin.depends_on 'ruby-runtime', '0.11'
+  plugin.depends_on 'ruby-runtime', '0.12'
   plugin.depends_on 'git', '1.1.26'
 end

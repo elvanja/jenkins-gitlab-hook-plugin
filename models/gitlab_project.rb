@@ -121,7 +121,7 @@ class GitlabProject
   end
 
   def repo_uris_match?(project_repo_uri, repo_uri)
-    project_repo_uri.host == repo_uri.host && normalize_path(project_repo_uri.path) == normalize_path(repo_uri.path)
+    project_repo_uri.host.downcase == repo_uri.host.downcase && normalize_path(project_repo_uri.path).downcase == normalize_path(repo_uri.path).downcase
   end
 
   def normalize_path(path)

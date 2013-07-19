@@ -14,7 +14,7 @@ java_import Java.java.util.logging.Logger
 class GitlabProject
   extend Forwardable
 
-  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :getDefaultParametersValues, :delete, :description
+  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
 
   alias_method :is_parametrized?, :isParameterized
   alias_method :is_buildable?, :isBuildable
@@ -92,17 +92,21 @@ class GitlabProject
   end
 
   def get_branch_name_parameter
-    params = getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
-    branch_name_param = params.find do |param|
-      scm.branches.find do |scm_branch|
-        scm.repositories.find do |repo|
-          scm_branch.name.include?("${#{param.name}}")
+    if scm.repositories.size > 0
+      branch_name_param = get_default_parameters.find do |param|
+        scm.branches.find do |scm_branch|
+          scm_branch.name.match(/.*\$\{?#{param.name}\}?.*/)
         end
       end
     end
 
     raise GitlabWebHook::ConfigurationException.new("Only string parameters in branch specification are supported") if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
     branch_name_param
+  end
+
+  def get_default_parameters
+    # @see hudson.model.AbstractProject#getDefaultParametersValues
+    getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
   end
 
   def get_build_actions(branch)
@@ -113,7 +117,7 @@ class GitlabProject
     branch_parameter = get_branch_name_parameter
     return unless branch_parameter
 
-    parameters_values = getDefaultParametersValues()
+    parameters_values = get_default_parameters
     parameters_values = parameters_values.reject { |value| value.name == branch_parameter.name }
     parameters_values << StringParameterValue.new(branch_parameter.name, branch)
 

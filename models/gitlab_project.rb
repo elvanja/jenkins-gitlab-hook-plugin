@@ -14,7 +14,7 @@ java_import Java.java.util.logging.Logger
 class GitlabProject
   extend Forwardable
 
-  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
+  def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
 
   alias_method :is_parametrized?, :isParameterized
   alias_method :is_buildable?, :isBuildable
@@ -45,7 +45,7 @@ class GitlabProject
   def build_now(cause, branch)
     return "#{self} is configured to ignore notify commit, skipping the build" if is_ignoring_notify_commit?
     return "#{self} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
-    return "#{self} could not be scheduled for build" unless scheduleBuild(getQuietPeriod(), cause, get_build_actions(branch))
+    return "#{self} could not be scheduled for build" unless scheduleBuild2(getQuietPeriod(), cause, get_build_actions(branch))
     "#{self} scheduled for build"
   end
 
@@ -117,8 +117,8 @@ class GitlabProject
     branch_parameter = get_branch_name_parameter
     return unless branch_parameter
 
-    parameters_values = get_default_parameters
-    parameters_values = parameters_values.reject { |value| value.name == branch_parameter.name }
+    # @see hudson.model.AbstractProject#getDefaultParametersValues
+    parameters_values = get_default_parameters.reject { |parameter| parameter.name == branch_parameter.name }.collect { |parameter| parameter.getDefaultParameterValue() }.reject { |value| value.nil? }
     parameters_values << StringParameterValue.new(branch_parameter.name, branch)
 
     ParametersAction.new(parameters_values)

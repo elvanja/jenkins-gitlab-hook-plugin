@@ -20,6 +20,7 @@ java_import Java.hudson.plugins.git.browser.GitLab
 java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 
 java_import Java.java.util.logging.Logger
+java_import Java.java.util.logging.Level
 
 module GitlabWebHook
   class ConfigurationException < Exception; end
@@ -91,7 +92,7 @@ class GitlabWebHookApi < Sinatra::Base
     status 404
     e.message
   rescue Exception => e
-    LOGGER.severe(e.message)
+    LOGGER.log(Level::SEVERE, e.message, e)
     status 500
     e.message
   ensure

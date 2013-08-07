@@ -10,6 +10,7 @@ java_import Java.hudson.plugins.git.GitSCM
 java_import Java.hudson.plugins.git.util.InverseBuildChooser
 
 java_import Java.java.util.logging.Logger
+java_import Java.java.util.logging.Level
 
 class GitlabProject
   extend Forwardable
@@ -38,15 +39,23 @@ class GitlabProject
   def notify_commit
     return "#{self} is configured to ignore notify commit, skipping scheduling for polling" if is_ignoring_notify_commit?
     return "#{self} is not buildable (it is disabled or not saved), skipping polling" unless is_buildable?
-    return "#{self} could not be scheduled for polling, it is disabled or has no SCM trigger" unless schedulePolling
-    "#{self} scheduled for polling"
+    begin
+      return "#{self} scheduled for polling" if schedulePolling
+    rescue Exception => e
+      LOGGER.log(Level::SEVERE, e.message, e)
+    end
+    "#{self} could not be scheduled for polling, it is disabled or has no SCM trigger"
   end
 
   def build_now(cause, branch)
     return "#{self} is configured to ignore notify commit, skipping the build" if is_ignoring_notify_commit?
     return "#{self} is not buildable (it is disabled or not saved), skipping the build" unless is_buildable?
-    return "#{self} could not be scheduled for build" unless scheduleBuild2(getQuietPeriod(), cause, get_build_actions(branch))
-    "#{self} scheduled for build"
+    begin
+      return "#{self} scheduled for build" if scheduleBuild2(getQuietPeriod(), cause, get_build_actions(branch))
+    rescue Exception => e
+      LOGGER.log(Level::SEVERE, e.message, e)
+    end
+    "#{self} could not be scheduled for build"
   end
 
   def is_master?
@@ -111,11 +120,11 @@ class GitlabProject
 
   def get_build_actions(branch)
     # no need to process if not parameterized
-    return unless is_parametrized?
+    return [] unless is_parametrized?
 
     # no need to process if parameter list does not contain branch spec
     branch_parameter = get_branch_name_parameter
-    return unless branch_parameter
+    return [] unless branch_parameter
 
     # @see hudson.model.AbstractProject#getDefaultParametersValues
     parameters_values = get_default_parameters.reject { |parameter| parameter.name == branch_parameter.name }.collect { |parameter| parameter.getDefaultParameterValue() }.reject { |value| value.nil? }

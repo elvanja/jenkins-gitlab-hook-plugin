@@ -1,2 +1,7 @@
+# exclude Jenkins work files
 pkg
 work
+
+# exclude Idea files
+.idea
+*.iml

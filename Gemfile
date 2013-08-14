@@ -10,3 +10,7 @@ gem "sinatra"
 group :development do
   gem 'jpi', '>= 0.3.8'
 end
+
+group :test do
+  gem 'rspec'
+end

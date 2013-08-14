@@ -1,18 +1,7 @@
 require 'jenkins/rack'
 
-module Jenkins
-  module Model
-    class UnprotectedRootAction
-      include Jenkins::Model::Action
-    end
-
-    class UnprotectedRootActionProxy
-      include ActionProxy
-      include Java.hudson.model.UnprotectedRootAction
-      proxy_for Jenkins::Model::UnprotectedRootAction
-    end
-  end
-end
+require_relative 'unprotected_root_action'
+require_relative 'api'
 
 class GitlabWebHookRootAction < Jenkins::Model::UnprotectedRootAction
   include Jenkins::RackSupport
@@ -22,7 +11,7 @@ class GitlabWebHookRootAction < Jenkins::Model::UnprotectedRootAction
   url_path "gitlab"
 
   def call(env)
-    GitlabWebHookApi.new.call(env)
+    GitlabWebHook::Api.new.call(env)
   end
 end
 

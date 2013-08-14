@@ -1,0 +1,7 @@
+{
+    "ref": "refs/heads/master",
+    "repo_url": "http://localhost/peronospora",
+    "repo_name": "Peronospora",
+    "repo_homepage": "http://localhost/peronospora",
+    "delete_branch_commit": false
+}

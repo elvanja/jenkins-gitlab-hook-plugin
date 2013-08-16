@@ -3,10 +3,9 @@ require 'sinatra/base'
 require_relative 'exceptions/bad_request_exception'
 require_relative 'exceptions/configuration_exception'
 require_relative 'exceptions/not_found_exception'
+require_relative 'use_cases/process_commit'
 require_relative 'use_cases/process_delete_commit'
-require_relative 'services/get_request_details'
-require_relative 'services/get_jenkins_projects'
-require_relative 'project'
+require_relative 'services/parse_request'
 
 include Java
 
@@ -22,36 +21,22 @@ module GitlabWebHook
     end
 
     notify_commit = lambda do
-      get_projects_to_process do |project|
-        project.notify_commit
-      end
+      process_projects Proc.new { |project| NotifyCommit.new(project).call }
     end
     get '/notify_commit', &notify_commit
     post '/notify_commit', &notify_commit
 
     build_now = lambda do
-      get_projects_to_process do |project, details|
-        project.build_now(details)
-      end
+      process_projects Proc.new { |project, details| project.build_now(details) }
     end
     get '/build_now', &build_now
     post '/build_now', &build_now
 
     private
 
-    def get_projects_to_process
-      details = GetRequestDetails.new.from(params, request)
-      LOGGER.info("gitlab web hook triggered for repo url #{details.repository_url} and #{details.branch} branch")
-      LOGGER.info("with payload: #{details.payload}")
-
-      messages = []
-      if details.is_delete_branch_commit?
-        messages += ProcessDeleteCommit.new.with(details)
-      else
-        GetJenkinsProjects.new.matching(details).each do |project|
-          messages << yield(project, details)
-        end
-      end
+    def process_projects(action)
+      details = parse_request
+      messages = details.is_delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
       LOGGER.info(messages.join("\n"))
       messages.join("<br/>")
     rescue BadRequestException => e
@@ -66,6 +51,13 @@ module GitlabWebHook
       LOGGER.log(Level::SEVERE, e.message, e)
       status 500
       e.message
+    end
+
+    def parse_request
+      details = ParseRequest.new.from(params, request)
+      LOGGER.info("gitlab web hook triggered for repo url #{details.repository_url} and #{details.branch} branch")
+      LOGGER.info("with payload: #{details.payload}")
+      details
     end
   end
 end

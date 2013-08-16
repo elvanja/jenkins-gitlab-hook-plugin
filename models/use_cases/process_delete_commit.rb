@@ -1,4 +1,4 @@
-require_relative '../settings'
+require_relative '../values/settings'
 require_relative '../services/get_jenkins_projects'
 
 module GitlabWebHook
@@ -6,21 +6,16 @@ module GitlabWebHook
     def with(details)
       commit_branch = details.branch
 
+      return ["branch #{commit_branch} is deleted, but automatic branch projects creation is not active, skipping processing"] unless Settings.automatic_project_creation?
+      return ["branch #{commit_branch} is deleted, but relates to master project so will not delete, skipping processing"] if commit_branch == Settings.master_branch
+
       messages = []
-      if Settings.automatic_project_creation? && commit_branch != Settings.master_branch
-        # TODO this should probably match repository_url as well
-        GetJenkinsProjects.new.all.each do |project|
-          #TODO move this to GetJenkinsProjects use case !!!
-          if project.is_exact_match?(commit_branch)
-            messages << "project #{project} matches deleted branch but is not automatically created by the plugin, skipping" and next unless project.description.match /#{Settings.description}/
-            project.delete
-            messages << "deleted #{project} project"
-          end
-        end
-        messages << "no project matches the #{commit_branch} branch" if messages.empty?
-      else
-        messages << "#{commit_branch} branch is deleted, but not configured for automatic branch projects creation, skipping processing"
+      GetJenkinsProjects.new.exactly_matching(details).each do |project|
+        messages << "project #{project} matches deleted branch but is not automatically created by the plugin, skipping" and next unless project.description.match /#{Settings.description}/
+        project.delete
+        messages << "deleted #{project} project"
       end
+      messages << "no project matches the #{commit_branch} branch" if messages.empty?
 
       messages
     end

@@ -1,22 +1,24 @@
-# dependencies
+# test dependencies
 require 'json'
 require 'ostruct'
 
-# Requires supporting ruby files with custom matchers and macros, etc,
+# java dependencies
+Dir["spec/lib/**/*.jar"].each do |jar|
+  require jar
+end
+
+# supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Dir[File.expand_path('../support/**/*.rb', __FILE__)].each { |f| require f }
 
-# Requires all extra / autoload paths
-# Recommendation: do not rely on autoload for domain objects, use this just for specs
-unless defined?(Rails)
-  %W(
-    models/exceptions
-    models/values
-    models/services
-    models/use_cases
-  ).each do |autoload_path|
-    Dir[File.expand_path("../../#{autoload_path}/**/*.rb", __FILE__)].each { |f| require f }
-  end
+# the rest of the application
+%W(
+  models/exceptions
+  models/values
+  models/services
+  models/use_cases
+).each do |autoload_path|
+  Dir[File.expand_path("../../#{autoload_path}/**/*.rb", __FILE__)].each { |f| require f }
 end
 
 RSpec.configure do |config|

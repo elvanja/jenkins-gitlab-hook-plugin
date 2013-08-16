@@ -1,7 +1,7 @@
-require_relative '../settings'
-require_relative '../project'
 require_relative '../exceptions/not_found_exception'
 require_relative '../exceptions/configuration_exception'
+require_relative '../values/settings'
+require_relative '../values/project'
 require_relative '../services/get_jenkins_projects'
 
 include Java
@@ -15,14 +15,8 @@ java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 module GitlabWebHook
   class CreateProjectForBranch
     def with(details)
-      copy_from = find_master_project(details)
-
-      new_project_name = "#{Settngs.user_master_project_name ? copy_from.name : details.repository_name}_#{details.safe_branch}"
-
-      # check if new project title already exists (this means that repo url and branch is not matched but the project name exists)
-      GetJenkinsProjects.new.all.each do |project|
-        raise ConfigurationException.new("project #{new_project_name} already exists but doesn't match the repo url #{details.repository_url} and #{details.branch} branch, can't create the new project") if project.name == new_project_name
-      end
+      copy_from = get_project_to_copy_from(details)
+      new_project_name = get_new_project_name(copy_from, details)
 
       # TODO: set github url, requires github plugin reference
       branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
@@ -36,21 +30,16 @@ module GitlabWebHook
 
     private
 
-    # TODO move this to GetJenkinsProjects !!!
-    def find_master_project(details)
-      repo_uri = URIish.new(details.repository_url)
-      # find project for the repo and master branch
-      all_projects = GetJenkinsProjects.new.all
-      master_project = all_projects.find { |project| project.matches?(repo_uri, Settings.master_branch) }
-      # use any other branch matching the repo
-      unless master_project
-        master_project = all_projects.find { |project| project.matches?(repo_uri, Settings.any_branch_pattern) }
-      end
+    def get_project_to_copy_from(details)
+      master = GetJenkinsProjects.new.master(details)
+      raise NotFoundException.new("could not determine master project, please create a project for the repo (usually for the master branch)") unless master
+      master
+    end
 
-      raise NotFoundException.new("could not determine master project, please create a project for the repo (usually for the master branch)") unless master_project
-      raise ConfigurationException.new("master project found: #{master_project}, but is not a Git type of project, can't proceed") unless master_project.is_git?
-
-      master_project
+    def get_new_project_name(copy_from, details)
+      new_project_name = "#{Settngs.user_master_project_name ? copy_from.name : details.repository_name}_#{details.safe_branch}"
+      raise ConfigurationException.new("project #{new_project_name} already exists") unless GetJenkinsProjects.new.named(new_project_name).empty?
+      new_project_name
     end
 
     def prepare_scm_from(source_scm, details)

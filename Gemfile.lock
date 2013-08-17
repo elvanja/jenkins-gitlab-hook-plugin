@@ -1,5 +1,5 @@
 GEM
-  remote: https://rubygems.org/
+  remote: http://rubygems.org/
   specs:
     diff-lcs (1.2.4)
     jenkins-plugin-runtime (0.2.3)
@@ -12,6 +12,7 @@ GEM
       jenkins-war (> 1.427)
       rubyzip
       thor
+    json (1.7.5)
     json (1.7.5-java)
     rack (1.4.1)
     rack-protection (1.2.0)

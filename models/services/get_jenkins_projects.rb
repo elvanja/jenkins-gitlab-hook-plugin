@@ -47,7 +47,7 @@ module GitlabWebHook
     private
 
     def all
-      old_authentication_level = elevate_priviledges()
+      old_authentication_level = elevate_priviledges
       projects = Java.jenkins.model.Jenkins.instance.getAllItems(AbstractProject.java_class).map do |jenkins_project|
         Project.new(jenkins_project)
       end

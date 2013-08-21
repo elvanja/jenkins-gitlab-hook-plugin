@@ -4,13 +4,13 @@ module GitlabWebHook
   describe RequestDetails do
     context "with validation" do
       it "is valid when repository url is present" do
-        expect(subject).to receive(:repository_url).and_return("http://repo.url")
+        subject.stub(:repository_url).and_return("http://repo.url")
         expect(subject.is_valid?).to be_true
       end
 
       it "is not valid when repository url is missing" do
         [nil, "", "  \n  "].each do |repository_url|
-          expect(subject).to receive(:repository_url).and_return(repository_url)
+          subject.stub(:repository_url).and_return(repository_url)
           expect(subject.is_valid?).to be_false
         end
       end
@@ -42,22 +42,22 @@ module GitlabWebHook
 
     context "with branch" do
       it "extracts branch name from payload" do
-        expect(subject).to receive(:full_branch_reference).and_return("refs/heads/master")
+        subject.stub(:full_branch_reference).and_return("refs/heads/master")
         expect(subject.branch).to eq("master")
       end
 
       it "returns empty branch name when no branch reference data found" do
-        expect(subject).to receive(:full_branch_reference).and_return(nil)
+        subject.stub(:full_branch_reference).and_return(nil)
         expect(subject.branch).to eq("")
       end
 
       it "makes branch safe" do
-        expect(subject).to receive(:full_branch_reference).and_return("refs/heads/feature/cool")
+        subject.stub(:full_branch_reference).and_return("refs/heads/feature/cool")
         expect(subject.safe_branch).to eq("feature_cool")
       end
 
       it "returns nil when no payload present" do
-        expect(subject).to receive(:full_branch_reference).and_return(nil)
+        subject.stub(:full_branch_reference).and_return(nil)
         expect(subject.branch).to eq("")
       end
 
@@ -65,25 +65,25 @@ module GitlabWebHook
         refs = ["ref", "refs"]
         heads = ["head", "heads"]
         refs.product(heads).each do |combination|
-          expect(subject).to receive(:full_branch_reference).and_return("#{combination.join("/")}/master")
+          subject.stub(:full_branch_reference).and_return("#{combination.join("/")}/master")
           expect(subject.branch).to eq("master")
         end
       end
 
       it "detects non refs and non heads" do
         ["refref", "headhead"].each do |ref|
-          expect(subject).to receive(:full_branch_reference).and_return(ref)
+          subject.stub(:full_branch_reference).and_return(ref)
           expect(subject.branch).to eq(ref)
         end
       end
 
       it "returns branch name" do
-        expect(subject).to receive(:full_branch_reference).and_return("refs/heads/master")
+        subject.stub(:full_branch_reference).and_return("refs/heads/master")
         expect(subject.branch).to eq("master")
       end
 
       it "respects nested branches" do
-        expect(subject).to receive(:full_branch_reference).and_return("refs/heads/feature/new_hot_feature")
+        subject.stub(:full_branch_reference).and_return("refs/heads/feature/new_hot_feature")
         expect(subject.branch).to eq("feature/new_hot_feature")
       end
     end
@@ -102,12 +102,12 @@ module GitlabWebHook
 
     context "with commits count" do
       it "returns commits size" do
-        expect(subject).to receive(:commits).at_least(:once).and_return([double, double, double])
+        subject.stub(:commits).at_least(:once).and_return([double, double, double])
         expect(subject.commits_count).to eq(3)
       end
 
       it "defaults to 0 when no commits present" do
-        expect(subject).to receive(:commits).and_return(nil)
+        subject.stub(:commits).and_return(nil)
         expect(subject.commits_count).to eq(0)
       end
     end

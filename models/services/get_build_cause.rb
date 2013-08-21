@@ -6,7 +6,7 @@ java_import Java.org.eclipse.jgit.transport.URIish
 module GitlabWebHook
   class GetBuildCause
     def with(details)
-      repo_uri = URIish.new(details.repository_url)
+      validate(details)
 
       if details.payload
         notes = ["<br/>"]
@@ -16,10 +16,18 @@ module GitlabWebHook
           notes << "* <a href=\"#{commit.url}\">#{commit.message}</a>"
         end
       else
-        notes ["no payload available"]
+        notes = ["no payload available"]
       end
 
+      repo_uri = URIish.new(details.repository_url)
+
       Cause::RemoteCause.new(repo_uri.host, notes.join("<br/>"))
+    end
+
+    private
+
+    def validate(details)
+      raise ArgumentError.new("details are required") unless details
     end
   end
 end

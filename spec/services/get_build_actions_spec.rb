@@ -2,19 +2,19 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe GetBuildActions do
-    let(:project) { double(:is_parametrized? => true) }
-    let(:details) { double }
+    let(:project) { double(Project, :is_parametrized? => true) }
+    let(:details) { double(RequestDetails) }
 
     context "when project not parametrized" do
       it "returns empty array" do
-        expect(project).to receive(:is_parametrized?).and_return(false)
+        project.stub(:is_parametrized?).and_return(false)
         expect(subject.with(project, details)).to eq([])
       end
     end
 
     context "when project parameters do not contain branch specifier" do
       it "returns empty array" do
-        expect(project).to receive(:get_branch_name_parameter).and_return(nil)
+        project.stub(:get_branch_name_parameter).and_return(nil)
         expect(subject.with(project, details)).to eq([])
       end
     end
@@ -23,10 +23,13 @@ module GitlabWebHook
       let(:branch_parameter_value) { double("ParameterValue", :name => "BRANCH_NAME", :value => "master") }
       let(:branch_parameter) { double("Parameter", :name => "BRANCH_NAME", :getDefaultParameterValue => branch_parameter_value) }
 
+      before(:each) do
+        project.stub(:get_branch_name_parameter).and_return(branch_parameter)
+        details.stub(:branch).and_return("commit_branch")
+      end
+
       it "replaces branch parameter value with the one from details" do
-        expect(project).to receive(:get_branch_name_parameter).and_return(branch_parameter)
-        expect(project).to receive(:get_default_parameters).and_return([branch_parameter])
-        expect(details).to receive(:branch).and_return("commit_branch")
+        project.stub(:get_default_parameters).and_return([branch_parameter])
 
         actions = subject.with(project, details)
         expect(actions.parameters.size).to eq(1)
@@ -38,9 +41,7 @@ module GitlabWebHook
       let(:other_parameter) { double("Parameter", :name => "CAKE", :getDefaultParameterValue => other_parameter_value) }
 
       it "keeps other parameters" do
-        expect(project).to receive(:get_branch_name_parameter).and_return(branch_parameter)
-        expect(project).to receive(:get_default_parameters).and_return([branch_parameter, other_parameter])
-        expect(details).to receive(:branch).and_return("commit_branch")
+        project.stub(:get_default_parameters).and_return([branch_parameter, other_parameter])
 
         actions = subject.with(project, details)
         expect(actions.parameters.size).to eq(2)
@@ -53,9 +54,7 @@ module GitlabWebHook
       let(:nil_parameter) { double("Parameter", :name => "EMPTY_DEFAULT", :getDefaultParameterValue => nil) }
 
       it "removes nil values" do
-        expect(project).to receive(:get_branch_name_parameter).and_return(branch_parameter)
-        expect(project).to receive(:get_default_parameters).and_return([branch_parameter, other_parameter, nil_parameter])
-        expect(details).to receive(:branch).and_return("commit_branch")
+        project.stub(:get_default_parameters).and_return([branch_parameter, other_parameter, nil_parameter])
 
         actions = subject.with(project, details)
         expect(actions.parameters.size).to eq(2)

@@ -6,6 +6,8 @@ java_import Java.hudson.model.StringParameterValue
 module GitlabWebHook
   class GetBuildActions
     def with(project, details)
+      validate(project, details)
+
       # no need to process if not parameterized
       return [] unless project.is_parametrized?
 
@@ -18,6 +20,13 @@ module GitlabWebHook
       parameters_values << StringParameterValue.new(branch_parameter.name, details.branch)
 
       ParametersAction.new(parameters_values)
+    end
+
+    private
+
+    def validate(project, details)
+      raise ArgumentError.new("project is required") unless project
+      raise ArgumentError.new("details are required") unless details
     end
   end
 end

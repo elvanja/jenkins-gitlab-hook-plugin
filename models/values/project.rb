@@ -94,7 +94,13 @@ module GitlabWebHook
     end
 
     def repo_uris_match?(project_repo_uri, repo_uri)
-      project_repo_uri.host.downcase == repo_uri.host.downcase && normalize_path(project_repo_uri.path).downcase == normalize_path(repo_uri.path).downcase
+      project_repo_host = project_repo_uri ? project_repo_uri.host.downcase : nil
+      project_repo_path = project_repo_uri ? normalize_path(project_repo_uri.path).downcase : nil
+
+      repo_uri_host = repo_uri ? repo_uri.host.downcase : nil
+      repo_uri_path = repo_uri ? normalize_path(repo_uri.path).downcase : nil
+
+      project_repo_host == repo_uri_host && project_repo_path == repo_uri_path
     end
 
     def normalize_path(path)

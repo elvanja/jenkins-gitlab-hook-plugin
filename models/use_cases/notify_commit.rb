@@ -7,8 +7,10 @@ module GitlabWebHook
 
     attr_reader :project
 
-    def initialize(project)
+    def initialize(project, logger = nil)
+      raise ArgumentError.new("project is required") unless project
       @project = project
+      @logger = logger
     end
 
     def call
@@ -18,10 +20,16 @@ module GitlabWebHook
       begin
         return "#{project} scheduled for polling" if project.schedulePolling
       rescue Exception => e
-        LOGGER.log(Level::SEVERE, e.message, e)
+        logger.log(Level::SEVERE, e.message, e)
       end
 
       "#{project} could not be scheduled for polling, it is disabled or has no SCM trigger"
+    end
+
+    private
+
+    def logger
+      @logger || LOGGER
     end
   end
 end

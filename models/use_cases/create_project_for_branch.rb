@@ -14,6 +14,10 @@ java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 
 module GitlabWebHook
   class CreateProjectForBranch
+    def initialize(get_jenkins_projects = GetJenkinsProjects.new)
+      @get_jenkins_projects = get_jenkins_projects
+    end
+
     def with(details)
       copy_from = get_project_to_copy_from(details)
       new_project_name = get_new_project_name(copy_from, details)
@@ -31,19 +35,18 @@ module GitlabWebHook
     private
 
     def get_project_to_copy_from(details)
-      master = GetJenkinsProjects.new.master(details)
-      raise NotFoundException.new("could not determine master project, please create a project for the repo (usually for the master branch)") unless master
-      master
+      master_not_found_message = "could not determine master project, please create a project for the repo (usually for the master branch)"
+      @get_jenkins_projects.master(details) || raise(NotFoundException.new(master_not_found_message))
     end
 
     def get_new_project_name(copy_from, details)
-      new_project_name = "#{Settngs.user_master_project_name ? copy_from.name : details.repository_name}_#{details.safe_branch}"
-      raise ConfigurationException.new("project #{new_project_name} already exists") unless GetJenkinsProjects.new.named(new_project_name).empty?
+      new_project_name = "#{Settings.user_master_project_name ? copy_from.name : details.repository_name}_#{details.safe_branch}"
+      raise ConfigurationException.new("project #{new_project_name} already exists") unless @get_jenkins_projects.named(new_project_name).empty?
       new_project_name
     end
 
     def prepare_scm_from(source_scm, details)
-      scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{details.branch}" : nil
+      scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{details.safe_branch}" : nil
 
       # refspec is skipped, we will build specific commit branch
       remote_url, remote_name, remote_refspec = nil, nil, nil
@@ -51,7 +54,7 @@ module GitlabWebHook
         remote_url = config.getUrl()
         remote_name = config.getName()
       end
-      raise ConfigurationException("remote repo clone url not found") unless remote_url
+      raise ConfigurationException.new("remote repo clone url not found") unless remote_url
 
       remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
 

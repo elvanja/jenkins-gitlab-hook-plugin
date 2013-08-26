@@ -18,7 +18,7 @@ module GitlabWebHook
       MASTER_BRANCH
     end
 
-    def self.user_master_project_name
+    def self.use_master_project_name?
       USE_MASTER_PROJECT_NAME
     end
 

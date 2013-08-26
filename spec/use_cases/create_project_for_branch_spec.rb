@@ -24,12 +24,12 @@ module GitlabWebHook
 
     context "when naming the branch project" do
       it "uses master project name with appropriate settings" do
-        Settings.stub(:user_master_project_name).and_return(true)
+        Settings.stub(:use_master_project_name?).and_return(true)
         expect(subject.send(:get_new_project_name, master, details)).to match(master.name)
       end
 
       it "uses repository name with appropriate settings" do
-        Settings.stub(:user_master_project_name).and_return(true)
+        Settings.stub(:use_master_project_name?).and_return(true)
         expect(subject.send(:get_new_project_name, master, details)).to match(details.repository_name)
       end
     end

@@ -40,7 +40,7 @@ module GitlabWebHook
     end
 
     def get_new_project_name(copy_from, details)
-      new_project_name = "#{Settings.user_master_project_name ? copy_from.name : details.repository_name}_#{details.safe_branch}"
+      new_project_name = "#{Settings.use_master_project_name? ? copy_from.name : details.repository_name}_#{details.safe_branch}"
       raise ConfigurationException.new("project #{new_project_name} already exists") unless @get_jenkins_projects.named(new_project_name).empty?
       new_project_name
     end

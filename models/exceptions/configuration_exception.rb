@@ -1,4 +1,4 @@
 module GitlabWebHook
-  class ConfigurationException < Exception
+  class ConfigurationException < StandardError
   end
 end

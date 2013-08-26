@@ -1,4 +1,4 @@
 module GitlabWebHook
-  class NotFoundException < Exception
+  class NotFoundException < StandardError
   end
 end

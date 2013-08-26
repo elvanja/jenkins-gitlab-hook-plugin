@@ -1,4 +1,4 @@
 module GitlabWebHook
-  class BadRequestException < Exception
+  class BadRequestException < StandardError
   end
 end

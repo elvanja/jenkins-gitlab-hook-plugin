@@ -43,7 +43,7 @@ module GitlabWebHook
 
       context "unsuccessfully" do
         it "logs error and returns appropriate message" do
-          expect(project).to receive(:scheduleBuild2).and_raise(Exception)
+          expect(project).to receive(:scheduleBuild2).and_raise(java.lang.Exception.new)
           expect(logger).to receive(:log)
           expect(subject.with(details, cause_builder, actions_builder)).to match("could not be scheduled for build")
         end

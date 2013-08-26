@@ -47,7 +47,7 @@ module GitlabWebHook
       LOGGER.warning(e.message)
       status 404
       e.message
-    rescue Exception => e
+    rescue => e
       LOGGER.log(Level::SEVERE, e.message, e)
       status 500
       e.message

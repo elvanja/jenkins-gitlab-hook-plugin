@@ -22,7 +22,7 @@ module GitlabWebHook
 
       begin
         return "#{project} scheduled for build" if project.scheduleBuild2(project.getQuietPeriod(), cause_builder.with(details), actions_builder.with(project, details))
-      rescue Exception => e
+      rescue java.lang.Exception => e
         logger.log(Level::SEVERE, e.message, e)
       end
 

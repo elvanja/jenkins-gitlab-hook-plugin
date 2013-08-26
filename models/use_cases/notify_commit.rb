@@ -19,7 +19,7 @@ module GitlabWebHook
 
       begin
         return "#{project} scheduled for polling" if project.schedulePolling
-      rescue Exception => e
+      rescue java.lang.Exception => e
         logger.log(Level::SEVERE, e.message, e)
       end
 

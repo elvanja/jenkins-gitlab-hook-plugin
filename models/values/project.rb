@@ -93,20 +93,26 @@ module GitlabWebHook
     end
 
     def repo_uris_match?(project_repo_uri, repo_uri)
-      project_repo_host = (project_repo_uri.host ? project_repo_uri.host.downcase : nil) if project_repo_uri
-      project_repo_path = (project_repo_uri.path ? normalize_path(project_repo_uri.path).downcase : nil) if project_repo_uri
+      parse_uri(project_repo_uri) == parse_uri(repo_uri)
+    end
 
-      repo_uri_host = (repo_uri.host ? repo_uri.host.downcase : nil) if repo_uri
-      repo_uri_path = (repo_uri.path ? normalize_path(repo_uri.path).downcase : nil) if repo_uri
+    def parse_uri(uri)
+      return nil, nil unless uri
+      return normalize_host(uri.host), normalize_path(uri.path)
+    end
 
-      project_repo_host == repo_uri_host && project_repo_path == repo_uri_path
+    def normalize_host(host)
+      return unless host
+      host.downcase
     end
 
     def normalize_path(path)
+      return unless path
+
       path.slice!(0) if path.start_with?('/')
       path.slice!(-1) if path.end_with?('/')
       path.slice!(-4..-1) if path.end_with?('.git')
-      path
+      path.downcase
     end
 
     def logger

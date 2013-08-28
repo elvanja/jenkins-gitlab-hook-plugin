@@ -29,14 +29,17 @@ module GitlabWebHook
 
     LOGGER = Logger.getLogger(Project.class.name)
 
-    def initialize(jenkins_project)
+    def initialize(jenkins_project, logger = nil)
+      raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
+      @logger = logger
     end
 
     def matches?(repository_url, branch, exactly = false)
       return false unless is_buildable?
+      return false unless is_git?
       return false unless matches_repo_uri?(repository_url)
-      matches_branch?(branch, exactly).tap { |matches| LOGGER.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
+      matches_branch?(branch, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
     end
 
     def is_ignoring_notify_commit?
@@ -47,12 +50,12 @@ module GitlabWebHook
       if scm.repositories.size > 0
         branch_name_param = get_default_parameters.find do |param|
           scm.branches.find do |scm_branch|
-            scm_branch.name.match(/.*\$\{?#{param.name}\}?.*/)
+            scm_branch.name.match(/.*\$?\{?#{param.name}\}?.*/)
           end
         end
       end
 
-      raise ConfigurationException.new("Only string parameters in branch specification are supported") if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
+      raise ConfigurationException.new("only string parameters for branch parameter are supported") if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
       branch_name_param
     end
 
@@ -64,8 +67,6 @@ module GitlabWebHook
     private
 
     def matches_repo_uri?(repository_url)
-      return false unless is_git?
-
       repo_uri = URIish.new(repository_url)
 
       scm.repositories.find do |repo|
@@ -74,8 +75,6 @@ module GitlabWebHook
     end
 
     def matches_branch?(branch, exactly = false)
-      return false unless is_git?
-
       matched_branch = scm.branches.find do |scm_branch|
         scm.repositories.find do |repo|
           token = "#{repo.name}/#{branch}"
@@ -94,11 +93,11 @@ module GitlabWebHook
     end
 
     def repo_uris_match?(project_repo_uri, repo_uri)
-      project_repo_host = project_repo_uri ? project_repo_uri.host.downcase : nil
-      project_repo_path = project_repo_uri ? normalize_path(project_repo_uri.path).downcase : nil
+      project_repo_host = (project_repo_uri.host ? project_repo_uri.host.downcase : nil) if project_repo_uri
+      project_repo_path = (project_repo_uri.path ? normalize_path(project_repo_uri.path).downcase : nil) if project_repo_uri
 
-      repo_uri_host = repo_uri ? repo_uri.host.downcase : nil
-      repo_uri_path = repo_uri ? normalize_path(repo_uri.path).downcase : nil
+      repo_uri_host = (repo_uri.host ? repo_uri.host.downcase : nil) if repo_uri
+      repo_uri_path = (repo_uri.path ? normalize_path(repo_uri.path).downcase : nil) if repo_uri
 
       project_repo_host == repo_uri_host && project_repo_path == repo_uri_path
     end
@@ -108,6 +107,10 @@ module GitlabWebHook
       path.slice!(-1) if path.end_with?('/')
       path.slice!(-4..-1) if path.end_with?('.git')
       path
+    end
+
+    def logger
+      @logger || LOGGER
     end
   end
 end

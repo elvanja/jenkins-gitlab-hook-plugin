@@ -151,11 +151,16 @@ Just add a new logger for **Class** (this is because of JRuby internals).
 
 ### Testing
 
-# TODO explain all the details
-Namespace all the classes
-JRuby with --1.9 switch
-JRuby with -Xcext.enabled=true switch
-JRuby with -X+0 switch
+To help with testing, the spec/lib directory contains all the Java dependencies the plugin uses directly.
+The spec_helper loads them before each test run.
+
+In case you need to add new classes, please namespace them. See existing ones for details.
+
+Then running JRuby to execute tests, you'll need the following switches:
+
+* --1.9
+* -Xcext.enabled=true
+* -X+0
 
 ## Plan for the future release
 

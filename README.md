@@ -147,6 +147,16 @@ The plugin expects the request to have the appropriate structure, like this exam
 In case you might wan't to inspect hook triggering (e.g. to check payload data), you can setup logging in Jenkins as [usual](https://wiki.jenkins-ci.org/display/JENKINS/Logging).<br/>
 Just add a new logger for **Class** (this is because of JRuby internals).
 
+## Contributing
+
+### Testing
+
+# TODO explain all the details
+Namespace all the classes
+JRuby with --1.9 switch
+JRuby with -Xcext.enabled=true switch
+JRuby with -X+0 switch
+
 ## Plan for the future release
 
 #### Automatic branch project creation

@@ -1,4 +1,4 @@
-source "https://rubygems.org"
+source "http://rubygems.org"
 
 # Use this line instead if you want to bundle from a local copy.
 #gem "jenkins-plugin-runtime", :path => "#{File.dirname(__FILE__)}/../jenkins-plugin-runtime"
@@ -9,4 +9,8 @@ gem "sinatra"
 
 group :development do
   gem 'jpi', '>= 0.3.8'
+end
+
+group :test do
+  gem 'rspec'
 end

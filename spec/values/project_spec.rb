@@ -30,7 +30,8 @@ module GitlabWebHook
 
     context "when determining if matches repository url and branch" do
       let(:scm) { double(GitSCM) }
-      let(:repository) { double("RemoteConfig", :name => "origin", :getURIs => [URIish.new("http://localhost/diaspora")]) }
+      let(:repository) { double("RemoteConfig", :name => "origin", :getURIs => [double(URIish)]) }
+      let(:details_uri) { double(RepositoryUri) }
       let(:branch) { double("BranchSpec", :matches => true) }
       let(:build_chooser) { double("BuildChooser") }
 
@@ -44,6 +45,8 @@ module GitlabWebHook
         scm.stub(:repositories).and_return([repository])
         scm.stub(:branches).and_return([branch])
         scm.stub(:buildChooser).and_return(build_chooser)
+
+        details_uri.stub(:matches?).and_return(true)
 
         jenkins_project.stub(:scm).and_return(scm)
       end
@@ -60,14 +63,14 @@ module GitlabWebHook
         end
 
         it "when repo uris do not match" do
-          repository.stub(:getURIs).and_return([URIish.new("http://localhost/other")])
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_false
+          expect(details_uri).to receive(:matches?).and_return(false)
+          expect(subject.matches?(details_uri, anything)).to be_false
         end
 
         it "when branches do not match" do
           branch.stub(:matches).and_return(false)
           expect(logger).to receive(:info)
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_false
+          expect(subject.matches?(details_uri, anything)).to be_false
         end
       end
 
@@ -77,12 +80,7 @@ module GitlabWebHook
         end
 
         it "when is buildable, is git, repo uris match and branches match" do
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_true
-        end
-
-        it "when repo uris are local file system paths" do
-          repository.stub(:getURIs).and_return([URIish.new("/git/foo.git")])
-          expect(subject.matches?("/git/foo.git", anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_true
         end
       end
 
@@ -105,23 +103,23 @@ module GitlabWebHook
         it "does not match when branch parameter not found" do
           branch_name_parameter.stub(:name).and_return("NOT_BRANCH_PARAMETER")
           expect(logger).to receive(:info)
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_false
+          expect(subject.matches?(details_uri, anything)).to be_false
         end
 
         it "raises exception when branch parameter is not of supported type" do
           branch_name_parameter.stub(:java_kind_of?).with(StringParameterDefinition).and_return(false)
-          expect { subject.matches?("http://localhost/diaspora", anything) }.to raise_exception(ConfigurationException)
+          expect { subject.matches?(details_uri, anything) }.to raise_exception(ConfigurationException)
         end
 
         it "matches when branch parameter found and is of supported type" do
           expect(logger).to receive(:info)
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_true
         end
 
         it "supports parameter usage without $" do
           branch.stub(:name).and_return("origin/BRANCH_NAME")
           expect(logger).to receive(:info)
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_true
         end
       end
 
@@ -129,13 +127,13 @@ module GitlabWebHook
         it "does not match when branches are not equal" do
           branch.stub(:name).and_return("origin/**")
           expect(logger).to receive(:info)
-          expect(subject.matches?("http://localhost/diaspora", "origin/master", true)).to be_false
+          expect(subject.matches?(details_uri, "origin/master", true)).to be_false
         end
 
         it "matches when branches are equal" do
           branch.stub(:name).and_return("origin/master")
           expect(logger).to receive(:info)
-          expect(subject.matches?("http://localhost/diaspora", "origin/master", true)).to be_false
+          expect(subject.matches?(details_uri, "origin/master", true)).to be_false
         end
       end
 
@@ -146,12 +144,12 @@ module GitlabWebHook
         end
 
         it "does not match when regular strategy would match" do
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_false
+          expect(subject.matches?(details_uri, anything)).to be_false
         end
 
         it "matches when regular strategy would not match" do
           branch.stub(:matches).and_return(false)
-          expect(subject.matches?("http://localhost/diaspora", anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_true
         end
       end
     end

@@ -1,7 +1,6 @@
 include Java
 
 java_import Java.hudson.model.Cause
-java_import Java.org.eclipse.jgit.transport.URIish
 
 module GitlabWebHook
   class GetBuildCause
@@ -19,9 +18,7 @@ module GitlabWebHook
         notes = ["no payload available"]
       end
 
-      repo_uri = URIish.new(details.repository_url)
-
-      Cause::RemoteCause.new(repo_uri.host, notes.join("<br/>"))
+      Cause::RemoteCause.new(details.repository_uri.host, notes.join("<br/>"))
     end
 
     private

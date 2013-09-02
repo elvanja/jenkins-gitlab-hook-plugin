@@ -2,7 +2,8 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe GetBuildCause do
-    let(:details) { double(RequestDetails, :payload => nil, :repository_url => "http://localhost/peronospora") }
+    let(:repository_uri) { double(RepositoryUri, :host => "localhost") }
+    let(:details) { double(RequestDetails, :payload => nil, :repository_uri => repository_uri) }
 
     context "with repository details" do
       it "contains repository host" do

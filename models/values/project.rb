@@ -9,8 +9,6 @@ java_import Java.hudson.model.StringParameterDefinition
 java_import Java.hudson.plugins.git.GitSCM
 java_import Java.hudson.plugins.git.util.InverseBuildChooser
 
-java_import Java.org.eclipse.jgit.transport.URIish
-
 java_import Java.java.util.logging.Logger
 java_import Java.java.util.logging.Level
 
@@ -35,10 +33,10 @@ module GitlabWebHook
       @logger = logger
     end
 
-    def matches?(repository_url, branch, exactly = false)
+    def matches?(details_uri, branch, exactly = false)
       return false unless is_buildable?
       return false unless is_git?
-      return false unless matches_repo_uri?(repository_url)
+      return false unless matches_repo_uri?(details_uri)
       matches_branch?(branch, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
     end
 
@@ -66,11 +64,9 @@ module GitlabWebHook
 
     private
 
-    def matches_repo_uri?(repository_url)
-      repo_uri = URIish.new(repository_url)
-
+    def matches_repo_uri?(details_uri)
       scm.repositories.find do |repo|
-        repo.getURIs().find { |project_repo_uri| repo_uris_match?(project_repo_uri, repo_uri) }
+        repo.getURIs().find { |project_repo_uri| details_uri.matches?(project_repo_uri) }
       end
     end
 
@@ -90,29 +86,6 @@ module GitlabWebHook
 
     def is_git?
       scm && scm.java_kind_of?(GitSCM)
-    end
-
-    def repo_uris_match?(project_repo_uri, repo_uri)
-      parse_uri(project_repo_uri) == parse_uri(repo_uri)
-    end
-
-    def parse_uri(uri)
-      return nil, nil unless uri
-      return normalize_host(uri.host), normalize_path(uri.path)
-    end
-
-    def normalize_host(host)
-      return unless host
-      host.downcase
-    end
-
-    def normalize_path(path)
-      return unless path
-
-      path.slice!(0) if path.start_with?('/')
-      path.slice!(-1) if path.end_with?('/')
-      path.slice!(-4..-1) if path.end_with?('.git')
-      path.downcase
     end
 
     def logger

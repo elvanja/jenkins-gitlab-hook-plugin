@@ -6,6 +6,10 @@ module GitlabWebHook
       true
     end
 
+    def repository_uri
+      RepositoryUri.new(repository_url)
+    end
+
     def repository_url
       raise NameError.new("should be implemented in concrete implementation")
     end

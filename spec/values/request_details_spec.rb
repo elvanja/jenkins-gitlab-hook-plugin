@@ -16,6 +16,15 @@ module GitlabWebHook
       end
     end
 
+    context "with repository uri" do
+      it "returns uri regardless of repository url" do
+        ["http://repo.url", nil, "", "  \n  "].each do |repository_url|
+          subject.stub(:repository_url).and_return(repository_url)
+          expect(subject.repository_uri).to be_kind_of(RepositoryUri)
+        end
+      end
+    end
+
     context "with repository url" do
       it "expects to implemented in concrete implementation" do
         expect { subject.repository_url }.to raise_exception(NameError)

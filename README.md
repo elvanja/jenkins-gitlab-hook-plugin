@@ -76,10 +76,12 @@ http://your-jenkins-server/gitlab/notify_commit
 
 The procedure is the same as for the build now hook, the difference is that this hook schedules polling of the project, much like the original notifyCommit.
 
-Additional notes:
+### Additional notes
+
+This goes for both hooks:
 
 * the project must be configured not to skip notifyCommit
-* parametrized projects can be polled, but subsequent build will use the default parametere values (can't propagate the branch to the polling)
+* parametrized projects can be polled, but subsequent build will use the default parameters values (can't propagate the branch to the polling)
 
 ### Delete branch commits
 

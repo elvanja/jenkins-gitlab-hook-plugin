@@ -47,7 +47,7 @@ Replacing is done by matching **${PARAMETER\_KEY}** in branch specifier to the p
 This is usefull e.g. when you want to define a single project for all the branches in the repository.<br/>
 Setup might look like this:
 
-* parametrized build with string parametere **BRANCH\_TO\_BUILD**, default = master
+* parametrized build with string parameter **BRANCH\_TO\_BUILD**, default = master
 * branch specifier: **origin/${BRANCH\_NAME\_TO\_BUILD}**
 
 With this configuration:
@@ -79,7 +79,7 @@ The procedure is the same as for the build now hook, the difference is that this
 Additional notes:
 
 * the project must be configured not to skip notifyCommit
-* parametrized projects can be polled, but subsequent build will use the default parametere values (can't propagate the branch to the polling)
+* parametrized projects can be polled, but subsequent build will use the default parameter values (can't propagate the branch to the polling)
 
 ### Delete branch commits
 

@@ -4,6 +4,8 @@ require_relative '../services/get_jenkins_projects'
 
 module GitlabWebHook
   class ProcessCommit
+    LOGGER = Logger.getLogger(ProcessCommit.class.name)
+
     def initialize(get_jenkins_projects = GetJenkinsProjects.new, create_project_for_branch = CreateProjectForBranch.new)
       @get_jenkins_projects = get_jenkins_projects
       @create_project_for_branch = create_project_for_branch
@@ -28,10 +30,14 @@ module GitlabWebHook
       else
         projects = @get_jenkins_projects.matching(details)
       end
-
+      logger.log(Level::INFO, "id: #{details.repository_id}")
       raise NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
 
       projects
+    end
+
+    def logger
+      @logger || LOGGER
     end
   end
 end

@@ -18,7 +18,7 @@ module GitlabWebHook
       # @see hudson.model.AbstractProject#getDefaultParametersValues
       parameters_values = project.get_default_parameters.reject { |parameter| parameter.name == branch_parameter.name }.collect { |parameter| parameter.getDefaultParameterValue() }.reject { |value| value.nil? }
       parameters_values << StringParameterValue.new(branch_parameter.name, details.branch)
-
+      parameters_values << StringParameterValue.new('repository_id', details.repository_id)
       ParametersAction.new(parameters_values)
     end
 

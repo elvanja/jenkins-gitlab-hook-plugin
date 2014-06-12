@@ -18,6 +18,10 @@ module GitlabWebHook
       raise NameError.new("should be implemented in concrete implementation")
     end
 
+    def repository_id
+      raise NameError.new("should be implemented in concrete implementation")
+    end
+
     def repository_homepage
       raise NameError.new("should be implemented in concrete implementation")
     end

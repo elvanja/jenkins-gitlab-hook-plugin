@@ -22,6 +22,17 @@ module GitlabWebHook
       end
     end
 
+    context "with repository id" do
+      it "extracts from payload" do
+        expect(subject.repository_id).to eq('15')
+      end
+
+      it "returns empty when no repository details found" do
+        payload.delete("project_id")
+        expect(subject.repository_id).to eq("")
+      end
+    end
+
     context "with repository name" do
       it "extracts from payload" do
         expect(subject.repository_name).to eq("Diaspora")
@@ -77,7 +88,7 @@ module GitlabWebHook
         expect(subject.commits[1].message).to eq("fixed readme")
       end
 
-      it "memoizes the result" do
+      it "memorizes the result" do
         expect(payload).to receive(:[]).with("commits").once.and_return(payload["commits"])
         10.times { subject.commits }
       end

@@ -30,7 +30,6 @@ module GitlabWebHook
       else
         projects = @get_jenkins_projects.matching(details)
       end
-      logger.log(Level::INFO, "id: #{details.repository_id}")
       raise NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
 
       projects

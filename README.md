@@ -38,22 +38,22 @@ Notes:
 * the project must be enabled
 * you don't have to setup polling for the project
 
-#### Parametrized projects
+#### Parameterized projects
 
-Plugin will recognize projects that are parametrized and will use the default parameter values for the build.<br/>
-In case you define a parameter inside the branch specifier, plugin will replace the parameter value with the commit branch from the payload.<br/>
-Replacing is done by matching **${PARAMETER\_KEY}** in branch specifier to the parameter list for the project.<br/>
+The plugin will recognize projects that are parameterized and will use the default parameter values for the build.<br/>
+In case you define a parameter inside the branch specifier, the plugin will replace the parameter value with the commit branch from the payload.<br/>
+Replacing is done by matching **${PARAMETER\_KEY}** in the branch specifier to the parameter list for the project.<br/>
 
-This is usefull e.g. when you want to define a single project for all the branches in the repository.<br/>
+This is useful e.g. when you want to define a single project for all the branches in the repository.<br/>
 Setup might look like this:
 
-* parametrized build with string parameter **BRANCH\_TO\_BUILD**, default = master
-* branch specifier: **origin/${BRANCH\_NAME\_TO\_BUILD}**
+* parameterized build with string parameter **BRANCH\_TO\_BUILD**, default = master
+* Source Code Management --> Branch specifier: **origin/${BRANCH\_TO\_BUILD}**
 
 With this configuration:
 
 * you can start a manual build of a project, it will ask for a branch to build
-* gitlab build now hook will set the branch to be built using the specified parameter
+* gitlab build hook will then set the branches to be built (branch specifier) using the specified parameter
 
 Advantages of this approach:
 

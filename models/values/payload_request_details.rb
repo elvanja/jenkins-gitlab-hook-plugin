@@ -32,6 +32,11 @@ module GitlabWebHook
       payload["ref"].strip
     end
 
+    def repository_id
+      return "" unless payload["project_id"]
+      payload["project_id"].to_s
+    end
+
     def is_delete_branch_commit?
       after = payload["after"]
       return false unless after

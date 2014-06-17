@@ -50,10 +50,10 @@ Setup might look like this:
 * parameterized build with string parameter **BRANCH\_TO\_BUILD**, default = master
 * Source Code Management --> Branch specifier: **origin/${BRANCH\_TO\_BUILD}**
 
-With this configuration:
+With this configuration, you have the following options:
 
-* you can start a manual build of a project, it will ask for a branch to build
-* the gitlab build now hook will then set the branch to be built (branch specifier) using the specified parameter found in the payload sent from gitlab
+1. you can start a manual Jenkins build of a project, and it will ask for a branch to build
+2. for builds per commit using the gitlab build now hook, the branch parameter will be filled in with the commit branch extracted from the payload sent from gitlab
 
 Advantages of this approach:
 

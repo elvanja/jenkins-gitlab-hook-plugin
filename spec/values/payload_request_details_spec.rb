@@ -88,7 +88,7 @@ module GitlabWebHook
         expect(subject.commits[1].message).to eq("fixed readme")
       end
 
-      it "memorizes the result" do
+      it "memoizes the result" do
         expect(payload).to receive(:[]).with("commits").once.and_return(payload["commits"])
         10.times { subject.commits }
       end

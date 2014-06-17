@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe PayloadRequestDetails do
-    let (:payload) { JSON.parse(File.read("spec/fixtures/push_payload.json")) }
+    let (:payload) { JSON.parse(File.read("spec/fixtures/default_payload.json")) }
     let (:subject) { PayloadRequestDetails.new(payload) }
 
     context "when initializing" do

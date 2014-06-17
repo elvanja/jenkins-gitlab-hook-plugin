@@ -15,7 +15,7 @@ module GitlabWebHook
     context "with data from request" do
       it "builds payload influenced details" do
         details = subject.from({}, request)
-        expect(details.repository_url).to eq("http://localhost/diaspora")
+        expect(details.repository_url).to eq("git@example.com:diaspora.git")
       end
     end
   end

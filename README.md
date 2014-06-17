@@ -53,7 +53,7 @@ Setup might look like this:
 With this configuration:
 
 * you can start a manual build of a project, it will ask for a branch to build
-* gitlab build hook will then set the branches to be built (branch specifier) using the specified parameter
+* the gitlab build now hook will then set the branch to be built (branch specifier) using the specified parameter found in the payload sent from gitlab
 
 Advantages of this approach:
 

@@ -38,22 +38,22 @@ Notes:
 * the project must be enabled
 * you don't have to setup polling for the project
 
-#### Parametrized projects
+#### Parameterized projects
 
-Plugin will recognize projects that are parametrized and will use the default parameter values for the build.<br/>
-In case you define a parameter inside the branch specifier, plugin will replace the parameter value with the commit branch from the payload.<br/>
-Replacing is done by matching **${PARAMETER\_KEY}** in branch specifier to the parameter list for the project.<br/>
+The plugin will recognize projects that are parameterized and will use the default parameter values for the build.<br/>
+In case you define a parameter inside the branch specifier, the plugin will replace the parameter value with the commit branch from the payload.<br/>
+Replacing is done by matching **${PARAMETER\_KEY}** in the branch specifier to the parameter list for the project.<br/>
 
-This is usefull e.g. when you want to define a single project for all the branches in the repository.<br/>
+This is useful e.g. when you want to define a single project for all the branches in the repository.<br/>
 Setup might look like this:
 
-* parametrized build with string parametere **BRANCH\_TO\_BUILD**, default = master
-* branch specifier: **origin/${BRANCH\_NAME\_TO\_BUILD}**
+* parameterized build with string parameter **BRANCH\_TO\_BUILD**, default = master
+* Source Code Management --> Branch specifier: **origin/${BRANCH\_TO\_BUILD}**
 
-With this configuration:
+With this configuration, you have the following options:
 
-* you can start a manual build of a project, it will ask for a branch to build
-* gitlab build now hook will set the branch to be built using the specified parameter
+1. you can start a manual Jenkins build of a project, and it will ask for a branch to build
+2. for builds per commit using the gitlab build now hook, the branch parameter will be filled in with the commit branch extracted from the payload sent from gitlab
 
 Advantages of this approach:
 
@@ -76,10 +76,12 @@ http://your-jenkins-server/gitlab/notify_commit
 
 The procedure is the same as for the build now hook, the difference is that this hook schedules polling of the project, much like the original notifyCommit.
 
-Additional notes:
+### Additional notes
+
+This goes for both hooks:
 
 * the project must be configured not to skip notifyCommit
-* parametrized projects can be polled, but subsequent build will use the default parametere values (can't propagate the branch to the polling)
+* parametrized projects can be polled, but subsequent build will use the default parameter values (can't propagate the branch to the polling)
 
 ### Delete branch commits
 

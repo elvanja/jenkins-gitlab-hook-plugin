@@ -54,23 +54,23 @@ module GitlabWebHook
       context "it is not matching" do
         it "when it is not buildable" do
           subject.stub(:is_buildable?).and_return(false)
-          expect(subject.matches?(anything, anything)).to be_false
+          expect(subject.matches?(anything, anything)).to be_falsey
         end
 
         it "when it is not git" do
           scm.stub(:java_kind_of?).with(GitSCM).and_return(false)
-          expect(subject.matches?(anything, anything)).to be_false
+          expect(subject.matches?(anything, anything)).to be_falsey
         end
 
         it "when repo uris do not match" do
           expect(details_uri).to receive(:matches?).and_return(false)
-          expect(subject.matches?(details_uri, anything)).to be_false
+          expect(subject.matches?(details_uri, anything)).to be_falsey
         end
 
         it "when branches do not match" do
           branch.stub(:matches).and_return(false)
           expect(logger).to receive(:info)
-          expect(subject.matches?(details_uri, anything)).to be_false
+          expect(subject.matches?(details_uri, anything)).to be_falsey
         end
       end
 
@@ -80,7 +80,7 @@ module GitlabWebHook
         end
 
         it "when is buildable, is git, repo uris match and branches match" do
-          expect(subject.matches?(details_uri, anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_truthy
         end
       end
 
@@ -103,7 +103,7 @@ module GitlabWebHook
         it "does not match when branch parameter not found" do
           branch_name_parameter.stub(:name).and_return("NOT_BRANCH_PARAMETER")
           expect(logger).to receive(:info)
-          expect(subject.matches?(details_uri, anything)).to be_false
+          expect(subject.matches?(details_uri, anything)).to be_falsey
         end
 
         it "raises exception when branch parameter is not of supported type" do
@@ -113,13 +113,13 @@ module GitlabWebHook
 
         it "matches when branch parameter found and is of supported type" do
           expect(logger).to receive(:info)
-          expect(subject.matches?(details_uri, anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_truthy
         end
 
         it "supports parameter usage without $" do
           branch.stub(:name).and_return("origin/BRANCH_NAME")
           expect(logger).to receive(:info)
-          expect(subject.matches?(details_uri, anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_truthy
         end
       end
 
@@ -127,13 +127,13 @@ module GitlabWebHook
         it "does not match when branches are not equal" do
           branch.stub(:name).and_return("origin/**")
           expect(logger).to receive(:info)
-          expect(subject.matches?(details_uri, "origin/master", true)).to be_false
+          expect(subject.matches?(details_uri, "origin/master", true)).to be_falsey
         end
 
         it "matches when branches are equal" do
           branch.stub(:name).and_return("origin/master")
           expect(logger).to receive(:info)
-          expect(subject.matches?(details_uri, "origin/master", true)).to be_false
+          expect(subject.matches?(details_uri, "origin/master", true)).to be_falsey
         end
       end
 
@@ -144,12 +144,12 @@ module GitlabWebHook
         end
 
         it "does not match when regular strategy would match" do
-          expect(subject.matches?(details_uri, anything)).to be_false
+          expect(subject.matches?(details_uri, anything)).to be_falsey
         end
 
         it "matches when regular strategy would not match" do
           branch.stub(:matches).and_return(false)
-          expect(subject.matches?(details_uri, anything)).to be_true
+          expect(subject.matches?(details_uri, anything)).to be_truthy
         end
       end
     end

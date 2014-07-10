@@ -22,17 +22,6 @@ module GitlabWebHook
       end
     end
 
-    context "with repository id" do
-      it "extracts from payload" do
-        expect(subject.repository_id).to eq('15')
-      end
-
-      it "returns empty when no repository details found" do
-        payload.delete("project_id")
-        expect(subject.repository_id).to eq("")
-      end
-    end
-
     context "with repository name" do
       it "extracts from payload" do
         expect(subject.repository_name).to eq("Diaspora")
@@ -68,12 +57,12 @@ module GitlabWebHook
 
     context "with delete branch commit" do
       it "defaults to false" do
-        expect(subject.is_delete_branch_commit?).to be_falsey
+        expect(subject.delete_branch_commit?).to be_falsey
       end
 
       it "detects delete branch commit" do
         payload["after"] = "00000000000000000"
-        expect(subject.is_delete_branch_commit?).to be_truthy
+        expect(subject.delete_branch_commit?).to be_truthy
       end
     end
 

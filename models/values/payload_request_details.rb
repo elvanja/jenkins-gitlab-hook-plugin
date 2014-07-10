@@ -5,8 +5,7 @@ module GitlabWebHook
     attr_reader :payload
 
     def initialize(payload)
-      raise ArgumentError.new("request payload is required") unless payload
-      @payload = payload
+      @payload = payload || raise(ArgumentError.new("request payload is required"))
     end
 
     def repository_url
@@ -32,12 +31,7 @@ module GitlabWebHook
       payload["ref"].strip
     end
 
-    def repository_id
-      return "" unless payload["project_id"]
-      payload["project_id"].to_s
-    end
-
-    def is_delete_branch_commit?
+    def delete_branch_commit?
       after = payload["after"]
       return false unless after
       after.strip.squeeze == "0"

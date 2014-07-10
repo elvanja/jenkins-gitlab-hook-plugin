@@ -5,8 +5,7 @@ module GitlabWebHook
     attr_reader :parameters
 
     def initialize(parameters)
-      raise ArgumentError.new("request parameters is required") unless parameters
-      @parameters = parameters
+      @parameters = parameters || raise(ArgumentError.new("request parameters are required"))
     end
 
     def repository_url
@@ -45,7 +44,7 @@ module GitlabWebHook
       ref ? ref.strip : ""
     end
 
-    def is_delete_branch_commit?
+    def delete_branch_commit?
       delete = nil
       [:delete_branch_commit, :delete].each do |key|
         delete ||= parameters[key]

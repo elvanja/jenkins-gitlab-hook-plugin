@@ -9,7 +9,7 @@ module GitlabWebHook
       validate(project, details)
 
       # no need to process if not parameterized
-      return [] unless project.is_parametrized?
+      return [] unless project.parametrized?
 
       # no need to process if parameter list does not contain branch spec
       branch_parameter = project.get_branch_name_parameter
@@ -18,7 +18,6 @@ module GitlabWebHook
       # @see hudson.model.AbstractProject#getDefaultParametersValues
       parameters_values = project.get_default_parameters.reject { |parameter| parameter.name == branch_parameter.name }.collect { |parameter| parameter.getDefaultParameterValue() }.reject { |value| value.nil? }
       parameters_values << StringParameterValue.new(branch_parameter.name, details.branch)
-      parameters_values << StringParameterValue.new('repository_id', details.repository_id)
 
       ParametersAction.new(parameters_values)
     end

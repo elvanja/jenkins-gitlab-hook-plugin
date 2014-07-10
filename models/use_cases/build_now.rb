@@ -16,8 +16,8 @@ module GitlabWebHook
     end
 
     def with(details, cause_builder = GetBuildCause.new, actions_builder = GetBuildActions.new)
-      return "#{project} is configured to ignore notify commit, skipping the build" if project.is_ignoring_notify_commit?
-      return "#{project} is not buildable (it is disabled or not saved), skipping the build" unless project.is_buildable?
+      return "#{project} is configured to ignore notify commit, skipping the build" if project.ignore_notify_commit?
+      return "#{project} is not buildable (it is disabled or not saved), skipping the build" unless project.buildable?
       validate(details)
 
       begin

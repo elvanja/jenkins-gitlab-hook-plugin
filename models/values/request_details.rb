@@ -1,9 +1,7 @@
 module GitlabWebHook
   class RequestDetails
-    def is_valid?
-      url = repository_url
-      return false unless url && !url.strip.empty?
-      true
+    def valid?
+      repository_url.to_s.strip.empty? ? false : true
     end
 
     def repository_uri
@@ -15,10 +13,6 @@ module GitlabWebHook
     end
 
     def repository_name
-      raise NameError.new("should be implemented in concrete implementation")
-    end
-
-    def repository_id
       raise NameError.new("should be implemented in concrete implementation")
     end
 
@@ -42,7 +36,7 @@ module GitlabWebHook
       branch.gsub("/", "_")
     end
 
-    def is_delete_branch_commit?
+    def delete_branch_commit?
       raise NameError.new("should be implemented in concrete implementation")
     end
 

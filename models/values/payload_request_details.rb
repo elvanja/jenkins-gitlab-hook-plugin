@@ -2,11 +2,8 @@ require_relative 'request_details'
 
 module GitlabWebHook
   class PayloadRequestDetails < RequestDetails
-    attr_reader :payload
-
     def initialize(payload)
-      raise ArgumentError.new("request payload is required") unless payload
-      @payload = payload
+      @payload = payload || raise(ArgumentError.new("request payload is required"))
     end
 
     def repository_url
@@ -28,31 +25,24 @@ module GitlabWebHook
     end
 
     def full_branch_reference
-      return "" unless payload["ref"]
-      payload["ref"].strip
+      payload["ref"].to_s.strip
     end
 
-    def repository_id
-      return "" unless payload["project_id"]
-      payload["project_id"].to_s
-    end
-
-    def is_delete_branch_commit?
+    def delete_branch_commit?
       after = payload["after"]
-      return false unless after
-      after.strip.squeeze == "0"
+      after ? (after.strip.squeeze == "0") : false
     end
 
-    def commits
-      return @commits if @commits
+    private
 
-      commits_from_payload = payload["commits"]
-      return [] unless commits_from_payload
-
-      @commits = commits_from_payload.map do |commit|
+    def get_commits
+      @commits ||= payload["commits"].to_a.map do |commit|
         Commit.new(commit["url"], commit["message"])
       end
-      @commits
+    end
+
+    def get_payload
+      @payload
     end
   end
 end

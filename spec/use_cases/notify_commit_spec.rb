@@ -2,13 +2,13 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe NotifyCommit do
-    let(:project) { double(Project, :is_ignoring_notify_commit? => false, :is_buildable? => true) }
+    let(:project) { double(Project, :ignore_notify_commit? => false, :buildable? => true) }
     let(:logger) { double }
     let(:subject) { NotifyCommit.new(project, logger) }
 
     context "when project configured to ignore notify commit" do
       it "skips the build" do
-        project.stub(:is_ignoring_notify_commit?).and_return(true)
+        project.stub(:ignore_notify_commit?).and_return(true)
 
         expect(project).not_to receive(:schedulePolling)
         expect(subject.call).to match("configured to ignore notify commit")
@@ -17,7 +17,7 @@ module GitlabWebHook
 
     context "when project not buildable" do
       it "skips the build" do
-        project.stub(:is_buildable?).and_return(false)
+        project.stub(:buildable?).and_return(false)
 
         expect(project).not_to receive(:schedulePolling)
         expect(subject.call).to match("not buildable")

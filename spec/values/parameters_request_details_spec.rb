@@ -57,24 +57,12 @@ module GitlabWebHook
 
     context "with delete branch commit" do
       it "defaults to false" do
-        expect(subject.is_delete_branch_commit?).to be_falsey
+        expect(subject.delete_branch_commit?).to be_falsey
       end
 
       it "detects delete branch commit" do
         parameters["delete_branch_commit"] = true
-        expect(subject.is_delete_branch_commit?).to be_truthy
-      end
-    end
-
-    context "with commits" do
-      it "does not parse" do
-        expect(subject.commits).to eq([])
-      end
-    end
-
-    context "with payload" do
-      it "it doesn't have it" do
-        expect(subject.payload).to eq("N/A")
+        expect(subject.delete_branch_commit?).to be_truthy
       end
     end
   end

@@ -36,7 +36,7 @@ module GitlabWebHook
 
     def process_projects(action)
       details = parse_request
-      messages = details.is_delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
+      messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
       LOGGER.info(messages.join("\n"))
       messages.join("<br/>")
     rescue BadRequestException => e

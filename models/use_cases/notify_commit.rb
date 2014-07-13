@@ -14,8 +14,8 @@ module GitlabWebHook
     end
 
     def call
-      return "#{project} is configured to ignore notify commit, skipping scheduling for polling" if project.is_ignoring_notify_commit?
-      return "#{project} is not buildable (it is disabled or not saved), skipping polling" unless project.is_buildable?
+      return "#{project} is configured to ignore notify commit, skipping scheduling for polling" if project.ignore_notify_commit?
+      return "#{project} is not buildable (it is disabled or not saved), skipping polling" unless project.buildable?
 
       begin
         return "#{project} scheduled for polling" if project.schedulePolling

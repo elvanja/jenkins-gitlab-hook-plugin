@@ -20,7 +20,7 @@ module GitlabWebHook
         end
       end
 
-      {:is_parametrized? => :isParameterized, :is_buildable? => :isBuildable, :name => :fullName, :to_s => :fullName}.each do |aliased, original|
+      {:parametrized? => :isParameterized, :buildable? => :isBuildable, :name => :fullName, :to_s => :fullName}.each do |aliased, original|
         it "has nicer alias for #{original}" do
           expect(jenkins_project).to receive(original)
           subject.send(aliased)
@@ -36,8 +36,8 @@ module GitlabWebHook
       let(:build_chooser) { double("BuildChooser") }
 
       before (:each) do
-        subject.stub(:is_buildable?).and_return(true)
-        subject.stub(:is_parametrized?).and_return(false)
+        subject.stub(:buildable?).and_return(true)
+        subject.stub(:parametrized?).and_return(false)
 
         build_chooser.stub(:java_kind_of?).with(InverseBuildChooser).and_return(false)
 
@@ -53,7 +53,7 @@ module GitlabWebHook
 
       context "it is not matching" do
         it "when it is not buildable" do
-          subject.stub(:is_buildable?).and_return(false)
+          subject.stub(:buildable?).and_return(false)
           expect(subject.matches?(anything, anything)).to be_falsey
         end
 
@@ -96,7 +96,7 @@ module GitlabWebHook
           branch.stub(:matches).and_return(false)
           branch.stub(:name).and_return("origin/$BRANCH_NAME")
 
-          subject.stub(:is_parametrized?).and_return(true)
+          subject.stub(:parametrized?).and_return(true)
           subject.stub(:get_default_parameters).and_return([branch_name_parameter, other_parameter])
         end
 

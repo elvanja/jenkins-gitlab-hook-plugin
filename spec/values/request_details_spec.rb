@@ -104,8 +104,13 @@ module GitlabWebHook
     end
 
     context "with commits" do
-      it "expects to implemented in concrete implementation" do
-        expect { subject.repository_url }.to raise_exception(NameError)
+      it "defaults to empty array" do
+        expect(subject.commits).to eq([])
+      end
+
+      it "requires it to be an array" do
+        subject.stub(:get_commits).and_return('invalid commits')
+        expect { subject.commits }.to raise_exception(ArgumentError)
       end
     end
 
@@ -122,8 +127,43 @@ module GitlabWebHook
     end
 
     context "with payload" do
-      it "expects to implemented in concrete implementation" do
-        expect { subject.payload }.to raise_exception(NameError)
+      it "defaults to empty hash" do
+        expect(subject.payload).to eq({})
+      end
+
+      it "requires it to be a hash" do
+        subject.stub(:get_payload).and_return('invalid payload')
+        expect { subject.payload }.to raise_exception(ArgumentError)
+      end
+    end
+
+    context 'with flat payload' do
+      details = {
+        repository_url: 'git@example.com:diaspora.git',
+        repository_name: 'Diaspora',
+        repository_homepage: 'http://example.com/diaspora',
+        full_branch_reference: 'refs/heads/master',
+        branch: 'master'
+      }
+
+      before(:each) do
+        details.each { |detail, value| subject.stub(detail).and_return(value) }
+        subject.stub(:payload).and_return(JSON.parse(File.read("spec/fixtures/default_payload.json")))
+      end
+
+      it 'returns flattened payload' do
+        expect(subject.flat_payload[%w(repository name).join(FlatKeysHash::FLATTENED_KEYS_DELIMITER)]).to eq('Diaspora')
+      end
+
+      details.each do |detail, value|
+        it "appends :#{detail} from details" do
+          expect(subject.flat_payload[detail.to_s]).to eq(value)
+        end
+      end
+
+      it 'memoizes flattened payload' do
+        expect(subject.payload).to receive(:to_flat_keys).once.and_return({})
+        10.times { subject.flat_payload }
       end
     end
   end

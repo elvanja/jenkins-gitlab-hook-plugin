@@ -1,3 +1,5 @@
+require_relative '../services/flat_keys_hash'
+
 module GitlabWebHook
   class RequestDetails
     def valid?
@@ -41,7 +43,9 @@ module GitlabWebHook
     end
 
     def commits
-      raise NameError.new("should be implemented in concrete implementation")
+      commits = get_commits || []
+      raise ArgumentError.new("payload must be an array") unless commits.is_a?(Array)
+      commits
     end
 
     def commits_count
@@ -49,7 +53,29 @@ module GitlabWebHook
     end
 
     def payload
-      raise NameError.new("should be implemented in concrete implementation")
+      payload = get_payload || {}
+      raise ArgumentError.new("payload must be a hash") unless payload.is_a?(Hash)
+      payload
+    end
+
+    def flat_payload
+      @flat_payload ||= payload.extend(FlatKeysHash).to_flat_keys.tap do |flattened|
+        [
+          :repository_url,
+          :repository_name,
+          :repository_homepage,
+          :full_branch_reference,
+          :branch
+        ].each { |detail| flattened[detail.to_s] = self.send(detail) }
+      end
+    end
+
+    private
+
+    def get_commits
+    end
+
+    def get_payload
     end
   end
 end

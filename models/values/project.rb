@@ -58,7 +58,7 @@ module GitlabWebHook
     end
 
     def get_default_parameters
-      # @see hudson.model.AbstractProject#getDefaultParametersValues
+      # @see jenkins.model.ParameterizedJobMixIn.getDefaultParametersValues used in hudson.model.AbstractProject
       getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
     end
 

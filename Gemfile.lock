@@ -12,7 +12,6 @@ GEM
       jenkins-war (> 1.427)
       rubyzip
       thor
-    json (1.7.5)
     json (1.7.5-java)
     rack (1.4.1)
     rack-protection (1.2.0)

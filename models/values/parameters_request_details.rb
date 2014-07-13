@@ -53,13 +53,5 @@ module GitlabWebHook
       return false unless delete
       delete.to_s != "0" || delete
     end
-
-    def commits
-      []
-    end
-
-    def payload
-      "N/A"
-    end
   end
 end

@@ -65,17 +65,5 @@ module GitlabWebHook
         expect(subject.delete_branch_commit?).to be_truthy
       end
     end
-
-    context "with commits" do
-      it "does not parse" do
-        expect(subject.commits).to eq([])
-      end
-    end
-
-    context "with payload" do
-      it "it doesn't have it" do
-        expect(subject.payload).to eq("N/A")
-      end
-    end
   end
 end

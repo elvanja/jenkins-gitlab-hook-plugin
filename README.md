@@ -154,8 +154,8 @@ The plugin expects the request to have the appropriate structure, like this exam
 
 ## Dependencies
 
-* [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.10 or higher
-* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.24 or higer
+* [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.12 or higher
+* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.26 or higer
 
 
 ## Logging

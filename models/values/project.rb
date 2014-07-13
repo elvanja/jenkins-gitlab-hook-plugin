@@ -10,7 +10,6 @@ java_import Java.hudson.plugins.git.GitSCM
 java_import Java.hudson.plugins.git.util.InverseBuildChooser
 
 java_import Java.java.util.logging.Logger
-java_import Java.java.util.logging.Level
 
 module GitlabWebHook
   class Project
@@ -18,8 +17,8 @@ module GitlabWebHook
 
     def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
 
-    alias_method :is_parametrized?, :isParameterized
-    alias_method :is_buildable?, :isBuildable
+    alias_method :parametrized?, :isParameterized
+    alias_method :buildable?, :isBuildable
     alias_method :name, :fullName
     alias_method :to_s, :fullName
 
@@ -34,13 +33,13 @@ module GitlabWebHook
     end
 
     def matches?(details_uri, branch, exactly = false)
-      return false unless is_buildable?
-      return false unless is_git?
+      return false unless buildable?
+      return false unless git?
       return false unless matches_repo_uri?(details_uri)
       matches_branch?(branch, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
     end
 
-    def is_ignoring_notify_commit?
+    def ignore_notify_commit?
       scm.isIgnoreNotifyCommit()
     end
 
@@ -58,7 +57,7 @@ module GitlabWebHook
     end
 
     def get_default_parameters
-      # @see hudson.model.AbstractProject#getDefaultParametersValues
+      # @see jenkins.model.ParameterizedJobMixIn.getDefaultParametersValues used in hudson.model.AbstractProject
       getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
     end
 
@@ -78,13 +77,13 @@ module GitlabWebHook
         end
       end
 
-      matched_branch = get_branch_name_parameter if !matched_branch && is_parametrized?
+      matched_branch = get_branch_name_parameter if !matched_branch && parametrized?
 
       build_chooser = scm.buildChooser
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? !matched_branch : matched_branch
     end
 
-    def is_git?
+    def git?
       scm && scm.java_kind_of?(GitSCM)
     end
 

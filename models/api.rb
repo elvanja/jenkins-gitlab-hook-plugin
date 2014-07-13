@@ -36,7 +36,7 @@ module GitlabWebHook
 
     def process_projects(action)
       details = parse_request
-      messages = details.is_delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
+      messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
       LOGGER.info(messages.join("\n"))
       messages.join("<br/>")
     rescue BadRequestException => e
@@ -48,7 +48,9 @@ module GitlabWebHook
       status 404
       e.message
     rescue => e
-      LOGGER.log(Level::SEVERE, e.message, e)
+      # avoid method signature warnings
+      severe = LOGGER.java_method(:log, [Level, java.lang.String, java.lang.Throwable])
+      severe.call(Level::SEVERE, e.message, e)
       status 500
       e.message
     end

@@ -4,28 +4,28 @@ require_relative '../values/payload_request_details'
 
 module GitlabWebHook
   class ParseRequest
-    def from(params, request)
-      details = ParametersRequestDetails.new(params)
-      return details if details.is_valid?
+    def from(parameters, request)
+      details = ParametersRequestDetails.new(parameters)
+      return details if details.valid?
 
       body = read_request_body(request)
       details = PayloadRequestDetails.new(JSON.parse(body))
-
-      raise BadRequestException.new("repo url not found in Gitlab payload or the HTTP parameters #{[params.inspect, body].join(",")}") unless details.is_valid?
-
-      return details
+      throw_bad_request_exception(body, parameters) unless details.valid?
+      details
     end
 
     private
 
     def read_request_body(request)
-      begin
-        request.body.rewind
-        return request.body.read
-      rescue
-      end
+      request.body.rewind
+      return request.body.read
+    rescue
+      ''
+    end
 
-      return ""
+    def throw_bad_request_exception(body, parameters)
+      message = "repo url not found in Gitlab payload or the HTTP parameters #{[parameters.inspect, body].join(',')}"
+      raise BadRequestException.new(message)
     end
   end
 end

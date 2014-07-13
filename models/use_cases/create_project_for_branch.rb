@@ -35,7 +35,7 @@ module GitlabWebHook
     private
 
     def get_project_to_copy_from(details)
-      master_not_found_message = "could not determine master project, please create a project for the repo (usually for the master branch)"
+      master_not_found_message = 'could not determine master project, please create a project for the repo (usually for the master branch)'
       @get_jenkins_projects.master(details) || raise(NotFoundException.new(master_not_found_message))
     end
 
@@ -54,7 +54,7 @@ module GitlabWebHook
         remote_url = config.getUrl()
         remote_name = config.getName()
       end
-      raise ConfigurationException.new("remote repo clone url not found") unless remote_url
+      raise ConfigurationException.new('remote repo clone url not found') unless remote_url
 
       remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
 

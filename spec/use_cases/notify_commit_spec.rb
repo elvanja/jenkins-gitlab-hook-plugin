@@ -2,41 +2,51 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe NotifyCommit do
-    let(:project) { double(Project, :is_ignoring_notify_commit? => false, :is_buildable? => true) }
+    let(:project) { double(Project, ignore_notify_commit?: false, buildable?: true) }
     let(:logger) { double }
     let(:subject) { NotifyCommit.new(project, logger) }
 
-    context "when project configured to ignore notify commit" do
-      it "skips the build" do
-        project.stub(:is_ignoring_notify_commit?).and_return(true)
-
+    context 'when project configured to ignore notify commit' do
+      it 'skips the build' do
+        allow(project).to receive(:ignore_notify_commit?) { true }
         expect(project).not_to receive(:schedulePolling)
-        expect(subject.call).to match("configured to ignore notify commit")
+        expect(subject.call).to match('configured to ignore notify commit')
       end
     end
 
-    context "when project not buildable" do
-      it "skips the build" do
-        project.stub(:is_buildable?).and_return(false)
-
+    context 'when project not buildable' do
+      it 'skips the build' do
+        allow(project).to receive(:buildable?) { false }
         expect(project).not_to receive(:schedulePolling)
-        expect(subject.call).to match("not buildable")
+        expect(subject.call).to match('not buildable')
       end
     end
 
-    context "when notify commit triggered" do
-      context "successfully" do
-        it "schedules polling" do
+    context 'when notify commit triggered' do
+      context 'successfully' do
+        it 'schedules polling' do
           expect(project).to receive(:schedulePolling).and_return(true)
-          expect(subject.call).to match("scheduled for polling")
+          expect(subject.call).to match('scheduled for polling')
         end
       end
 
-      context "unsuccessfully" do
-        it "logs error and returns appropriate message" do
-          expect(project).to receive(:schedulePolling).and_raise(java.lang.Exception.new)
-          expect(logger).to receive(:log)
-          expect(subject.call).to match("could not be scheduled for polling")
+      context 'unsuccessfully' do
+        before(:each) do
+          exception = java.lang.Exception.new('message')
+          expect(project).to receive(:schedulePolling).and_raise(exception)
+
+          severe = Proc.new {}
+          expect(severe).to receive(:call).with(Level::SEVERE, 'message', exception)
+
+          expect(logger).to receive(:java_method).with(:log, [Level, java.lang.String, java.lang.Throwable]).and_return(severe)
+        end
+
+        it 'logs error' do
+          subject.call
+        end
+
+        it 'returns appropriate message' do
+          expect(subject.call).to match('could not be scheduled for polling')
         end
       end
     end

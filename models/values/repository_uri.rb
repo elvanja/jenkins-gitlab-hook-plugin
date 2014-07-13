@@ -8,7 +8,7 @@ module GitlabWebHook
 
     def initialize(url)
       @url = url
-      @uri = parse_url
+      @uri = parse_url(url)
     end
 
     def matches?(other_uri)
@@ -21,9 +21,10 @@ module GitlabWebHook
 
     private
 
-    def parse_url
+    def parse_url(url)
       begin
-        return URIish.new(url)
+        # explicitly using the correct constructor to remove annoying warning
+        return (URIish.java_class.constructor(java.lang.String).new_instance(url)).to_java(URIish)
       rescue
       end
     end

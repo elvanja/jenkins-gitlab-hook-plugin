@@ -52,7 +52,7 @@ Here are a few examples:
 | USER_NAME | String | Default User | John Smith | From payload, first level, not using the default value |
 | REPOSITORY_HOMEPAGE | String | - | http://example.com/diaspora | From payload, nested value |
 | COMMITS.0.MESSAGE | String | - | Update Catalan translation to e38cb41. | From payload, nested value from array |
-| COMMITS.1 | String | - | { "id": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7", ... } | From payload, entire value from array |
+| COMMITS.1 | String | - | { "id": "da1560886d4f...", ... } | From payload, entire value from array |
 | COMMITS.1.AUTHOR.NAME | String | - | John Smith the Second | From payload, entire value from nested value in array |
 | cOmMiTs.1.aUtHoR.nAme | String | - | John Smith the Second | As above, case insensitive |
 | FULL_BRANCH_REFERENCE | String | - | refs/heads/master | From details |

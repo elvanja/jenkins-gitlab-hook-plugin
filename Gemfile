@@ -1,16 +1,16 @@
-source "http://rubygems.org"
+source 'http://rubygems.org'
 
 # Use this line instead if you want to bundle from a local copy.
-#gem "jenkins-plugin-runtime", :path => "#{File.dirname(__FILE__)}/../jenkins-plugin-runtime"
-gem "jenkins-plugin-runtime", ">= 0.2.3"
+#gem 'jenkins-plugin-runtime', :path => "#{File.dirname(__FILE__)}/../jenkins-plugin-runtime"
+gem 'jenkins-plugin-runtime', '~> 0.2.3'
 
 # using sinatra to run the web hook
-gem "sinatra"
+gem 'sinatra'
 
 group :development do
-  gem 'jpi', '>= 0.3.8'
+  gem 'jpi', '~> 0.4.0'
 end
 
 group :test do
-  gem 'rspec'
+  gem 'rspec', '>= 3.0.0'
 end

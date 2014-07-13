@@ -9,7 +9,8 @@
     "name": "Diaspora",
     "url": "git@example.com:diaspora.git",
     "description": "",
-    "homepage": "http://example.com/diaspora"
+    "homepage": "http://example.com/diaspora",
+    "private": true
   },
   "commits": [
     {
@@ -33,5 +34,5 @@
       }
     }
   ],
-  "total_commits_count": 4
+  "total_commits_count": 2
 }

@@ -18,7 +18,7 @@ module GitlabWebHook
     def with(details, cause_builder = GetBuildCause.new, actions_builder = GetBuildActions.new)
       return "#{project} is configured to ignore notify commit, skipping the build" if project.ignore_notify_commit?
       return "#{project} is not buildable (it is disabled or not saved), skipping the build" unless project.buildable?
-      validate(details)
+      raise ArgumentError.new("details are required") unless details
 
       begin
         return "#{project} scheduled for build" if project.scheduleBuild2(project.getQuietPeriod(), cause_builder.with(details), actions_builder.with(project, details))
@@ -30,10 +30,6 @@ module GitlabWebHook
     end
 
     private
-
-    def validate(details)
-      raise ArgumentError.new("details are required") unless details
-    end
 
     def logger
       @logger || LOGGER

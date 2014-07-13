@@ -6,7 +6,8 @@ java_import Java.hudson.model.StringParameterValue
 module GitlabWebHook
   class GetParametersValues
     def with(project, details)
-      validate(project, details)
+      raise ArgumentError.new("project is required") unless project
+      raise ArgumentError.new("details are required") unless details
 
       values = build_from_payload_or_default(details, project)
       remove_empty(values)
@@ -41,11 +42,6 @@ module GitlabWebHook
 
       value = payload.find { |key, _| key.downcase == parameter.name.downcase }.to_a[1]
       value.nil? ? value : StringParameterValue.new(parameter.name, value.to_s.strip)
-    end
-
-    def validate(project, details)
-      raise ArgumentError.new("project is required") unless project
-      raise ArgumentError.new("details are required") unless details
     end
   end
 end

@@ -2,137 +2,137 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe RequestDetails do
-    context "with validation" do
-      it "is valid when repository url is present" do
-        subject.stub(:repository_url).and_return("http://repo.url")
+    context 'with validation' do
+      it 'is valid when repository url is present' do
+        allow(subject).to receive(:repository_url) { 'http://repo.url' }
         expect(subject.valid?).to be_truthy
       end
 
-      it "is not valid when repository url is missing" do
-        [nil, "", "  \n  "].each do |repository_url|
-          subject.stub(:repository_url).and_return(repository_url)
+      it 'is not valid when repository url is missing' do
+        [nil, '', "  \n  "].each do |repository_url|
+          allow(subject).to receive(:repository_url) { repository_url }
           expect(subject.valid?).to be_falsey
         end
       end
     end
 
-    context "with repository uri" do
-      it "returns uri regardless of repository url" do
-        ["http://repo.url", nil, "", "  \n  "].each do |repository_url|
-          subject.stub(:repository_url).and_return(repository_url)
+    context 'with repository uri' do
+      it 'returns uri regardless of repository url' do
+        ['http://repo.url', nil, '', '  \n  '].each do |repository_url|
+          allow(subject).to receive(:repository_url) { repository_url }
           expect(subject.repository_uri).to be_kind_of(RepositoryUri)
         end
       end
     end
 
-    context "with repository url" do
-      it "expects to implemented in concrete implementation" do
+    context 'with repository url' do
+      it 'expects to implemented in concrete implementation' do
         expect { subject.repository_url }.to raise_exception(NameError)
       end
     end
 
-    context "with repository name" do
-      it "expects to implemented in concrete implementation" do
+    context 'with repository name' do
+      it 'expects to implemented in concrete implementation' do
         expect { subject.repository_url }.to raise_exception(NameError)
       end
     end
 
-    context "with repository homepage" do
-      it "expects to implemented in concrete implementation" do
+    context 'with repository homepage' do
+      it 'expects to implemented in concrete implementation' do
         expect { subject.repository_url }.to raise_exception(NameError)
       end
     end
 
-    context "with full branch name" do
-      it "expects to implemented in concrete implementation" do
+    context 'with full branch name' do
+      it 'expects to implemented in concrete implementation' do
         expect { subject.repository_url }.to raise_exception(NameError)
       end
     end
 
-    context "with branch" do
-      it "extracts branch name from payload" do
-        subject.stub(:full_branch_reference).and_return("refs/heads/master")
-        expect(subject.branch).to eq("master")
+    context 'with branch' do
+      it 'extracts branch name from payload' do
+        allow(subject).to receive(:full_branch_reference) { 'refs/heads/master' }
+        expect(subject.branch).to eq('master')
       end
 
-      it "returns empty branch name when no branch reference data found" do
-        subject.stub(:full_branch_reference).and_return(nil)
-        expect(subject.branch).to eq("")
+      it 'returns empty branch name when no branch reference data found' do
+        allow(subject).to receive(:full_branch_reference) { nil }
+        expect(subject.branch).to eq('')
       end
 
-      it "makes branch safe" do
-        subject.stub(:full_branch_reference).and_return("refs/heads/feature/cool")
-        expect(subject.safe_branch).to eq("feature_cool")
+      it 'makes branch safe' do
+        allow(subject).to receive(:full_branch_reference) { 'refs/heads/feature/cool' }
+        expect(subject.safe_branch).to eq('feature_cool')
       end
 
-      it "returns nil when no payload present" do
-        subject.stub(:full_branch_reference).and_return(nil)
-        expect(subject.branch).to eq("")
+      it 'returns nil when no payload present' do
+        allow(subject).to receive(:full_branch_reference) { nil }
+        expect(subject.branch).to eq('')
       end
 
-      it "removes refs and heads from result" do
-        refs = ["ref", "refs"]
-        heads = ["head", "heads"]
+      it 'removes refs and heads from result' do
+        refs = ['ref', 'refs']
+        heads = ['head', 'heads']
         refs.product(heads).each do |combination|
-          subject.stub(:full_branch_reference).and_return("#{combination.join("/")}/master")
-          expect(subject.branch).to eq("master")
+          allow(subject).to receive(:full_branch_reference) { "#{combination.join('/')}/master" }
+          expect(subject.branch).to eq('master')
         end
       end
 
-      it "detects non refs and non heads" do
-        ["refref", "headhead"].each do |ref|
-          subject.stub(:full_branch_reference).and_return(ref)
+      it 'detects non refs and non heads' do
+        ['refref', 'headhead'].each do |ref|
+          allow(subject).to receive(:full_branch_reference) { ref }
           expect(subject.branch).to eq(ref)
         end
       end
 
-      it "returns branch name" do
-        subject.stub(:full_branch_reference).and_return("refs/heads/master")
-        expect(subject.branch).to eq("master")
+      it 'returns branch name' do
+        allow(subject).to receive(:full_branch_reference) { 'refs/heads/master' }
+        expect(subject.branch).to eq('master')
       end
 
-      it "respects nested branches" do
-        subject.stub(:full_branch_reference).and_return("refs/heads/feature/new_hot_feature")
-        expect(subject.branch).to eq("feature/new_hot_feature")
+      it 'respects nested branches' do
+        allow(subject).to receive(:full_branch_reference) { 'refs/heads/feature/new_hot_feature' }
+        expect(subject.branch).to eq('feature/new_hot_feature')
       end
     end
 
-    context "with delete branch commit" do
-      it "expects to implemented in concrete implementation" do
+    context 'with delete branch commit' do
+      it 'expects to implemented in concrete implementation' do
         expect { subject.repository_url }.to raise_exception(NameError)
       end
     end
 
-    context "with commits" do
-      it "defaults to empty array" do
+    context 'with commits' do
+      it 'defaults to empty array' do
         expect(subject.commits).to eq([])
       end
 
-      it "requires it to be an array" do
-        subject.stub(:get_commits).and_return('invalid commits')
+      it 'requires it to be an array' do
+        allow(subject).to receive(:get_commits) { 'invalid commits' }
         expect { subject.commits }.to raise_exception(ArgumentError)
       end
     end
 
-    context "with commits count" do
-      it "returns commits size" do
-        subject.stub(:commits).at_least(:once).and_return([double, double, double])
+    context 'with commits count' do
+      it 'returns commits size' do
+        allow(subject).to receive(:commits) { [double, double, double] }
         expect(subject.commits_count).to eq(3)
       end
 
-      it "defaults to 0 when no commits present" do
-        subject.stub(:commits).and_return(nil)
+      it 'defaults to 0 when no commits present' do
+        allow(subject).to receive(:commits) { nil }
         expect(subject.commits_count).to eq(0)
       end
     end
 
-    context "with payload" do
-      it "defaults to empty hash" do
+    context 'with payload' do
+      it 'defaults to empty hash' do
         expect(subject.payload).to eq({})
       end
 
-      it "requires it to be a hash" do
-        subject.stub(:get_payload).and_return('invalid payload')
+      it 'requires it to be a hash' do
+        allow(subject).to receive(:get_payload) { 'invalid payload' }
         expect { subject.payload }.to raise_exception(ArgumentError)
       end
     end
@@ -146,9 +146,11 @@ module GitlabWebHook
         branch: 'master'
       }
 
+      let(:payload) { JSON.parse(File.read('spec/fixtures/default_payload.json')) }
+
       before(:each) do
-        details.each { |detail, value| subject.stub(detail).and_return(value) }
-        subject.stub(:payload).and_return(JSON.parse(File.read("spec/fixtures/default_payload.json")))
+        details.each { |detail, value| allow(subject).to receive(detail) { value } }
+        allow(subject).to receive(:get_payload) { payload }
       end
 
       it 'returns flattened payload' do
@@ -162,7 +164,7 @@ module GitlabWebHook
       end
 
       it 'memoizes flattened payload' do
-        expect(subject.payload).to receive(:to_flat_keys).once.and_return({})
+        expect(payload).to receive(:to_flat_keys).once.and_return({})
         10.times { subject.flat_payload }
       end
     end

@@ -2,7 +2,7 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe FlatKeysHash do
-    let (:payload) { JSON.parse(File.read("spec/fixtures/default_payload.json")) }
+    let (:payload) { JSON.parse(File.read('spec/fixtures/default_payload.json')) }
     let (:subject) { payload.extend(FlatKeysHash) }
 
     it 'keeps reference to first level keys' do

@@ -11,14 +11,14 @@ module GitlabWebHook
 
     context 'when project not parametrized' do
       it 'returns empty array' do
-        project.stub(:parametrized?).and_return(false)
+        allow(project).to receive(:parametrized?) { false }
         expect(subject.with(project, details)).to eq([])
       end
     end
 
     context 'when building actions' do
       let(:parameters_values) { [] }
-      before(:each) { GetParametersValues.any_instance.should_receive(:with).with(project, details).and_return(parameters_values) }
+      before(:each) { allow_any_instance_of(GetParametersValues).to receive(:with).with(project, details) { parameters_values } }
 
       it 'delegates parameter values build' do
         subject.with(project, details)

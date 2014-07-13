@@ -52,7 +52,7 @@ Here are a few examples:
 | USER_NAME | String | Default User | John Smith | From payload, first level, not using the default value |
 | REPOSITORY_HOMEPAGE | String | - | http://example.com/diaspora | From payload, nested value |
 | COMMITS.0.MESSAGE | String | - | Update Catalan translation to e38cb41. | From payload, nested value from array |
-| COMMITS.1 | String | - | { "id": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7", ... } | From payload, entire value from array |
+| COMMITS.1 | String | - | { "id": "da1560886d4f...", ... } | From payload, entire value from array |
 | COMMITS.1.AUTHOR.NAME | String | - | John Smith the Second | From payload, entire value from nested value in array |
 | cOmMiTs.1.aUtHoR.nAme | String | - | John Smith the Second | As above, case insensitive |
 | FULL_BRANCH_REFERENCE | String | - | refs/heads/master | From details |
@@ -154,8 +154,8 @@ The plugin expects the request to have the appropriate structure, like this exam
 
 ## Dependencies
 
-* [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.10 or higher
-* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.24 or higer
+* [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.12 or higher
+* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.26 or higer
 
 
 ## Logging

@@ -31,9 +31,21 @@ module GitlabWebHook
       end
 
       context 'unsuccessfully' do
-        it 'logs error and returns appropriate message' do
-          expect(project).to receive(:schedulePolling).and_raise(java.lang.Exception.new)
-          expect(logger).to receive(:log)
+        before(:each) do
+          exception = java.lang.Exception.new('message')
+          expect(project).to receive(:schedulePolling).and_raise(exception)
+
+          severe = Proc.new {}
+          expect(severe).to receive(:call).with(Level::SEVERE, 'message', exception)
+
+          expect(logger).to receive(:java_method).with(:log, [Level, java.lang.String, java.lang.Throwable]).and_return(severe)
+        end
+
+        it 'logs error' do
+          subject.call
+        end
+
+        it 'returns appropriate message' do
           expect(subject.call).to match('could not be scheduled for polling')
         end
       end

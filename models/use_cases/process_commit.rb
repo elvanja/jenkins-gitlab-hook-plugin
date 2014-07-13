@@ -28,7 +28,7 @@ module GitlabWebHook
       else
         projects = @get_jenkins_projects.matching(details)
       end
-      raise NotFoundException.new("no project references the given repo url and commit branch") if projects.empty?
+      raise NotFoundException.new('no project references the given repo url and commit branch') if projects.empty?
 
       projects
     end

@@ -10,7 +10,6 @@ java_import Java.hudson.plugins.git.GitSCM
 java_import Java.hudson.plugins.git.util.InverseBuildChooser
 
 java_import Java.java.util.logging.Logger
-java_import Java.java.util.logging.Level
 
 module GitlabWebHook
   class Project

@@ -24,7 +24,7 @@ module GitlabWebHook
     end
 
     def throw_bad_request_exception(body, parameters)
-      message = "repo url not found in Gitlab payload or the HTTP parameters #{[parameters.inspect, body].join(",")}"
+      message = "repo url not found in Gitlab payload or the HTTP parameters #{[parameters.inspect, body].join(',')}"
       raise BadRequestException.new(message)
     end
   end

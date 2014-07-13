@@ -35,7 +35,7 @@ module GitlabWebHook
 
       it 'recognizes deep nested elements' do
         allow(project).to receive(:get_default_parameters) { [build_parameter('commits.0.author.email')] }
-        expect(subject.with(project, details)[0].value).to eq('jordi@softcatala.org')
+        expect(subject.with(project, details)[0].value).to eq('jsmith@example.com')
       end
     end
 

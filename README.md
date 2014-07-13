@@ -40,20 +40,37 @@ Notes:
 
 #### Parameterized projects
 
-The plugin will recognize projects that are parameterized and will use the default parameter values for the build.<br/>
-In case you define a parameter inside the branch specifier, the plugin will replace the parameter value with the commit branch from the payload.<br/>
+The plugin will recognize projects that are parametrized and will use payload data to fill their values.<br/>
+Only String type of parameters are supported at this moment, all others are passed on with their defaults.<br/>
+You can reference any data from the payload, including arrays and entire sections.<br/>
+Here are a few examples:
+
+| Name | Type | Default Value | Value In Build | Note |
+| ------------- | ------------- | ------------- | ------------- | ------------- |
+| TRIGGERED | Boolean | true | true | Not a String parameter, using default value |
+| TRIGGERED_BY | String | N/A | N/A | Not found in payload or details, using default value |
+| USER_NAME | String | Default User | John Smith | From payload, first level, not using the default value |
+| REPOSITORY_HOMEPAGE | String | - | http://example.com/diaspora | From payload, nested value |
+| COMMITS.0.MESSAGE | String | - | Update Catalan translation to e38cb41. | From payload, nested value from array |
+| COMMITS.1 | String | - | { "id": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7", ... } | From payload, entire value from array |
+| COMMITS.1.AUTHOR.NAME | String | - | John Smith the Second | From payload, entire value from nested value in array |
+| cOmMiTs.1.aUtHoR.nAme | String | - | John Smith the Second | As above, case insensitive |
+| FULL_BRANCH_REFERENCE | String | - | refs/heads/master | From details |
+| BRANCH | String | - | master | From details |
+
+In case you define a parameter inside the branch specifier in Git configuration of the project, the plugin will replace the parameter value with the commit branch from the payload.<br/>
 Replacing is done by matching **${PARAMETER\_KEY}** in the branch specifier to the parameter list for the project.<br/>
 
 This is useful e.g. when you want to define a single project for all the branches in the repository.<br/>
 Setup might look like this:
 
-* parameterized build with string parameter **BRANCH\_TO\_BUILD**, default = master
+* parametrized build with string parameter **BRANCH\_TO\_BUILD**, default = master
 * Source Code Management --> Branch specifier: **origin/${BRANCH\_TO\_BUILD}**
 
 With this configuration, you have the following options:
 
 1. you can start a manual Jenkins build of a project, and it will ask for a branch to build
-2. for builds per commit using the gitlab build now hook, the branch parameter will be filled in with the commit branch extracted from the payload sent from gitlab
+2. for builds per commit using the Gitlab build now hook, the branch parameter will be filled in with the commit branch extracted from the payload sent from Gitlab
 
 Advantages of this approach:
 
@@ -116,8 +133,8 @@ The plugin expects the request to have the appropriate structure, like this exam
       "timestamp": "2011-12-12T14:27:31+02:00",
       "url": "http://example.com/diaspora/commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327",
       "author": {
-        "name": "Jordi Mallach",
-        "email": "jordi@softcatala.org"
+        "name": "John Smith",
+        "email": "jsmith@example.com"
       }
     },
     {
@@ -126,8 +143,8 @@ The plugin expects the request to have the appropriate structure, like this exam
       "timestamp": "2012-01-03T23:36:29+02:00",
       "url": "http://example.com/diaspora/commits/da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
       "author": {
-        "name": "GitLab dev user",
-        "email": "gitlabdev@dv6700.(none)"
+        "name": "John Smith the Second",
+        "email": "jsmith2@example.com"
       }
     }
   ],
@@ -143,7 +160,7 @@ The plugin expects the request to have the appropriate structure, like this exam
 
 ## Logging
 
-In case you might wan't to inspect hook triggering (e.g. to check payload data), you can setup logging in Jenkins as [usual](https://wiki.jenkins-ci.org/display/JENKINS/Logging).<br/>
+In case you might want to inspect hook triggering (e.g. to check payload data), you can setup logging in Jenkins as [usual](https://wiki.jenkins-ci.org/display/JENKINS/Logging).<br/>
 Just add a new logger for **Class** (this is because of JRuby internals).
 
 ## Contributing
@@ -204,4 +221,3 @@ Disadvantages:
 * multiple Jenkins project per Git(lab) repository
 * concurrent builds occur for the same Git(lab) repository
 * job / branch monitoring is not easy because of a large number of projects for a single Git(lab) repository
-

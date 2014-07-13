@@ -19,7 +19,7 @@ module GitlabWebHook
 
     it 'exposes root' do
       repository = subject.to_flat_keys['repository']
-      expect(repository.keys.count).to eq(4)
+      expect(repository.keys.count).to eq(5)
       expect(repository['url']).to eq('git@example.com:diaspora.git')
     end
 
@@ -34,13 +34,13 @@ module GitlabWebHook
     end
 
     it 'supports indefinite levels' do
-      expect(subject.to_flat_keys[%w(commits 0 author email).join(FlatKeysHash::FLATTENED_KEYS_DELIMITER)]).to eq('jordi@softcatala.org')
+      expect(subject.to_flat_keys[%w(commits 0 author email).join(FlatKeysHash::FLATTENED_KEYS_DELIMITER)]).to eq('jsmith@example.com')
     end
 
     it 'exposes nested root' do
       author = subject.to_flat_keys[%w(commits 1 author).join(FlatKeysHash::FLATTENED_KEYS_DELIMITER)]
       expect(author.keys.count).to eq(2)
-      expect(author['email']).to eq('gitlabdev@dv6700.(none)')
+      expect(author['email']).to eq('jsmith2@example.com')
     end
   end
 end

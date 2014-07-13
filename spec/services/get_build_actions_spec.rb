@@ -25,7 +25,7 @@ module GitlabWebHook
       end
 
       it 'returns parameters action' do
-        expect(subject.with(project, details).java_kind_of?(ParametersAction)).to be_truthy
+        expect(subject.with(project, details).java_kind_of?(ParametersAction)).to be
       end
 
       it 'parameters action contain parameters values' do

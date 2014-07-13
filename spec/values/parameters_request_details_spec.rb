@@ -57,12 +57,12 @@ module GitlabWebHook
 
     context 'with delete branch commit' do
       it 'defaults to false' do
-        expect(subject.delete_branch_commit?).to be_falsey
+        expect(subject.delete_branch_commit?).not_to be
       end
 
       it 'detects delete branch commit' do
         parameters['delete_branch_commit'] = true
-        expect(subject.delete_branch_commit?).to be_truthy
+        expect(subject.delete_branch_commit?).to be
       end
     end
   end

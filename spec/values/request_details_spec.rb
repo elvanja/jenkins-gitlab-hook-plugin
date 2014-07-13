@@ -5,13 +5,13 @@ module GitlabWebHook
     context 'with validation' do
       it 'is valid when repository url is present' do
         allow(subject).to receive(:repository_url) { 'http://repo.url' }
-        expect(subject.valid?).to be_truthy
+        expect(subject.valid?).to be
       end
 
       it 'is not valid when repository url is missing' do
         [nil, '', "  \n  "].each do |repository_url|
           allow(subject).to receive(:repository_url) { repository_url }
-          expect(subject.valid?).to be_falsey
+          expect(subject.valid?).not_to be
         end
       end
     end

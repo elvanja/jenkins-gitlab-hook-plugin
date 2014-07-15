@@ -50,7 +50,7 @@ Here are a few examples:
 | TRIGGERED | Boolean | true | true | Not a String parameter, using default value |
 | TRIGGERED_BY | String | N/A | N/A | Not found in payload or details, using default value |
 | USER_NAME | String | Default User | John Smith | From payload, first level, not using the default value |
-| REPOSITORY_HOMEPAGE | String | - | http://example.com/diaspora | From payload, nested value |
+| REPOSITORY.HOMEPAGE | String | - | http://example.com/diaspora | From payload, nested value |
 | COMMITS.0.MESSAGE | String | - | Update Catalan translation to e38cb41. | From payload, nested value from array |
 | COMMITS.1 | String | - | { "id": "da1560886d4f...", ... } | From payload, entire value from array |
 | COMMITS.1.AUTHOR.NAME | String | - | John Smith the Second | From payload, entire value from nested value in array |

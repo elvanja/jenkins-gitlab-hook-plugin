@@ -11,6 +11,8 @@ java_import Java.hudson.plugins.git.BranchSpec
 java_import Java.hudson.plugins.git.UserRemoteConfig
 java_import Java.hudson.plugins.git.browser.GitLab
 java_import Java.hudson.plugins.git.util.DefaultBuildChooser
+java_import Java.hudson.util.VersionNumber
+
 
 module GitlabWebHook
   class CreateProjectForBranch
@@ -58,6 +60,10 @@ module GitlabWebHook
       raise ConfigurationException.new('remote repo clone url not found') unless remote_url
 
       remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
+
+      legacy = VersionNumber.new( "1.9.9" )
+      gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git')
+      raise ConfigurationException.new("Unsupported git plugin version #{gitplugin.getVersion()}") unless gitplugin.isOlderThan( legacy )
 
       GitSCM.new(
           scm_name,

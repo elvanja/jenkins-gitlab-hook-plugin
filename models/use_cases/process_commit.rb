@@ -22,12 +22,12 @@ module GitlabWebHook
     private
 
     def get_projects_to_process(details)
+      projects = []
       if Settings.automatic_project_creation?
-        projects = @get_jenkins_projects.exactly_matching(details)
+        projects << @get_jenkins_projects.exactly_matching(details)
         projects << @create_project_for_branch.with(details) if projects.empty?
-      else
-        projects = @get_jenkins_projects.matching(details)
       end
+      projects = @get_jenkins_projects.matching(details) if projects.empty?
       raise NotFoundException.new('no project references the given repo url and commit branch') if projects.empty?
 
       projects

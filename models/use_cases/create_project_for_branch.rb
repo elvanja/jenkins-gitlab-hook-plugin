@@ -63,9 +63,9 @@ module GitlabWebHook
 
       legacy = VersionNumber.new( "1.9.9" )
       gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git')
-      raise ConfigurationException.new("Unsupported git plugin version #{gitplugin.getVersion()}") unless gitplugin.isOlderThan( legacy )
 
-      GitSCM.new(
+      if gitplugin.isOlderThan( legacy )
+        GitSCM.new(
           scm_name,
           [UserRemoteConfig.new(remote_url, remote_name, remote_refspec)],
           [BranchSpec.new(remote_branch)],
@@ -93,7 +93,19 @@ module GitlabWebHook
           source_scm.getIncludedRegions(),
           source_scm.isIgnoreNotifyCommit(),
           source_scm.getUseShallowClone()
-      )
+        )
+      else
+        remote_credentials = source_scm.getUserRemoteConfigs().first.getCredentialsId()
+        GitSCM.new(
+          [UserRemoteConfig.new(remote_url, remote_name, remote_refspec, remote_credentials)],
+          [BranchSpec.new(remote_branch)],
+          source_scm.isDoGenerateSubmoduleConfigurations(),
+          source_scm.getSubmoduleCfg(),
+          source_scm.getBrowser(),
+          source_scm.getGitTool(),
+          source_scm.getExtensions()
+        )
+      end
     end
   end
 end

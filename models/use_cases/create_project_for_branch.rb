@@ -21,10 +21,11 @@ module GitlabWebHook
     def with(details)
       copy_from = get_project_to_copy_from(details)
       new_project_name = get_new_project_name(copy_from, details)
+      cloned_scm = prepare_scm_from(copy_from.scm, details)
 
       # TODO: set github url, requires github plugin reference
       branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
-      branch_project.scm = prepare_scm_from(copy_from.scm, details)
+      branch_project.scm = cloned_scm
       branch_project.makeDisabled(false)
       branch_project.description = Settings.description
       branch_project.save

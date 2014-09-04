@@ -78,15 +78,16 @@ module GitlabWebHook
     private
 
     def matches_repo_uri?(details_uri)
-      @git_scm_list.find do |s|
+      @match_repo_uri_scms = @git_scm_list.select do |s|
         s.repositories.find do |repo|
           repo.getURIs().find { |project_repo_uri| details_uri.matches?(project_repo_uri) }
         end
       end
+      !@match_repo_uri_scms.empty?
     end
 
     def matches_branch?(branch, exactly = false)
-      matched_branch = @git_scm_list.find do |s|
+      matched_branch = @match_repo_uri_scms.find do |s|
         s.branches.find do |scm_branch|
           s.repositories.find do |repo|
             token = "#{repo.name}/#{branch}"

@@ -32,11 +32,11 @@ module GitlabWebHook
       @logger = logger
     end
 
-    def matches?(details_uri, branch, exactly = false)
+    def matches?(details_uri, branch, ref, exactly = false)
       return false unless buildable?
       return false unless git?
       return false unless matches_repo_uri?(details_uri)
-      matches_branch?(branch, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
+      matches_branch?(branch, ref, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
     end
 
     def ignore_notify_commit?
@@ -69,7 +69,7 @@ module GitlabWebHook
       end
     end
 
-    def matches_branch?(branch, exactly = false)
+    def matches_branch?(branch, ref, exactly = false)
       matched_branch = scm.branches.find do |scm_branch|
         scm.repositories.find do |repo|
           token = "#{repo.name}/#{branch}"

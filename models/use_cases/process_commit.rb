@@ -9,6 +9,8 @@ module GitlabWebHook
       @create_project_for_branch = create_project_for_branch
     end
 
+    LOGGER = Logger.getLogger(ProcessCommit.class.name)
+
     def with(details, action)
       projects = get_projects_to_process(details)
 
@@ -22,15 +24,19 @@ module GitlabWebHook
     private
 
     def get_projects_to_process(details)
+      projects = []
       if Settings.automatic_project_creation?
-        projects = @get_jenkins_projects.exactly_matching(details)
-        projects << @create_project_for_branch.with(details) if projects.empty?
-      else
-        projects = @get_jenkins_projects.matching(details)
+        projects.concat( @get_jenkins_projects.exactly_matching(details) )
+        begin
+          projects << @create_project_for_branch.with(details) if projects.empty?
+        rescue Exception => e
+          LOGGER.warning( "Exception on create_project_for_branch : #{e.message}" )
+        end
       end
+      projects.concat( @get_jenkins_projects.matching(details) ) if projects.empty?
       raise NotFoundException.new('no project references the given repo url and commit branch') if projects.empty?
 
-      projects
+      projects.flatten
     end
   end
 end

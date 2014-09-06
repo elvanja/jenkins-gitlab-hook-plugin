@@ -72,8 +72,9 @@ module GitlabWebHook
     def matches_branch?(branch, ref, exactly = false)
       matched_branch = scm.branches.find do |scm_branch|
         scm.repositories.find do |repo|
+          refspecs = repo.getFetchRefSpecs().select{ |refspec| refspec.matchSource(ref) }
           token = "#{repo.name}/#{branch}"
-          exactly ? scm_branch.name == token : scm_branch.matches(token)
+          refspecs.any? && ( exactly ? scm_branch.name == token : scm_branch.matches(token) )
         end
       end
 

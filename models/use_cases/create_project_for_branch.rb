@@ -52,10 +52,11 @@ module GitlabWebHook
       scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{details.safe_branch}" : nil
 
       # refspec is skipped, we will build specific commit branch
-      remote_url, remote_name, remote_refspec = nil, nil, nil
+      remote_url, remote_name, remote_refspec, remote_credentials = nil, nil, nil, nil
       source_scm.getUserRemoteConfigs().first.tap do |config|
         remote_url = config.getUrl()
         remote_name = config.getName()
+        remote_credentials = config.getCredentialsId()
       end
       raise ConfigurationException.new('remote repo clone url not found') unless remote_url
 

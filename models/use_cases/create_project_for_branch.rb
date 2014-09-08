@@ -26,7 +26,7 @@ module GitlabWebHook
       branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
       branch_project.scm = prepare_scm_from(copy_from.scm, details)
       branch_project.makeDisabled(false)
-      branch_project.description = Settings.description
+      branch_project.description = Settings.new.description
       branch_project.save
 
       Project.new(branch_project)
@@ -40,7 +40,7 @@ module GitlabWebHook
     end
 
     def get_new_project_name(copy_from, details)
-      new_project_name = "#{Settings.use_master_project_name? ? copy_from.name : details.repository_name}_#{details.safe_branch}"
+      new_project_name = "#{Settings.new.use_master_project_name? ? copy_from.name : details.repository_name}_#{details.safe_branch}"
       raise ConfigurationException.new("project #{new_project_name} already exists") unless @get_jenkins_projects.named(new_project_name).empty?
       new_project_name
     end

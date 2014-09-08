@@ -22,7 +22,7 @@ module GitlabWebHook
     private
 
     def get_projects_to_process(details)
-      if Settings.automatic_project_creation?
+      if Settings.new.automatic_project_creation?
         projects = @get_jenkins_projects.exactly_matching(details)
         projects << @create_project_for_branch.with(details) if projects.empty?
       else

@@ -35,13 +35,14 @@ module GitlabWebHook
     end
 
     def master(details)
+      settings = Settings.new
       projects = all.select do |project|
-        project.matches?(details.repository_uri, Settings.any_branch_pattern)
+        project.matches?(details.repository_uri, settings.any_branch_pattern)
       end
 
       # find project for the repo and master branch
       # use any other branch matching the repo
-      projects.find { |project| project.matches?(details.repository_uri, Settings.master_branch, true) } || projects.first
+      projects.find { |project| project.matches?(details.repository_uri, settings.master_branch, true) } || projects.first
     end
 
     private

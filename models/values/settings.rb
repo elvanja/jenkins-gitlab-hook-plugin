@@ -1,3 +1,5 @@
+require 'rexml/document'
+
 module GitlabWebHook
   class Settings
     # TODO a hook to delete artifacts from the feature branches would be nice
@@ -9,6 +11,17 @@ module GitlabWebHook
     USE_MASTER_PROJECT_NAME = false
     DESCRIPTION = "automatically created by Gitlab Web Hook plugin"
     ANY_BRANCH_PATTERN = "**"
+
+    def initialize(*args)
+      xmlconf = '/var/lib/jenkins/gitlab-hook-GitlabWebHookRootAction.xml'
+      if File.exists?(xmlconf)
+        xmlfile = File.new(xmlconf)
+        xmldoc = REXML::Document.new(xmlfile)
+        xmldoc.root.elements.each do |e|
+          instance_variable_set "@#{e.name}", e.text
+        end
+      end
+    end
 
     def automatic_project_creation?
       CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY

@@ -10,23 +10,23 @@ module GitlabWebHook
     DESCRIPTION = "automatically created by Gitlab Web Hook plugin"
     ANY_BRANCH_PATTERN = "**"
 
-    def self.automatic_project_creation?
+    def automatic_project_creation?
       CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY
     end
 
-    def self.master_branch
+    def master_branch
       MASTER_BRANCH
     end
 
-    def self.use_master_project_name?
+    def use_master_project_name?
       USE_MASTER_PROJECT_NAME
     end
 
-    def self.description
+    def description
       DESCRIPTION
     end
 
-    def self.any_branch_pattern
+    def any_branch_pattern
       ANY_BRANCH_PATTERN
     end
   end

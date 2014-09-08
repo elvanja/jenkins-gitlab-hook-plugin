@@ -32,6 +32,37 @@ module GitlabWebHook
       Project.new(branch_project)
     end
 
+    def from_template(template, details)
+      # NOTE : returned value is an instance GitlabWebHook::Project, with some methods delegated to real jenkins object
+      copy_from = get_template_project(template)
+      new_project_name = details.repository_name
+
+      # The SCM related code will fail on 1.x plugins
+      remote_url, remote_name, remote_refspec, remote_credentials = nil, nil, nil, nil
+      copy_from.scm.get_user_remote_configs.first.tap do |config|
+        remote_url = config.getUrl()
+        remote_name = config.getName()
+        remote_refspec = config.getRefspec()
+        remote_credentials = config.getCredentialsId()
+      end
+
+      modified_scm = GitSCM.new(
+          [UserRemoteConfig.new(remote_url, remote_name, remote_refspec, remote_credentials)],
+          [BranchSpec.new('**')], # FIXME : this should be taken from copy_from.scm
+          copy_from.scm.isDoGenerateSubmoduleConfigurations(),
+          copy_from.scm.getSubmoduleCfg(),
+          copy_from.scm.getBrowser(),
+          copy_from.scm.getGitTool(),
+          copy_from.scm.getExtensions()
+        )
+
+      branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
+      branch_project.scm = modified_scm
+      branch_project.makeDisabled(false)
+      branch_project.save
+      Project.new(branch_project)
+    end
+
     private
 
     def get_project_to_copy_from(details)
@@ -39,9 +70,9 @@ module GitlabWebHook
       @get_jenkins_projects.master(details) || raise(NotFoundException.new(master_not_found_message))
     end
 
-    def get_template_project(template ,details)
-      template_not_found_message = "could not found given template, please create a disabled project named #{template}"
-      @get_jenkins_projects.named(template) || raise(NotFoundException.new(template_not_found_message))
+    def get_template_project(template)
+      raise NotFoundException.new("could not found template '#{template}'") if @get_jenkins_projects.named(template).empty?
+      template
     end
 
     def get_new_project_name(copy_from, details)

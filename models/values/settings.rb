@@ -7,10 +7,7 @@ module GitlabWebHook
     # TODO: bring this into the UI / project configuration
     # default params should be available, configuration overrides them
     CREATE_PROJECTS_FOR_NON_MASTER_BRANCHES_AUTOMATICALLY = false
-    MASTER_BRANCH = "master"
     USE_MASTER_PROJECT_NAME = false
-    DESCRIPTION = "automatically created by Gitlab Web Hook plugin"
-    ANY_BRANCH_PATTERN = "**"
 
     def initialize(*args)
       xmlconf = '/var/lib/jenkins/gitlab-hook-GitlabWebHookRootAction.xml'
@@ -28,7 +25,7 @@ module GitlabWebHook
     end
 
     def master_branch
-      MASTER_BRANCH
+      @master_branch || "master"
     end
 
     def use_master_project_name?
@@ -36,11 +33,11 @@ module GitlabWebHook
     end
 
     def description
-      DESCRIPTION
+      @description || "automatically created by Gitlab Web Hook plugin"
     end
 
     def any_branch_pattern
-      ANY_BRANCH_PATTERN
+      @any_branch_pattern || "**"
     end
   end
 end

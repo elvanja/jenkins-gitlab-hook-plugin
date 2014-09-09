@@ -48,7 +48,7 @@ module GitlabWebHook
 
       modified_scm = GitSCM.new(
           [UserRemoteConfig.new(remote_url, remote_name, remote_refspec, remote_credentials)],
-          [BranchSpec.new('**')], # FIXME : this should be taken from copy_from.scm
+          copy_from.scm.getBranches(),
           copy_from.scm.isDoGenerateSubmoduleConfigurations(),
           copy_from.scm.getSubmoduleCfg(),
           copy_from.scm.getBrowser(),

@@ -89,6 +89,7 @@ module GitlabWebHook
       source_scm.getUserRemoteConfigs().first.tap do |config|
         remote_url = config.getUrl()
         remote_name = config.getName()
+        remote_refspec = config.getRefspec()
       end
       raise ConfigurationException.new('remote repo clone url not found') unless remote_url
 

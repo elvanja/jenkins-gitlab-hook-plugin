@@ -36,25 +36,7 @@ module GitlabWebHook
       # NOTE : returned value is an instance GitlabWebHook::Project, with some methods delegated to real jenkins object
       copy_from = get_template_project(template)
       new_project_name = details.repository_name
-
-      # The SCM related code will fail on 1.x plugins
-      remote_url, remote_name, remote_refspec, remote_credentials = nil, nil, nil, nil
-      copy_from.scm.get_user_remote_configs.first.tap do |config|
-        remote_url = config.getUrl()
-        remote_name = config.getName()
-        remote_refspec = config.getRefspec()
-        remote_credentials = config.getCredentialsId()
-      end
-
-      modified_scm = GitSCM.new(
-          [UserRemoteConfig.new(remote_url, remote_name, remote_refspec, remote_credentials)],
-          copy_from.scm.getBranches(),
-          copy_from.scm.isDoGenerateSubmoduleConfigurations(),
-          copy_from.scm.getSubmoduleCfg(),
-          copy_from.scm.getBrowser(),
-          copy_from.scm.getGitTool(),
-          copy_from.scm.getExtensions()
-        )
+      modified_scm = prepare_scm_from(copy_from.scm, details, true)
 
       branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
       branch_project.scm = modified_scm

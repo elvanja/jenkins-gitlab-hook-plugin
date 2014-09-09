@@ -29,5 +29,11 @@ module GitlabWebHook
     def self.any_branch_pattern
       ANY_BRANCH_PATTERN
     end
+
+    def self.templated_jobs
+      {
+        'dpp-resources-' => 'template-dpp-resources'
+      }
+    end
   end
 end

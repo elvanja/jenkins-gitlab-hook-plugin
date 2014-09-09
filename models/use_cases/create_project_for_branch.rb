@@ -81,7 +81,7 @@ module GitlabWebHook
       new_project_name
     end
 
-    def prepare_scm_from(source_scm, details)
+    def prepare_scm_from(source_scm, details, keep_branches=false)
       scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{details.safe_branch}" : nil
 
       # refspec is skipped, we will build specific commit branch
@@ -93,12 +93,17 @@ module GitlabWebHook
       end
       raise ConfigurationException.new('remote repo clone url not found') unless remote_url
 
-      remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
+      if keep_branches
+        branchlist = source_scm.getBranches(),
+      else
+        remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
+        branchlist = [BranchSpec.new(remote_branch)]
+      end
 
       GitSCM.new(
           scm_name,
           [UserRemoteConfig.new(remote_url, remote_name, remote_refspec)],
-          [BranchSpec.new(remote_branch)],
+          branchlist,
           source_scm.getUserMergeOptions(),
           source_scm.getDoGenerate(),
           source_scm.getSubmoduleCfg(),

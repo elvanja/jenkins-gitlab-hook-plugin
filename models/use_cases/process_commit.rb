@@ -29,8 +29,12 @@ module GitlabWebHook
         projects = @get_jenkins_projects.matching(details)
       end
 
-      if projects.empty? and details.repository_name[0..13] == 'dpp-resources-'
-        projects << @create_project_for_branch.from_template('template-dpp-resources', details)
+      if projects.empty?
+        Settings.templated_jobs.each do |matchstr,template|
+          if details.repository_name.start_with? matchstr
+            projects << @create_project_for_branch.from_template(template, details)
+          end
+        end
       end
 
       raise NotFoundException.new('no project references the given repo url and commit branch') if projects.empty?

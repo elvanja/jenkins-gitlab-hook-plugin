@@ -36,6 +36,7 @@ module GitlabWebHook
       # NOTE : returned value is an instance GitlabWebHook::Project, with some methods delegated to real jenkins object
       copy_from = get_template_project(template)
       new_project_name = details.repository_name
+      raise ConfigurationException.new("project #{new_project_name} already created from #{template}") unless @get_jenkins_projects.named(new_project_name).empty?
       modified_scm = prepare_scm_from(copy_from.scm, details, true)
 
       branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)

@@ -64,24 +64,28 @@ module GitlabWebHook
       new_project_name
     end
 
-    def prepare_scm_from(source_scm, details, keep_branches=false)
+    def prepare_scm_from(source_scm, details, is_template=false)
       scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{details.safe_branch}" : nil
 
       # refspec is skipped, we will build specific commit branch
       remote_url, remote_name, remote_refspec = nil, nil, nil
-      source_scm.getUserRemoteConfigs().first.tap do |config|
-        remote_url = config.getUrl()
-        remote_name = config.getName()
-        remote_refspec = config.getRefspec()
-      end
-      raise ConfigurationException.new('remote repo clone url not found') unless remote_url
+      scm_config = source_scm.getUserRemoteConfigs().first
 
-      if keep_branches
+      if is_template
+        remote_url = details.repository_url
         branchlist = source_scm.getBranches()
       else
+        remote_url = config.getUrl()
         remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
         branchlist = [BranchSpec.new(remote_branch)]
       end
+
+      remote_name = scm_config.getName()
+      remote_refspec = scm_config.getRefspec()
+      raise ConfigurationException.new('remote repo clone url not found') unless remote_url
+
+      legacy = VersionNumber.new( "1.9.9" )
+      gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git')
 
       GitSCM.new(
           scm_name,

@@ -77,7 +77,7 @@ module GitlabWebHook
       raise ConfigurationException.new('remote repo clone url not found') unless remote_url
 
       if keep_branches
-        branchlist = source_scm.getBranches(),
+        branchlist = source_scm.getBranches()
       else
         remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
         branchlist = [BranchSpec.new(remote_branch)]

@@ -35,6 +35,13 @@ module GitlabWebHook
             projects << @create_project_for_branch.from_template(template, details)
           end
         end
+        if projects.empty?
+          Settings.templated_jobs.each do |matchstr,template|
+            if details.group == matchstr
+              projects << @create_project_for_branch.from_template(template, details)
+            end
+          end
+        end
       end
 
       raise NotFoundException.new('no project references the given repo url and commit branch') if projects.empty?

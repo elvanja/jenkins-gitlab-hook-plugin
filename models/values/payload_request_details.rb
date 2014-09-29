@@ -12,6 +12,11 @@ module GitlabWebHook
       payload["repository"]["url"].strip
     end
 
+    def repository_group
+      return "" unless repository_homepage
+      repository_homepage.split('/')[-2]
+    end
+
     def repository_name
       return "" unless payload["repository"]
       return "" unless payload["repository"]["name"]

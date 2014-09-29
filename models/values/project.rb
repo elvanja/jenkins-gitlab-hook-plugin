@@ -41,12 +41,16 @@ module GitlabWebHook
       setup_scms
     end
 
-    def matches?(details_uri, branch, refspec, exactly = false)
+    # This function is actually backported from templated jobs branch
+    def matches_uri?(details_uri)
       return false unless buildable?
       return false unless (git? || multi_scm?)
-      matching_scms = get_matching_scms(details_uri)
-      return false if matching_scms.empty?
-      matches_branch?(branch, refspec, matching_scms, exactly)
+      matching_scms?(details_uri)
+    end
+
+    def matches?(details_uri, branch, refspec, exactly = false)
+      return false unless matches_uri?(details_uri)
+      matches_branch?(branch, refspec, @matching_scms, exactly)
     end
 
     def ignore_notify_commit?
@@ -78,8 +82,12 @@ module GitlabWebHook
 
     private
 
+    def matching_scms?(details_uri)
+      get_matching_scms(details_uri).any?
+    end
+
     def get_matching_scms(details_uri)
-      scms.select do |scm|
+      @matching_scms ||= scms.select do |scm|
         scm.repositories.find do |repo|
           repo.getURIs().find do |project_repo_uri|
             details_uri.matches?(project_repo_uri)

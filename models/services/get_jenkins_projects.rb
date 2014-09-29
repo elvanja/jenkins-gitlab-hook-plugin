@@ -40,7 +40,7 @@ module GitlabWebHook
 
     def master(details)
       projects = all.select do |project|
-        project.matches?(details.repository_uri, settings.any_branch_pattern, details.full_branch_reference)
+        project.matches_uri?(details.repository_uri)
       end
 
       # find project for the repo and master branch

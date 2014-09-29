@@ -57,6 +57,8 @@ module GitlabWebHook
       end
 
       it 'finds first projects matching details and any non master branch' do
+        expect(matching_project).to receive(:matches?).with(details.repository_uri, settings.master_branch, details.full_branch_reference, true).and_return(false)
+
         expect(subject.master(details)).to eq(not_matching_project)
       end
     end

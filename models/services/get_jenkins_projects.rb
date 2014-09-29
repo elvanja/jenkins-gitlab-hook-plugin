@@ -18,6 +18,13 @@ java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 
 module GitlabWebHook
   class GetJenkinsProjects
+
+    def matching_uri(details)
+      all.select do |project|
+        project.matches_uri?(details.repository_uri)
+      end
+    end
+
     def matching(details, exactly = false)
       all.select do |project|
         project.matches?(details.repository_uri, details.branch, exactly)

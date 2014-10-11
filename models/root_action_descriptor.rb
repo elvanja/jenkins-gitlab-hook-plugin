@@ -80,11 +80,13 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     private
 
     def parse(form)
-      @automatic_project_creation = form["automatic_project_creation"]
-      @master_branch              = form["master_branch"]
-      @use_master_project_name    = form["use_master_project_name"]
-      @description                = form["description"]
-      @any_branch_pattern         = form["any_branch_pattern"]
+      @automatic_project_creation = form["autocreate"] ? true : false
+      if automatic_project_creation?
+        @master_branch              = form["autocreate"]["master_branch"]
+        @use_master_project_name    = form["autocreate"]["use_master_project_name"]
+        @description                = form["autocreate"]["description"]
+        @any_branch_pattern         = form["autocreate"]["any_branch_pattern"]
+      end
     end
 
     def automatic_project_creation

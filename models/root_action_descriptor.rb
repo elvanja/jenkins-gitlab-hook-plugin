@@ -1,11 +1,7 @@
 require 'rexml/document'
 
-module GitlabWebHook
-  class Settings < Jenkins::Model::DefaultDescriptor
+class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     # TODO a hook to delete artifacts from the feature branches would be nice
-
-    # TODO: bring this into the UI / project configuration
-    # default params should be available, configuration overrides them
 
     def initialize(*args)
       super
@@ -85,5 +81,5 @@ EOS
       return true if str=="true"
       return false
     end
-  end
+
 end

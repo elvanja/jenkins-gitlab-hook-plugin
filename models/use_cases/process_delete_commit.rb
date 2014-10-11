@@ -1,4 +1,3 @@
-require_relative '../values/settings'
 require_relative '../services/get_jenkins_projects'
 
 module GitlabWebHook
@@ -8,7 +7,7 @@ module GitlabWebHook
     end
 
     def with(details)
-      settings = Settings.new
+      settings = Java.jenkins.model.Jenkins.instance.descriptor GitlabWebHookRootActionDescriptor.java_class
       commit_branch = details.branch
 
       return ["branch #{commit_branch} is deleted, but automatic branch projects creation is not active, skipping processing"] unless settings.automatic_project_creation?

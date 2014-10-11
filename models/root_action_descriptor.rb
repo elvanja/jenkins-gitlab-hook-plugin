@@ -1,5 +1,8 @@
 require 'rexml/document'
 
+java_import Java.hudson.BulkChange
+java_import Java.hudson.model.listeners.SaveableListener
+
 class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     # TODO a hook to delete artifacts from the feature branches would be nice
 
@@ -30,6 +33,8 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     end
 
     def save
+      return if BulkChange.contains(self)
+
       doc = REXML::Document.new
       doc.add_element( 'hudson.model.Descriptor' , { "plugin" => "gitlab-hook" } )
 
@@ -47,6 +52,8 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       formatter.write doc, f
 
       f.close
+
+      SaveableListener.fireOnChange(self, configFile)
       f.closed?
     end
 

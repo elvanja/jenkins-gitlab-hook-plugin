@@ -38,6 +38,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 </hudson.model.Descriptor>
 EOS
       f.close
+      f.closed?
     end
 
     def automatic_project_creation?

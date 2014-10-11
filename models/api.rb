@@ -48,9 +48,7 @@ module GitlabWebHook
       status 404
       e.message
     rescue => e
-      # avoid method signature warnings
-      severe = LOGGER.java_method(:log, [Level, java.lang.String, java.lang.Throwable])
-      severe.call(Level::SEVERE, e.message, e)
+      LOGGER.severe "#{e.message}\n    #{e.backtrace.join("\n    ")}"
       status 500
       e.message
     end

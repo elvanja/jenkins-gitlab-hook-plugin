@@ -9,13 +9,18 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     end
 
     def load
-      xmlconf = '/var/lib/jenkins/gitlab-hook-GitlabWebHookRootAction.xml'
-      if File.exists?(xmlconf)
-        xmlfile = File.new(xmlconf)
-        xmldoc = REXML::Document.new(xmlfile)
-        xmldoc.root && xmldoc.root.elements.each do |e|
-          instance_variable_set "@#{e.name}", is_boolean(e.name) ? to_boolean(e.text) : e.text
-        end
+      return unless configFile.file.exists()
+      xmlfile = File.new(configFile.file.canonicalPath)
+      xmldoc = REXML::Document.new(xmlfile)
+      if xmldoc.root
+
+        @automatic_project_creation = xmldoc.root.elements['automatic_project_creation'].text == "true" ? true : false
+        @use_master_project_name = xmldoc.root.elements['use_master_project_name'].text == "true" ? true : false
+
+        @master_branch = xmldoc.root.elements['master_branch'].text
+        @description = xmldoc.root.elements['description'].text
+        @any_branch_pattern = xmldoc.root.elements['any_branch_pattern'].text
+
       end
     end
 
@@ -25,18 +30,22 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     end
 
     def save
-      xmlconf = '/var/lib/jenkins/gitlab-hook-GitlabWebHookRootAction.xml'
-      f = File.open(xmlconf, 'wb')
-      f.write(<<-EOS)
-<?xml version='1.0' encoding='UTF-8'?>
-<hudson.model.Descriptor plugin="gitlab-hook">
-  <master_branch>#{master_branch}</master_branch>
-  <any_branch_pattern>#{any_branch_pattern}</any_branch_pattern>
-  <use_master_project_name>#{use_master_project_name}</use_master_project_name>
-  <automatic_project_creation>#{automatic_project_creation}</automatic_project_creation>
-  <description>#{description}</description>
-</hudson.model.Descriptor>
-EOS
+      doc = REXML::Document.new
+      doc.add_element( 'hudson.model.Descriptor' , { "plugin" => "gitlab-hook" } )
+
+      doc.root.add_element( 'automatic_project_creation' ).add_text( automatic_project_creation.to_s )
+      doc.root.add_element( 'master_branch' ).add_text( master_branch )
+      doc.root.add_element( 'use_master_project_name' ).add_text( use_master_project_name.to_s )
+      doc.root.add_element( 'description' ).add_text( description )
+      doc.root.add_element( 'any_branch_pattern' ).add_text( any_branch_pattern )
+
+      f = File.open(configFile.file.canonicalPath, 'wb')
+      f.puts("<?xml version='#{doc.version}' encoding='#{doc.encoding}'?>")
+
+      formatter = REXML::Formatters::Pretty.new
+      formatter.compact = true
+      formatter.write doc, f
+
       f.close
       f.closed?
     end
@@ -77,15 +86,6 @@ EOS
 
     def use_master_project_name
       @use_master_project_name || false
-    end
-
-    def is_boolean(variable)
-      [ 'automatic_project_creation', 'use_master_project_name'].include? variable
-    end
-
-    def to_boolean(str)
-      return true if str=="true"
-      return false
     end
 
 end

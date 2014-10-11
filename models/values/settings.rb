@@ -1,13 +1,18 @@
 require 'rexml/document'
 
 module GitlabWebHook
-  class Settings
+  class Settings < Jenkins::Model::DefaultDescriptor
     # TODO a hook to delete artifacts from the feature branches would be nice
 
     # TODO: bring this into the UI / project configuration
     # default params should be available, configuration overrides them
 
     def initialize(*args)
+      super
+      load
+    end
+
+    def load
       xmlconf = '/var/lib/jenkins/gitlab-hook-GitlabWebHookRootAction.xml'
       if File.exists?(xmlconf)
         xmlfile = File.new(xmlconf)
@@ -18,12 +23,20 @@ module GitlabWebHook
       end
     end
 
+    def automatic_project_creation
+      @automatic_project_creation || "false"
+    end
+
     def automatic_project_creation?
       to_boolean(@automatic_project_creation) || false
     end
 
     def master_branch
       @master_branch || "master"
+    end
+
+    def use_master_project_name
+      @use_master_project_name || "false"
     end
 
     def use_master_project_name?

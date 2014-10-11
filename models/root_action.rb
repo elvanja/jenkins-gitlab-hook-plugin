@@ -4,6 +4,7 @@ require_relative 'unprotected_root_action'
 require_relative 'api'
 
 class GitlabWebHookRootAction < Jenkins::Model::UnprotectedRootAction
+  include Jenkins::Model::DescribableNative
   include Jenkins::RackSupport
 
   WEB_HOOK_ROOT_URL = "gitlab"
@@ -15,6 +16,8 @@ class GitlabWebHookRootAction < Jenkins::Model::UnprotectedRootAction
   def call(env)
     GitlabWebHook::Api.new.call(env)
   end
+
+  describe_as Java.hudson.model.Descriptor, :with => GitlabWebHook::Settings
 end
 
 Jenkins::Plugin.instance.register_extension(GitlabWebHookRootAction.new)

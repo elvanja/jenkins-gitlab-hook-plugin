@@ -27,7 +27,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     def save
       xmlconf = '/var/lib/jenkins/gitlab-hook-GitlabWebHookRootAction.xml'
       f = File.open(xmlconf, 'wb')
-      f.write <<-EOS
+      f.write(<<-EOS)
 <?xml version='1.0' encoding='UTF-8'?>
 <hudson.model.Descriptor plugin="gitlab-hook">
   <master_branch>#{master_branch}</master_branch>
@@ -37,6 +37,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
   <description>#{description}</description>
 </hudson.model.Descriptor>
 EOS
+      f.close
     end
 
     def automatic_project_creation

@@ -90,11 +90,11 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     end
 
     def automatic_project_creation
-      @automatic_project_creation || false
+      @automatic_project_creation.nil? ? false : @automatic_project_creation
     end
 
     def use_master_project_name
-      @use_master_project_name || false
+      @use_master_project_name.nil? ? false : @use_master_project_name
     end
 
 end

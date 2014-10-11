@@ -14,7 +14,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
         xmlfile = File.new(xmlconf)
         xmldoc = REXML::Document.new(xmlfile)
         xmldoc.root && xmldoc.root.elements.each do |e|
-          instance_variable_set "@#{e.name}", e.text
+          instance_variable_set "@#{e.name}", is_boolean(e.name) ? to_boolean(e.text) : e.text
         end
       end
     end
@@ -40,24 +40,16 @@ EOS
       f.close
     end
 
-    def automatic_project_creation
-      @automatic_project_creation || "false"
-    end
-
     def automatic_project_creation?
-      to_boolean(@automatic_project_creation) || false
+      automatic_project_creation
     end
 
     def master_branch
       @master_branch || "master"
     end
 
-    def use_master_project_name
-      @use_master_project_name || "false"
-    end
-
     def use_master_project_name?
-      to_boolean(@use_master_project_name) || false
+      use_master_project_name
     end
 
     def description
@@ -76,6 +68,18 @@ EOS
       @use_master_project_name    = form["use_master_project_name"]
       @description                = form["description"]
       @any_branch_pattern         = form["any_branch_pattern"]
+    end
+
+    def automatic_project_creation
+      @automatic_project_creation || false
+    end
+
+    def use_master_project_name
+      @use_master_project_name || false
+    end
+
+    def is_boolean(variable)
+      [ 'automatic_project_creation', 'use_master_project_name'].include? variable
     end
 
     def to_boolean(str)

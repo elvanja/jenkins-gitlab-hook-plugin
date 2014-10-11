@@ -4,7 +4,7 @@
    f.section(:title => "Gitlab Web Hook Configuration") do
 
     f.entry :title => 'Automatic project creation', :field => 'automatic_project_creation' do
-      f.textbox :default => "#{descriptor.automatic_project_creation}"
+      f.checkbox :checked => "#{descriptor.automatic_project_creation?}"
     end
 
     f.entry :title => 'Project master branch', :field => 'master_branch' do
@@ -12,7 +12,7 @@
     end
 
     f.entry :title => 'Use master project name', :field => 'use_master_project_name' do
-      f.textbox :default => "#{descriptor.use_master_project_name}"
+      f.checkbox :checked => "#{descriptor.use_master_project_name?}"
     end
 
     f.entry :title => 'Description', :field => 'description' do

@@ -13,7 +13,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       if File.exists?(xmlconf)
         xmlfile = File.new(xmlconf)
         xmldoc = REXML::Document.new(xmlfile)
-        xmldoc.root.elements.each do |e|
+        xmldoc.root && xmldoc.root.elements.each do |e|
           instance_variable_set "@#{e.name}", e.text
         end
       end

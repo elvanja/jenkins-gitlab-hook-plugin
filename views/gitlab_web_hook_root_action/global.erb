@@ -27,7 +27,7 @@
 
      f.entry :title => 'Template based job creation' do
 
-       f.repeatable :items => descriptor.templated_jobs.to_a, :var => 'templates', :noAddButton=>true do
+       f.repeatable :items => descriptor.templated_jobs.to_a, :var => 'templates', :add => 'Add new template' do
          %><table width="100%"><%
          f.entry :title => 'Match string', :field => 'string' do
            f.textbox :default => "#{templates.nil? ? '' : templates.first }"

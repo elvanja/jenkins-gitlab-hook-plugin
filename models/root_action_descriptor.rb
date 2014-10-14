@@ -24,6 +24,8 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
         @description = xmldoc.root.elements['description'].text
         @any_branch_pattern = xmldoc.root.elements['any_branch_pattern'].text
 
+        @templates = get_templates xmldoc.root.elements['templates']
+
       end
     end
 
@@ -99,6 +101,14 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 
     def use_master_project_name
       @use_master_project_name.nil? ? false : @use_master_project_name
+    end
+
+    def get_templates(templates)
+      return unless templates
+      templates.elements.select{ |tpl| tpl.name == 'template' }.inject({}) do |hash, tpl|
+        hash[tpl.elements['string'].text] = tpl.elements['project'].text
+        hash
+      end
     end
 
 end

@@ -100,6 +100,10 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
         @description                = form["autocreate"]["description"]
         @any_branch_pattern         = form["autocreate"]["any_branch_pattern"]
       end
+      @templates = form['templates'].inject({}) do |hash, item|
+        hash[item['string']] = item['project']
+        hash
+      end
     end
 
     def automatic_project_creation

@@ -21,7 +21,26 @@
       f.textbox :default => "#{descriptor.any_branch_pattern}"
     end
 
-  end
+   end
+
+   f.advanced do
+
+     f.entry :title => 'Template based job creation' do
+
+       f.repeatable :items => descriptor.templated_jobs.to_a, :var => 'templates', :noAddButton=>true do
+         %><table width="100%"><%
+         f.entry :title => 'Match string', :field => 'string' do
+           f.textbox :default => "#{templates.nil? ? '' : templates.first }"
+	   end
+         f.entry :title => 'Base project', :field => 'project' do
+           f.textbox :default => "#{templates.nil? ? '' : templates.last }"
+         end
+         %></table><div align="right"><%f.repeatableDeleteButton%></div><%
+       end
+
+     end
+
+   end
 
  end
 %>

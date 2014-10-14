@@ -1,6 +1,5 @@
 require_relative '../exceptions/not_found_exception'
 require_relative '../exceptions/configuration_exception'
-require_relative '../values/settings'
 require_relative '../values/project'
 require_relative '../services/get_jenkins_projects'
 
@@ -15,6 +14,7 @@ java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 module GitlabWebHook
   class CreateProjectForBranch
     def initialize(get_jenkins_projects = GetJenkinsProjects.new)
+      @settings = Java.jenkins.model.Jenkins.instance.descriptor GitlabWebHookRootActionDescriptor.java_class
       @get_jenkins_projects = get_jenkins_projects
     end
 
@@ -26,7 +26,7 @@ module GitlabWebHook
       branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
       branch_project.scm = prepare_scm_from(copy_from.scm, details)
       branch_project.makeDisabled(false)
-      branch_project.description = Settings.description
+      branch_project.description = @settings.description
       branch_project.save
 
       Project.new(branch_project)
@@ -59,7 +59,7 @@ module GitlabWebHook
     end
 
     def get_new_project_name(copy_from, details)
-      new_project_name = "#{Settings.use_master_project_name? ? copy_from.name : details.repository_name}_#{details.safe_branch}"
+      new_project_name = "#{@settings.use_master_project_name? ? copy_from.name : details.repository_name}_#{details.safe_branch}"
       raise ConfigurationException.new("project #{new_project_name} already exists") unless @get_jenkins_projects.named(new_project_name).empty?
       new_project_name
     end

@@ -1,5 +1,4 @@
 require_relative 'create_project_for_branch'
-require_relative '../values/settings'
 require_relative '../services/get_jenkins_projects'
 
 module GitlabWebHook
@@ -22,7 +21,8 @@ module GitlabWebHook
     private
 
     def get_projects_to_process(details)
-      if Settings.automatic_project_creation?
+      settings = Java.jenkins.model.Jenkins.instance.descriptor GitlabWebHookRootActionDescriptor.java_class
+      if settings.automatic_project_creation?
         projects = @get_jenkins_projects.exactly_matching(details)
         projects << @create_project_for_branch.with(details) if projects.empty?
       else
@@ -30,13 +30,13 @@ module GitlabWebHook
       end
 
       if @get_jenkins_projects.matching_uri(details).empty?
-        Settings.templated_jobs.each do |matchstr,template|
+        settings.templated_jobs.each do |matchstr,template|
           if details.repository_name.start_with? matchstr
             projects << @create_project_for_branch.from_template(template, details)
           end
         end
         if projects.empty?
-          Settings.templated_jobs.each do |matchstr,template|
+          settings.templated_jobs.each do |matchstr,template|
             if details.group == matchstr
               projects << @create_project_for_branch.from_template(template, details)
             end

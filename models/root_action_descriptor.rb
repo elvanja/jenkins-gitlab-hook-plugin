@@ -46,6 +46,13 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       doc.root.add_element( 'description' ).add_text( description )
       doc.root.add_element( 'any_branch_pattern' ).add_text( any_branch_pattern )
 
+      tpls = doc.root.add_element( 'templates' )
+      templated_jobs.each do |k,v|
+        new = tpls.add_element('template')
+        new.add_element('string').add_text(k)
+        new.add_element('project').add_text(v)
+      end
+
       f = File.open(configFile.file.canonicalPath, 'wb')
       f.puts("<?xml version='#{doc.version}' encoding='#{doc.encoding}'?>")
 

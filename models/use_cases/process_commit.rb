@@ -29,7 +29,7 @@ module GitlabWebHook
         projects = @get_jenkins_projects.matching(details)
       end
 
-      if @get_jenkins_projects.matching_uri(details).empty?
+      if projects.empty? && @get_jenkins_projects.matching_uri(details).empty?
         settings.templated_jobs.each do |matchstr,template|
           if details.repository_name.start_with? matchstr
             projects << @create_project_for_branch.from_template(template, details)

@@ -43,7 +43,6 @@ module GitlabWebHook
       before(:each) do
         allow(master).to receive(:scm) { source_scm }
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
-        expect(jenkins_instance).to receive(:copy).with(jenkins_project, anything).and_return(new_jenkins_project)
       end
 
       it 'fails if remote url could not be determined' do
@@ -52,6 +51,7 @@ module GitlabWebHook
       end
 
       it 'returns a new project' do
+        expect(jenkins_instance).to receive(:copy).with(jenkins_project, anything).and_return(new_jenkins_project)
         allow(subject).to receive(:prepare_scm_from) { double(GitSCM) }
         branch_project = subject.with(details)
         expect(branch_project).to be_kind_of(Project)

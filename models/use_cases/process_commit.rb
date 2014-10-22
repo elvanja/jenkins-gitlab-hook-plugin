@@ -40,12 +40,15 @@ module GitlabWebHook
             projects << @create_project_for_branch.from_template(template, details)
           end
         end
-        if projects.empty?
-          settings.templated_jobs.each do |matchstr,template|
-            if details.group == matchstr
-              projects << @create_project_for_branch.from_template(template, details)
-            end
+        return projects if projects.any?
+        settings.templated_groups.each do |matchstr,template|
+          if details.group == matchstr
+            projects << @create_project_for_branch.from_template(template, details)
           end
+        end
+        return projects if projects.any?
+        if settings.template_fallback
+          projects << @create_project_for_branch.from_template(settings.template_fallback, details)
         end
       end
 

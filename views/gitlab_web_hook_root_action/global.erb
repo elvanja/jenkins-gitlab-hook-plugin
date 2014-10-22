@@ -40,6 +40,23 @@
 
      end
 
+     f.entry :title => 'Templates for gitlab groups' do
+       f.repeatable :items => descriptor.templated_groups.to_a, :var => 'group_templates', :add => 'Add new group template' do
+         %><table width="100%"><%
+         f.entry :title => 'Match string', :field => 'string' do
+           f.textbox :default => "#{group_templates.nil? ? '' : group_templates.first }"
+	   end
+         f.entry :title => 'Base project', :field => 'project' do
+           f.textbox :default => "#{group_templates.nil? ? '' : group_templates.last }"
+         end
+         %></table><div align="right"><%f.repeatableDeleteButton%></div><%
+       end
+     end
+
+     f.entry :title => 'Last resort template', :field => 'template' do
+       f.textbox :default => "#{descriptor.template_fallback}"
+     end
+
    end
 
  end

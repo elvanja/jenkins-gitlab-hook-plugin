@@ -22,14 +22,15 @@ module GitlabWebHook
 
     def get_projects_to_process(details)
       settings = Java.jenkins.model.Jenkins.instance.descriptor GitlabWebHookRootActionDescriptor.java_class
-      if settings.automatic_project_creation?
-        projects = @get_jenkins_projects.exactly_matching(details)
-        projects << @create_project_for_branch.with(details) if projects.empty?
+      projects = @get_jenkins_projects.matching_uri(details)
+      if projects.any?
+        if settings.automatic_project_creation?
+          projects = @get_jenkins_projects.exactly_matching(details)
+          projects << @create_project_for_branch.with(details) if projects.empty?
+        else
+          projects = @get_jenkins_projects.matching(details)
+        end
       else
-        projects = @get_jenkins_projects.matching(details)
-      end
-
-      if projects.empty? && @get_jenkins_projects.matching_uri(details).empty?
         settings.templated_jobs.each do |matchstr,template|
           if details.repository_name.start_with? matchstr
             projects << @create_project_for_branch.from_template(template, details)

@@ -14,7 +14,9 @@ module GitlabWebHook
       return ["branch #{commit_branch} is deleted, but relates to master project so will not delete, skipping processing"] if commit_branch == settings.master_branch
 
       messages = []
-      @get_jenkins_projects.exactly_matching(details).each do |project|
+      @get_jenkins_projects.all.select do |project|
+        project.matches?(details.repository_uri, details.branch, true)
+      end.each do |project|
         messages << "project #{project} matches deleted branch but is not automatically created by the plugin, skipping" and next unless project.description.match /#{settings.description}/
         project.delete
         messages << "deleted #{project} project"

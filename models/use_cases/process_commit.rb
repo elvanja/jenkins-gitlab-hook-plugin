@@ -25,10 +25,14 @@ module GitlabWebHook
       projects = @get_jenkins_projects.matching_uri(details)
       if projects.any?
         if settings.automatic_project_creation?
-          projects = @get_jenkins_projects.exactly_matching(details)
+          projects.select! do |project|
+            project.matches?(details.repository_uri, details.branch, true)
+          end
           projects << @create_project_for_branch.with(details) if projects.empty?
         else
-          projects = @get_jenkins_projects.matching(details)
+          projects.select! do |project|
+            project.matches?(details.repository_uri, details.branch)
+          end
         end
       else
         settings.templated_jobs.each do |matchstr,template|

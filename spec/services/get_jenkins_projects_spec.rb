@@ -13,7 +13,10 @@ module GitlabWebHook
         expect(not_matching_project).to receive(:matches?).with(details.repository_uri, details.branch, false).and_return(false)
         expect(matching_project).to receive(:matches?).with(details.repository_uri, details.branch, false).and_return(true)
 
-        projects = subject.matching(details)
+        projects = subject.all.select do |project|
+          project.matches?(details.repository_uri, details.branch)
+        end
+
         expect(projects.size).to eq(1)
         expect(projects[0]).to eq(matching_project)
       end
@@ -22,7 +25,9 @@ module GitlabWebHook
         expect(not_matching_project).to receive(:matches?).with(details.repository_uri, details.branch, true).and_return(false)
         expect(matching_project).to receive(:matches?).with(details.repository_uri, details.branch, true).and_return(true)
 
-        projects = subject.exactly_matching(details)
+        projects = subject.all.select do |project|
+          project.matches?(details.repository_uri, details.branch, true)
+        end
         expect(projects.size).to eq(1)
         expect(projects[0]).to eq(matching_project)
       end

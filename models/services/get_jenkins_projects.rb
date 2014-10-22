@@ -24,16 +24,6 @@ module GitlabWebHook
       end
     end
 
-    def matching(details, exactly = false)
-      all.select do |project|
-        project.matches?(details.repository_uri, details.branch, exactly)
-      end
-    end
-
-    def exactly_matching(details)
-      matching(details, true)
-    end
-
     def named(name)
       all.select do |project|
         project.name == name

@@ -29,13 +29,13 @@ module GitlabWebHook
       end
 
       it 'searches matching projects' do
-        expect(get_jenkins_projects).to receive(:matching).with(details).and_return([project])
+        expect(get_jenkins_projects).to receive(:all).with(details).and_return([project])
         expect(action).to receive(:call)
         subject.with(details, action)
       end
 
       it 'raises exception when no matching projects found' do
-        expect(get_jenkins_projects).to receive(:matching).with(details).and_return([])
+        expect(get_jenkins_projects).to receive(:all).with(details).and_return([])
         expect(action).not_to receive(:call)
         expect { subject.with(details, action) }.to raise_exception(NotFoundException)
       end
@@ -45,14 +45,14 @@ module GitlabWebHook
       before(:each) { allow(Settings).to receive(:automatic_project_creation?) { true } }
 
       it 'searches exactly matching projects' do
-        expect(get_jenkins_projects).to receive(:exactly_matching).with(details).and_return([project])
+        expect(get_jenkins_projects).to receive(:all).with(details).and_return([project])
         expect(create_project_for_branch).not_to receive(:with)
         expect(action).to receive(:call)
         subject.with(details, action)
       end
 
       it 'creates a new project when no matching projects found' do
-        expect(get_jenkins_projects).to receive(:exactly_matching).with(details).and_return([])
+        expect(get_jenkins_projects).to receive(:all).with(details).and_return([])
         expect(create_project_for_branch).to receive(:with).with(details).and_return(project)
         expect(action).to receive(:call).with(project, details).once
         subject.with(details, action)

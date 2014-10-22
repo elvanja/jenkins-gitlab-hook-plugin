@@ -9,7 +9,7 @@ module GitlabWebHook
     context 'when automatic project creation is offline' do
       it 'skips processing' do
         allow(Settings).to receive(:automatic_project_creation?) { false }
-        expect(get_jenkins_projects).not_to receive(:exactly_matching)
+        expect(get_jenkins_projects).not_to receive(:all)
         expect(subject.with(details).first).to match('automatic branch projects creation is not active')
       end
     end
@@ -18,7 +18,7 @@ module GitlabWebHook
       before(:each) { allow(Settings).to receive(:automatic_project_creation?) { true } }
 
       context 'with master branch in commit' do
-        before(:each) { expect(get_jenkins_projects).not_to receive(:exactly_matching) }
+        before(:each) { expect(get_jenkins_projects).not_to receive(:all) }
 
         it 'skips processing' do
           allow(details).to receive(:branch) { Settings.master_branch }
@@ -29,7 +29,7 @@ module GitlabWebHook
       context 'with non master branch in commit' do
         let(:project) { double(Project, to_s: 'non_master') }
 
-        before(:each) { expect(get_jenkins_projects).to receive(:exactly_matching).with(details).and_return([project]) }
+        before(:each) { expect(get_jenkins_projects).to receive(:all).with(details).and_return([project]) }
 
         it 'deletes automatically created project' do
           allow(project).to receive(:description) { Settings.description }

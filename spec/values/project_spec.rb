@@ -31,6 +31,7 @@ module GitlabWebHook
     context 'when determining if matches repository url and branch' do
       let(:scm) { double(GitSCM) }
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
+      let(:refspec) { double('RefSpec') }
       let(:details_uri) { double(RepositoryUri) }
       let(:branch) { double('BranchSpec', matches: true) }
       let(:build_chooser) { double('BuildChooser') }
@@ -48,7 +49,8 @@ module GitlabWebHook
 
         allow(details_uri).to receive(:matches?) { true }
 
-        allow(repository).to receive(:getFetchRefSpecs) { ['+refs/heads/*:refs/remotes/origin/*'] }
+        allow(repository).to receive(:getFetchRefSpecs) { [refspec] }
+        allow(refspec).to receive(:matchSource).with(anything) { true }
 
         allow(jenkins_project).to receive(:scm) { scm }
       end

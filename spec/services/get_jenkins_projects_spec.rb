@@ -3,7 +3,7 @@ require 'spec_helper'
 module GitlabWebHook
   describe GetJenkinsProjects do
     context 'when fetching projects by request details' do
-      let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', repository_uri: double(RepositoryUri)) }
+      let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: double(RepositoryUri)) }
       let(:matching_project) { double(Project) }
       let(:not_matching_project) { double(Project) }
 
@@ -29,7 +29,7 @@ module GitlabWebHook
     end
 
     context 'when fetching master project matching request details' do
-      let(:details) { double(RequestDetails, branch: 'master', repository_uri: double(RepositoryUri)) }
+      let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: double(RepositoryUri)) }
       let(:matching_project) { double(Project) }
       let(:not_matching_project) { double(Project) }
 

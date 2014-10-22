@@ -48,6 +48,8 @@ module GitlabWebHook
 
         allow(details_uri).to receive(:matches?) { true }
 
+        allow(repository).to receive(:getFetchRefSpecs) { ['+refs/heads/*:refs/remotes/origin/*'] }
+
         allow(jenkins_project).to receive(:scm) { scm }
       end
 

@@ -12,10 +12,12 @@ GEM
       jenkins-war (> 1.427)
       rubyzip (~> 1.1.0)
       thor
+    json (1.7.5)
     json (1.7.5-java)
     rack (1.4.1)
     rack-protection (1.2.0)
       rack
+    rake (10.3.2)
     rspec (3.0.0)
       rspec-core (~> 3.0.0)
       rspec-expectations (~> 3.0.0)
@@ -39,9 +41,11 @@ GEM
 
 PLATFORMS
   java
+  ruby
 
 DEPENDENCIES
   jenkins-plugin-runtime (~> 0.2.3)
   jpi (~> 0.4.0)
+  rake
   rspec (>= 3.0.0)
   sinatra

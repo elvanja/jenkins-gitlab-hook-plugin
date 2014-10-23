@@ -11,6 +11,8 @@ java_import Java.hudson.plugins.git.BranchSpec
 java_import Java.hudson.plugins.git.UserRemoteConfig
 java_import Java.hudson.plugins.git.browser.GitLab
 java_import Java.hudson.plugins.git.util.DefaultBuildChooser
+java_import Java.hudson.util.VersionNumber
+
 
 module GitlabWebHook
   class CreateProjectForBranch
@@ -21,10 +23,11 @@ module GitlabWebHook
     def with(details)
       copy_from = get_project_to_copy_from(details)
       new_project_name = get_new_project_name(copy_from, details)
+      cloned_scm = prepare_scm_from(copy_from.scm, details)
 
       # TODO: set github url, requires github plugin reference
       branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
-      branch_project.scm = prepare_scm_from(copy_from.scm, details)
+      branch_project.scm = cloned_scm
       branch_project.makeDisabled(false)
       branch_project.description = Settings.description
       branch_project.save
@@ -58,7 +61,11 @@ module GitlabWebHook
 
       remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
 
-      GitSCM.new(
+      legacy = VersionNumber.new( "1.9.9" )
+      gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git')
+
+      if gitplugin.isOlderThan( legacy )
+        GitSCM.new(
           scm_name,
           [UserRemoteConfig.new(remote_url, remote_name, remote_refspec)],
           [BranchSpec.new(remote_branch)],
@@ -86,7 +93,19 @@ module GitlabWebHook
           source_scm.getIncludedRegions(),
           source_scm.isIgnoreNotifyCommit(),
           source_scm.getUseShallowClone()
-      )
+        )
+      else
+        remote_credentials = source_scm.getUserRemoteConfigs().first.getCredentialsId()
+        GitSCM.new(
+          [UserRemoteConfig.new(remote_url, remote_name, remote_refspec, remote_credentials)],
+          [BranchSpec.new(remote_branch)],
+          source_scm.isDoGenerateSubmoduleConfigurations(),
+          source_scm.getSubmoduleCfg(),
+          source_scm.getBrowser(),
+          source_scm.getGitTool(),
+          source_scm.getExtensions()
+        )
+      end
     end
   end
 end

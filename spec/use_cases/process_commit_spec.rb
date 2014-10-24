@@ -29,6 +29,7 @@ module GitlabWebHook
 
       before(:each) do
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+        allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
         expect(create_project_for_branch).not_to receive(:with)
       end
 

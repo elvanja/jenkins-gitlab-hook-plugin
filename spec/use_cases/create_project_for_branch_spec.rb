@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+require 'models/root_action_descriptor'
+
 module GitlabWebHook
   describe CreateProjectForBranch do
     let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta') }
@@ -7,6 +9,12 @@ module GitlabWebHook
     let(:master) { double(Project, name: 'discourse', jenkins_project: jenkins_project) }
     let(:get_jenkins_projects) { double(GetJenkinsProjects, master: master, named: []) }
     let(:subject) { CreateProjectForBranch.new(get_jenkins_projects) }
+    let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
+
+    before(:each) do
+      allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+      allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
+    end
 
     context 'when not able to find a master project to copy from' do
       it 'raises appropriate exception' do
@@ -23,7 +31,6 @@ module GitlabWebHook
     end
 
     context 'when naming the branch project' do
-      before(:each) { allow(Settings).to receive(:use_master_project_name?) { true } }
 
       it 'uses master project name with appropriate settings' do
         expect(subject.send(:get_new_project_name, master, details)).to match(master.name)

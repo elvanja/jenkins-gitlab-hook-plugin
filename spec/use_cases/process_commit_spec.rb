@@ -29,11 +29,11 @@ module GitlabWebHook
 
       before(:each) do
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+        allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
         expect(create_project_for_branch).not_to receive(:with)
       end
 
       it 'searches matching projects' do
-        allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
         expect(get_jenkins_projects).to receive(:matching).with(details).and_return([project])
         expect(action).to receive(:call)
         subject.with(details, action)

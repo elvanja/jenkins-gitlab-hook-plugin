@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+require 'models/root_action_descriptor'
+
 module GitlabWebHook
   describe GetJenkinsProjects do
     context 'when fetching projects by request details' do
@@ -32,23 +34,29 @@ module GitlabWebHook
       let(:details) { double(RequestDetails, branch: 'master', repository_uri: double(RepositoryUri)) }
       let(:matching_project) { double(Project) }
       let(:not_matching_project) { double(Project) }
+      let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
 
       before(:each) { allow(subject).to receive(:all) { [not_matching_project, matching_project] } }
 
+      before(:each) do
+        allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+        allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
+      end
+
       it 'finds project matching details and master branch' do
-        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, Settings.any_branch_pattern).and_return(true)
-        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, Settings.master_branch, true).and_return(false)
-        expect(matching_project).to receive(:matches?).with(details.repository_uri, Settings.any_branch_pattern).and_return(true)
-        expect(matching_project).to receive(:matches?).with(details.repository_uri, Settings.master_branch, true).and_return(true)
+        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptor.any_branch_pattern).and_return(true)
+        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptor.master_branch, true).and_return(false)
+        expect(matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptor.any_branch_pattern).and_return(true)
+        expect(matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptor.master_branch, true).and_return(true)
 
         expect(subject.master(details)).to eq(matching_project)
       end
 
       it 'finds first projects matching details and any non master branch' do
-        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, Settings.any_branch_pattern).and_return(true)
-        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, Settings.master_branch, true).and_return(false)
-        expect(matching_project).to receive(:matches?).with(details.repository_uri, Settings.any_branch_pattern).and_return(true)
-        expect(matching_project).to receive(:matches?).with(details.repository_uri, Settings.master_branch, true).and_return(false)
+        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptor.any_branch_pattern).and_return(true)
+        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptor.master_branch, true).and_return(false)
+        expect(matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptor.any_branch_pattern).and_return(true)
+        expect(matching_project).to receive(:matches?).with(details.repository_uri, GitlabWebHookRootActionDescriptorSettings.master_branch, true).and_return(false)
 
         expect(subject.master(details)).to eq(not_matching_project)
       end

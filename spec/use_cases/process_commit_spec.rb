@@ -1,5 +1,7 @@
 require 'spec_helper'
 
+require 'models/root_action_descriptor'
+
 module GitlabWebHook
   describe ProcessCommit do
     let(:details) { double(RequestDetails) }
@@ -8,6 +10,7 @@ module GitlabWebHook
     let(:get_jenkins_projects) { double(GetJenkinsProjects) }
     let(:create_project_for_branch) { double(CreateProjectForBranch) }
     let(:subject) { ProcessCommit.new(get_jenkins_projects, create_project_for_branch) }
+    let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
 
     context 'with related projects' do
       before(:each) { allow(subject).to receive(:get_projects_to_process) { [project, project] } }
@@ -23,12 +26,14 @@ module GitlabWebHook
     end
 
     context 'when automatic project creation is offline' do
+
       before(:each) do
-        allow(Settings).to receive(:automatic_project_creation?) { false }
+        allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
         expect(create_project_for_branch).not_to receive(:with)
       end
 
       it 'searches matching projects' do
+        allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
         expect(get_jenkins_projects).to receive(:matching).with(details).and_return([project])
         expect(action).to receive(:call)
         subject.with(details, action)
@@ -42,7 +47,11 @@ module GitlabWebHook
     end
 
     context 'when automatic project creation is online' do
-      before(:each) { allow(Settings).to receive(:automatic_project_creation?) { true } }
+
+      before(:each) do
+        allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+        allow(jenkins_instance).to receive(:descriptor) { AutocreateHookDescriptor.new }
+      end
 
       it 'searches exactly matching projects' do
         expect(get_jenkins_projects).to receive(:exactly_matching).with(details).and_return([project])

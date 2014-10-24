@@ -11,6 +11,7 @@ include Java
 
 java_import Java.java.util.logging.Logger
 java_import Java.java.util.logging.Level
+java_import Java.org.jruby.exceptions.RaiseException
 
 module GitlabWebHook
   class Api < Sinatra::Base
@@ -50,16 +51,21 @@ module GitlabWebHook
     rescue => e
       # avoid method signature warnings
       severe = LOGGER.java_method(:log, [Level, java.lang.String, java.lang.Throwable])
-      severe.call(Level::SEVERE, e.message, e)
+      severe.call(Level::SEVERE, e.message, RaiseException.new(e))
       status 500
-      e.message
+      [e.message, '', 'Stack trace:', e.backtrace].flatten.join('<br>')
     end
 
     def parse_request
-      details = ParseRequest.new.from(params, request)
-      LOGGER.info("gitlab web hook triggered for repo url #{details.repository_url} and #{details.branch} branch")
-      LOGGER.info("with payload: #{details.payload}")
-      details
+      ParseRequest.new.from(params, request).tap do |details|
+        LOGGER.info([
+            'gitlab web hook triggered for',
+            "   - repo url: #{details.repository_url}",
+            "   - branch: #{details.branch}",
+            '   - with payload:',
+            details.payload.pretty_inspect
+        ].join("\n"))
+      end
     end
   end
 end

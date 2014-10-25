@@ -4,7 +4,7 @@ require 'models/root_action_descriptor'
 
 module GitlabWebHook
   describe CreateProjectForBranch do
-    let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta') }
+    let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta', branch: 'features/meta') }
     let(:jenkins_project) { double(AbstractProject) }
     let(:master) { double(Project, name: 'discourse', jenkins_project: jenkins_project) }
     let(:get_jenkins_projects) { double(GetJenkinsProjects, master: master, named: []) }
@@ -42,7 +42,7 @@ module GitlabWebHook
     end
 
     context 'when creating the branch project' do
-      let(:remote_config) { double(getUrl: 'http://localhost/diaspora', getName: 'Diaspora') }
+      let(:remote_config) { double(getUrl: 'http://localhost/diaspora', getName: 'Diaspora', getRefspec: ['+refs/heads/*:refs/remotes/origin/*']) }
       let(:source_scm) { double(getScmName: 'git', getUserRemoteConfigs: [remote_config]).as_null_object }
       let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
       let(:new_jenkins_project) { double(AbstractProject).as_null_object }

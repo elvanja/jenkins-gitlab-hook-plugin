@@ -4,7 +4,7 @@ require 'models/root_action_descriptor'
 
 module GitlabWebHook
   describe ProcessDeleteCommit do
-    let(:details) { double(RequestDetails, branch: 'features/meta') }
+    let(:details) { double(RequestDetails, branch: 'features/meta', repository_uri: 'git@gitlab.com/group/discourse') }
     let(:get_jenkins_projects) { double(GetJenkinsProjects) }
     let(:subject) { ProcessDeleteCommit.new(get_jenkins_projects) }
     let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
@@ -13,7 +13,7 @@ module GitlabWebHook
       it 'skips processing' do
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
         allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
-        expect(get_jenkins_projects).not_to receive(:all)
+        expect(get_jenkins_projects).not_to receive(:matching_uri)
         expect(subject.with(details).first).to match('automatic branch projects creation is not active')
       end
     end
@@ -25,7 +25,7 @@ module GitlabWebHook
       end
 
       context 'with master branch in commit' do
-        before(:each) { expect(get_jenkins_projects).not_to receive(:all) }
+        before(:each) { expect(get_jenkins_projects).not_to receive(:matching_uri) }
 
         it 'skips processing' do
           allow(details).to receive(:branch) { AutocreateHookDescriptor.new.master_branch }
@@ -36,7 +36,10 @@ module GitlabWebHook
       context 'with non master branch in commit' do
         let(:project) { double(Project, to_s: 'non_master') }
 
-        before(:each) { expect(get_jenkins_projects).to receive(:all).with(details).and_return([project]) }
+        before(:each) do
+          expect(get_jenkins_projects).to receive(:matching_uri).with(details).and_return([project])
+          allow(project).to receive(:matches?) { true }
+        end
 
         it 'deletes automatically created project' do
           allow(project).to receive(:description) { AutocreateHookDescriptor.new.description }

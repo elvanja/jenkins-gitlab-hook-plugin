@@ -133,6 +133,12 @@ module GitlabWebHook
           expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).to be
         end
+
+        it 'does not match when refspec do not match' do
+          allow(refspec).to receive(:matchSource).with(anything) { false }
+          expect(logger).to receive(:info)
+          expect(subject.matches?(details_uri, anything, anything)).not_to be
+        end
       end
 
       context 'when matching exactly' do

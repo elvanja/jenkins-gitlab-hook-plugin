@@ -70,17 +70,18 @@ module GitlabWebHook
         expect(subject.branch).to eq('')
       end
 
-      it 'removes refs and heads from result' do
+      it 'removes refs, heads and tags from result' do
         refs = ['ref', 'refs']
         heads = ['head', 'heads']
-        refs.product(heads).each do |combination|
+        tags = ['tag', 'tags']
+        refs.product(heads, tags).each do |combination|
           allow(subject).to receive(:full_branch_reference) { "#{combination.join('/')}/master" }
           expect(subject.branch).to eq('master')
         end
       end
 
       it 'detects non refs and non heads' do
-        ['refref', 'headhead'].each do |ref|
+        ['refref', 'headhead', 'tagtag'].each do |ref|
           allow(subject).to receive(:full_branch_reference) { ref }
           expect(subject.branch).to eq(ref)
         end

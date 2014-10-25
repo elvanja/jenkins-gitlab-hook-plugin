@@ -31,7 +31,7 @@ module GitlabWebHook
       return "" unless ref
 
       refs = ref.split("/")
-      refs.reject { |ref| ref =~ /\A(ref|head)s?\z/ }.join("/")
+      refs.reject { |ref| ref =~ /\A(ref|head|tag)s?\z/ }.join("/")
     end
 
     def safe_branch

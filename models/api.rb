@@ -1,4 +1,5 @@
 require 'sinatra/base'
+require 'json'
 
 require_relative 'exceptions/bad_request_exception'
 require_relative 'exceptions/configuration_exception'
@@ -33,21 +34,27 @@ module GitlabWebHook
     get '/build_now', &build_now
     post '/build_now', &build_now
 
+    error = lambda do
+      unknown_route
+    end
+    get '/*', &error
+    post '/*', &error
+
     private
 
     def process_projects(action)
       details = parse_request
       messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
       LOGGER.info(messages.join("\n"))
-      messages.join("<br/>")
+      messages.collect { |message| message.gsub("\n", '<br>') }.join("<br>")
     rescue BadRequestException => e
       LOGGER.warning(e.message)
       status 400
-      e.message
+      e.message.gsub("\n", '<br>')
     rescue NotFoundException => e
       LOGGER.warning(e.message)
       status 404
-      e.message
+      e.message.gsub("\n", '<br>')
     rescue => e
       # avoid method signature warnings
       severe = LOGGER.java_method(:log, [Level, java.lang.String, java.lang.Throwable])
@@ -63,9 +70,23 @@ module GitlabWebHook
             "   - repo url: #{details.repository_url}",
             "   - branch: #{details.branch}",
             '   - with payload:',
-            details.payload.pretty_inspect
+            JSON.pretty_generate(details.payload)
         ].join("\n"))
       end
+    end
+
+    def unknown_route
+      message = [
+          "Don't know how to process '/#{params[:splat].first}'",
+          'Use one of the following:',
+          '   - /ping',
+          '   - /notify_commit',
+          '   - /build_now',
+          'See https://github.com/elvanja/jenkins-gitlab-hook-plugin for details'
+      ].join("\n")
+      LOGGER.warning(message)
+      status 400
+      message.gsub("\n", '<br>')
     end
   end
 end

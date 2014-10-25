@@ -75,7 +75,7 @@ module GitlabWebHook
         remote_url = details.repository_url
         branchlist = source_scm.getBranches()
       else
-        remote_url = config.getUrl()
+        remote_url = scm_config.getUrl()
         remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
         branchlist = [BranchSpec.new(remote_branch)]
       end

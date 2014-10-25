@@ -18,10 +18,12 @@ java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 
 module GitlabWebHook
   class GetJenkinsProjects
+    LOGGER = Logger.getLogger(GetJenkinsProjects.class.name)
+
     def matching(details, exactly = false)
       all.select do |project|
         project.matches?(details.repository_uri, details.branch, details.full_branch_reference, exactly)
-      end
+      end.tap { |projects| LOGGER.info(['matching projects:'].concat(projects.map { |project| "   - #{project}"}).join("\n")) }
     end
 
     def exactly_matching(details)

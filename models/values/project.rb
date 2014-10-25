@@ -52,7 +52,11 @@ module GitlabWebHook
         end
       end
 
-      raise ConfigurationException.new("only string parameters for branch parameter are supported") if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
+      if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
+        logger.warning("only string parameters for branch parameter are supported")
+        return nil
+      end
+
       branch_name_param
     end
 
@@ -80,7 +84,7 @@ module GitlabWebHook
       matched_branch = get_branch_name_parameter if !matched_branch && parametrized?
 
       build_chooser = scm.buildChooser
-      build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? !matched_branch : matched_branch
+      build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?
     end
 
     def git?

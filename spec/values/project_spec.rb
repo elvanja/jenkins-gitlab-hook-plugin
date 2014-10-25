@@ -106,9 +106,11 @@ module GitlabWebHook
           expect(subject.matches?(details_uri, anything)).not_to be
         end
 
-        it 'raises exception when branch parameter is not of supported type' do
+        it 'does not match when branch parameter is not of supported type' do
           allow(branch_name_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { false }
-          expect { subject.matches?(details_uri, anything) }.to raise_exception(ConfigurationException)
+          expect(logger).to receive(:warning)
+          expect(logger).to receive(:info)
+          expect(subject.matches?(details_uri, anything)).not_to be
         end
 
         it 'matches when branch parameter found and is of supported type' do

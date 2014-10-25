@@ -30,6 +30,7 @@ Plugin will parse the Gitlab payload and extract the branch for which the commit
 It will then scan all Git projects in Jenkins and start the build for those that:
 
 * match url of the Gitlab repo
+* match the configured refspec pattern if any
 * and match committed Gitlab branch
 
 Notes:

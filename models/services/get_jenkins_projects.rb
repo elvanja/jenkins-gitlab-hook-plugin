@@ -20,7 +20,7 @@ module GitlabWebHook
   class GetJenkinsProjects
     def matching(details, exactly = false)
       all.select do |project|
-        project.matches?(details.repository_uri, details.branch, exactly)
+        project.matches?(details.repository_uri, details.branch, details.full_branch_reference, exactly)
       end
     end
 
@@ -36,12 +36,12 @@ module GitlabWebHook
 
     def master(details)
       projects = all.select do |project|
-        project.matches?(details.repository_uri, Settings.any_branch_pattern)
+        project.matches?(details.repository_uri, Settings.any_branch_pattern, details.full_branch_reference)
       end
 
       # find project for the repo and master branch
       # use any other branch matching the repo
-      projects.find { |project| project.matches?(details.repository_uri, Settings.master_branch, true) } || projects.first
+      projects.find { |project| project.matches?(details.repository_uri, Settings.master_branch, details.full_branch_reference, true) } || projects.first
     end
 
     private

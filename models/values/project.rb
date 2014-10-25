@@ -32,11 +32,11 @@ module GitlabWebHook
       @logger = logger
     end
 
-    def matches?(details_uri, branch, ref, exactly = false)
+    def matches?(details_uri, branch, refspec, exactly = false)
       return false unless buildable?
       return false unless git?
       return false unless matches_repo_uri?(details_uri)
-      matches_branch?(branch, ref, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
+      matches_branch?(branch, refspec, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
     end
 
     def ignore_notify_commit?
@@ -73,19 +73,18 @@ module GitlabWebHook
       end
     end
 
-    def matches_branch?(branch, ref, exactly = false)
-      matched_refs = []
+    def matches_branch?(branch, refspec, exactly = false)
+      matched_refspecs = []
       matched_branch = scm.branches.find do |scm_branch|
         scm.repositories.find do |repo|
-          refspecs = repo.getFetchRefSpecs().select{ |refspec| refspec.matchSource(ref) }.tap do |refspec|
-            matched_refs << refspec
-          end
           token = "#{repo.name}/#{branch}"
-          refspecs.any? && ( exactly ? scm_branch.name == token : scm_branch.matches(token) )
+          scm_refspecs = repo.getFetchRefSpecs().select { |scm_refspec| scm_refspec.matchSource(refspec) }
+          matched_refspecs << scm_refspecs
+          scm_refspecs.any? && (exactly ? scm_branch.name == token : scm_branch.matches(token))
         end
       end
 
-      matched_branch = get_branch_name_parameter if !matched_branch && matched_refs.any? && parametrized?
+      matched_branch = get_branch_name_parameter if !matched_branch && matched_refspecs.any? && parametrized?
 
       build_chooser = scm.buildChooser
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?

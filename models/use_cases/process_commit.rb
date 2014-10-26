@@ -12,7 +12,7 @@ module GitlabWebHook
     end
 
     def with(details, action)
-      projects = get_projects_to_process(details)
+      projects = get_projects_to_process(details) # !!
 
       messages = []
       projects.each do |project|
@@ -28,7 +28,7 @@ module GitlabWebHook
       if projects.any?
         if settings.automatic_project_creation?
           projects.select! do |project|
-            project.matches?(details, details.branch, true)
+            project.matches?(details, details.branch, true) # !!
           end
           projects << @create_project_for_branch.with(details) if projects.empty?
         else

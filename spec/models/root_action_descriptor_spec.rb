@@ -1,9 +1,6 @@
 require 'spec_helper'
 
-require 'models/root_action_descriptor'
-
 describe GitlabWebHookRootActionDescriptor do
-
     context 'whether automatic project creation is enabled' do
       it 'defines it' do
         expect(subject).to respond_to(:automatic_project_creation?)

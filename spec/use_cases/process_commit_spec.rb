@@ -1,16 +1,16 @@
 require 'spec_helper'
-
-require 'models/root_action_descriptor'
+require 'spec/support/shared/settings'
 
 module GitlabWebHook
   describe ProcessCommit do
+    include_context 'settings'
+
     let(:details) { double(RequestDetails, repository_uri: 'git@gitlab.com/group/discourse', branch: 'master') }
     let(:action) { double(Proc) }
     let(:project) { double(Project) }
     let(:get_jenkins_projects) { double(GetJenkinsProjects) }
     let(:create_project_for_branch) { double(CreateProjectForBranch) }
     let(:subject) { ProcessCommit.new(get_jenkins_projects, create_project_for_branch) }
-    let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
 
     context 'with related projects' do
       before(:each) { allow(subject).to receive(:get_projects_to_process) { [project, project] } }
@@ -26,12 +26,7 @@ module GitlabWebHook
     end
 
     context 'when automatic project creation is offline' do
-
-      before(:each) do
-        allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
-        allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
-        expect(create_project_for_branch).not_to receive(:with)
-      end
+      before(:each) { allow(settings).to receive(:automatic_project_creation?) { false } }
 
       it 'searches matching projects' do
         allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
@@ -50,18 +45,14 @@ module GitlabWebHook
     end
 
     context 'when automatic project creation is online' do
-
-      before(:each) do
-        allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
-        allow(jenkins_instance).to receive(:descriptor) { AutocreateHookDescriptor.new }
-      end
+      before(:each) { allow(settings).to receive(:automatic_project_creation?) { true } }
 
       it 'searches exactly matching projects' do
         expect(get_jenkins_projects).to receive(:matching_uri).with(details).and_return([project])
         allow(project).to receive(:matches?) { true }
         expect(create_project_for_branch).not_to receive(:with)
         expect(action).to receive(:call)
-        subject.with(details, action)
+        subject.with(details, action) # !!
       end
 
       it 'creates a new project when no matching projects found' do

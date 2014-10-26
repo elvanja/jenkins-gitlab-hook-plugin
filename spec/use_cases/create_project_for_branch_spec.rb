@@ -4,6 +4,8 @@ require 'models/root_action_descriptor'
 
 module GitlabWebHook
   describe CreateProjectForBranch do
+    let(:settings) { double(GitlabWebHookRootActionDescriptor, automatic_project_creation?: true) }
+    let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
     let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta', branch: 'features/meta') }
     let(:jenkins_project) { double(AbstractProject) }
     let(:master) { double(Project, name: 'discourse', jenkins_project: jenkins_project) }
@@ -11,6 +13,11 @@ module GitlabWebHook
     let(:build_scm) { double(BuildScm, with: double(GitSCM)) }
     let(:subject) { CreateProjectForBranch.new(get_jenkins_projects, build_scm) }
     let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
+
+    before(:each) do
+      allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+      allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
+    end
 
     before(:each) do
       allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
@@ -32,6 +39,7 @@ module GitlabWebHook
     end
 
     context 'when naming the branch project' do
+      before(:each) { allow(settings).to receive(:use_master_project_name?) { true } }
 
       it 'uses master project name with appropriate settings' do
         expect(subject.send(:get_new_project_name, master, details)).to match(master.name)

@@ -25,7 +25,7 @@ module GitlabWebHook
     def matching_uri(details)
       all.select do |project|
         project.matches_uri?(details.repository_uri)
-      end
+      end.tap { |projects| log_matched(projects) }
     end
 
     def named(name)
@@ -65,6 +65,10 @@ module GitlabWebHook
 
     def revert_priviledges(old_authentication_level)
       SecurityContextHolder.getContext().setAuthentication(old_authentication_level) if old_authentication_level
+    end
+
+    def log_matched(projects)
+      LOGGER.info(['matching projects:'].concat(projects.map { |project| "   - #{project}" }).join("\n"))
     end
   end
 end

@@ -1,4 +1,4 @@
-
+# mocks extended stuff from Jenkins
 module Jenkins
   module Model
     class DefaultDescriptor
@@ -18,12 +18,5 @@ module Jenkins
   end
 end
 
+# explicitly require stuff from models root folder, due to above mock(s)
 require 'models/root_action_descriptor'
-
-class AutocreateHookDescriptor < GitlabWebHookRootActionDescriptor
-    def initialize(*args)
-      super
-      @automatic_project_creation = true
-    end
-end
-

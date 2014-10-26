@@ -1,0 +1,27 @@
+<%
+  f = taglib("/lib/form")
+
+  f.section(:title => "Gitlab Web Hook Configuration") do
+
+   f.optionalBlock :title => "Automatic project creation", :name => 'autocreate', :checked => "#{descriptor.automatic_project_creation?}" do
+
+    f.entry :title => 'Project master branch', :field => 'master_branch' do
+      f.textbox :default => "#{descriptor.master_branch}"
+    end
+
+    f.entry :title => 'Use master project name', :field => 'use_master_project_name' do
+      f.checkbox :checked => "#{descriptor.use_master_project_name?}"
+    end
+
+    f.entry :title => 'Description', :field => 'description' do
+      f.textbox :default => "#{descriptor.description}"
+    end
+
+    f.entry :title => 'Any branch pattern', :field => 'any_branch_pattern' do
+      f.textbox :default => "#{descriptor.any_branch_pattern}"
+    end
+
+  end
+
+ end
+%>

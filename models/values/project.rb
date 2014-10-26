@@ -36,7 +36,7 @@ module GitlabWebHook
       return false unless buildable?
       return false unless git?
       return false unless matches_repo_uri?(details_uri)
-      matches_branch?(branch, refspec, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
+      matches_branch?(branch, refspec, exactly)
     end
 
     def ignore_notify_commit?

@@ -73,22 +73,16 @@ module GitlabWebHook
 
         it 'when branches do not match' do
           allow(branch).to receive(:matches) { false }
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).not_to be
         end
 
         it 'when refspec does not match' do
           allow(refspec).to receive(:matchSource).with(anything) { false }
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).not_to be
         end
       end
 
       context 'it matches' do
-        before(:each) do
-          expect(logger).to receive(:info)
-        end
-
         it 'when is buildable, is git, repo uris match and branches match' do
           expect(subject.matches?(details_uri, anything, anything)).to be
         end
@@ -112,31 +106,26 @@ module GitlabWebHook
 
         it 'does not match when branch parameter not found' do
           allow(branch_name_parameter).to receive(:name) { 'NOT_BRANCH_PARAMETER' }
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).not_to be
         end
 
         it 'does not match when branch parameter is not of supported type' do
           allow(branch_name_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { false }
           expect(logger).to receive(:warning)
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).not_to be
         end
 
         it 'matches when branch parameter found and is of supported type' do
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).to be
         end
 
         it 'supports parameter usage without $' do
           allow(branch).to receive(:name) { 'origin/BRANCH_NAME' }
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).to be
         end
 
         it 'does not match when refspec do not match' do
           allow(refspec).to receive(:matchSource).with(anything) { false }
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, anything, anything)).not_to be
         end
       end
@@ -144,13 +133,11 @@ module GitlabWebHook
       context 'when matching exactly' do
         it 'does not match when branches are not equal' do
           allow(branch).to receive(:name) { 'origin/**' }
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, 'origin/master', anything, true)).not_to be
         end
 
         it 'matches when branches are equal' do
           allow(branch).to receive(:name) { 'origin/master' }
-          expect(logger).to receive(:info)
           expect(subject.matches?(details_uri, 'origin/master', anything, true)).not_to be
         end
       end
@@ -158,7 +145,6 @@ module GitlabWebHook
       context 'with inverse match strategy' do
         before(:each) do
           allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { true }
-          expect(logger).to receive(:info)
         end
 
         it 'does not match when regular strategy would match' do

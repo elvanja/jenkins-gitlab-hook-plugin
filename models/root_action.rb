@@ -18,7 +18,7 @@ class GitlabWebHookRootAction < Jenkins::Model::UnprotectedRootAction
     GitlabWebHook::Api.new.call(env)
   end
 
-  describe_as Java.hudson.model.Descriptor, :with => GitlabWebHookRootActionDescriptor
+  describe_as Java.hudson.model.Descriptor, with: GitlabWebHookRootActionDescriptor
 end
 
 Jenkins::Plugin.instance.register_extension(GitlabWebHookRootAction.new)

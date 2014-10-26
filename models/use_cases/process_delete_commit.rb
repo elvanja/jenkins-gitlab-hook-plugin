@@ -1,13 +1,15 @@
 require_relative '../services/get_jenkins_projects'
+require_relative '../util/settings'
 
 module GitlabWebHook
   class ProcessDeleteCommit
+    include Settings
+
     def initialize(get_jenkins_projects = GetJenkinsProjects.new)
       @get_jenkins_projects = get_jenkins_projects
     end
 
     def with(details)
-      settings = Java.jenkins.model.Jenkins.instance.descriptor GitlabWebHookRootActionDescriptor.java_class
       commit_branch = details.branch
 
       return ["branch #{commit_branch} is deleted, but automatic branch projects creation is not active, skipping processing"] unless settings.automatic_project_creation?

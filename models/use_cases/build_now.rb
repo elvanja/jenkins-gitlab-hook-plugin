@@ -1,4 +1,3 @@
-require_relative '../values/settings'
 require_relative '../services/get_jenkins_projects'
 require_relative '../services/get_build_cause'
 require_relative '../services/get_build_actions'

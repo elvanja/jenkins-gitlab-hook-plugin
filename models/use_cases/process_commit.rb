@@ -1,9 +1,11 @@
 require_relative 'create_project_for_branch'
-require_relative '../values/settings'
 require_relative '../services/get_jenkins_projects'
+require_relative '../util/settings'
 
 module GitlabWebHook
   class ProcessCommit
+    include Settings
+
     def initialize(get_jenkins_projects = GetJenkinsProjects.new, create_project_for_branch = CreateProjectForBranch.new)
       @get_jenkins_projects = get_jenkins_projects
       @create_project_for_branch = create_project_for_branch
@@ -22,7 +24,7 @@ module GitlabWebHook
     private
 
     def get_projects_to_process(details)
-      if Settings.automatic_project_creation?
+      if settings.automatic_project_creation?
         projects = @get_jenkins_projects.exactly_matching(details)
         projects << @create_project_for_branch.with(details) if projects.empty?
       else

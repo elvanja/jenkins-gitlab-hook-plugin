@@ -1,6 +1,6 @@
 require_relative '../exceptions/not_found_exception'
-require_relative '../values/settings'
 require_relative '../values/project'
+require_relative '../util/settings'
 
 include Java
 
@@ -18,12 +18,14 @@ java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 
 module GitlabWebHook
   class GetJenkinsProjects
+    include Settings
+
     LOGGER = Logger.getLogger(GetJenkinsProjects.class.name)
 
     def matching(details, exactly = false)
       all.select do |project|
         project.matches?(details.repository_uri, details.branch, details.full_branch_reference, exactly)
-      end.tap { |projects| LOGGER.info(['matching projects:'].concat(projects.map { |project| "   - #{project}"}).join("\n")) }
+      end.tap { |projects| log_matched(projects) }
     end
 
     def exactly_matching(details)
@@ -38,12 +40,12 @@ module GitlabWebHook
 
     def master(details)
       projects = all.select do |project|
-        project.matches?(details.repository_uri, Settings.any_branch_pattern, details.full_branch_reference)
+        project.matches?(details.repository_uri, settings.any_branch_pattern, details.full_branch_reference)
       end
 
       # find project for the repo and master branch
       # use any other branch matching the repo
-      projects.find { |project| project.matches?(details.repository_uri, Settings.master_branch, details.full_branch_reference, true) } || projects.first
+      projects.find { |project| project.matches?(details.repository_uri, settings.master_branch, details.full_branch_reference, true) } || projects.first
     end
 
     private
@@ -67,6 +69,10 @@ module GitlabWebHook
 
     def revert_priviledges(old_authentication_level)
       SecurityContextHolder.getContext().setAuthentication(old_authentication_level) if old_authentication_level
+    end
+
+    def log_matched(projects)
+      LOGGER.info(['matching projects:'].concat(projects.map { |project| "   - #{project}" }).join("\n"))
     end
   end
 end

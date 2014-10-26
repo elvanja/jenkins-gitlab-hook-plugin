@@ -1,7 +1,10 @@
 require 'spec_helper'
+require 'spec/support/shared/settings'
 
 module GitlabWebHook
   describe ProcessCommit do
+    include_context 'settings'
+
     let(:details) { double(RequestDetails) }
     let(:action) { double(Proc) }
     let(:project) { double(Project) }
@@ -23,10 +26,7 @@ module GitlabWebHook
     end
 
     context 'when automatic project creation is offline' do
-      before(:each) do
-        allow(Settings).to receive(:automatic_project_creation?) { false }
-        expect(create_project_for_branch).not_to receive(:with)
-      end
+      before(:each) { allow(settings).to receive(:automatic_project_creation?) { false } }
 
       it 'searches matching projects' do
         expect(get_jenkins_projects).to receive(:matching).with(details).and_return([project])
@@ -42,7 +42,7 @@ module GitlabWebHook
     end
 
     context 'when automatic project creation is online' do
-      before(:each) { allow(Settings).to receive(:automatic_project_creation?) { true } }
+      before(:each) { allow(settings).to receive(:automatic_project_creation?) { true } }
 
       it 'searches exactly matching projects' do
         expect(get_jenkins_projects).to receive(:exactly_matching).with(details).and_return([project])

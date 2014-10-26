@@ -1,5 +1,6 @@
 require_relative '../exceptions/not_found_exception'
 require_relative '../values/project'
+require_relative '../util/settings'
 
 include Java
 
@@ -17,6 +18,9 @@ java_import Java.hudson.plugins.git.util.DefaultBuildChooser
 
 module GitlabWebHook
   class GetJenkinsProjects
+    include Settings
+
+    LOGGER = Logger.getLogger(GetJenkinsProjects.class.name)
 
     def matching_uri(details)
       all.select do |project|
@@ -31,7 +35,6 @@ module GitlabWebHook
     end
 
     def master(details)
-      settings = Java.jenkins.model.Jenkins.instance.descriptor GitlabWebHookRootActionDescriptor.java_class
       projects = all.select do |project|
         project.matches?(details, settings.any_branch_pattern)
       end

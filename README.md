@@ -153,35 +153,7 @@ The plugin expects the request to have the appropriate structure, like this exam
 }
 ```
 
-## Dependencies
-
-* [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.12 or higher
-* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.26 or higer
-
-
-## Logging
-
-In case you might want to inspect hook triggering (e.g. to check payload data), you can setup logging in Jenkins as [usual](https://wiki.jenkins-ci.org/display/JENKINS/Logging).<br/>
-Just add a new logger for **Class** (this is because of JRuby internals).
-
-## Contributing
-
-### Testing
-
-To help with testing, the spec/lib directory contains all the Java dependencies the plugin uses directly.
-The spec_helper loads them before each test run.
-
-In case you need to add new classes, please namespace them. See existing ones for details.
-
-Then running JRuby to execute tests, you'll need the following switches:
-
-* --1.9
-* -Xcext.enabled=true
-* -X+0
-
-## Plan for the future release
-
-#### Automatic branch project creation
+## Automatic branch project creation
 
 In case you might want to approach multiple branches by having a separate Jenkins project for each Git(lab) repository, you can turn on the appropriate plugin option.<br/>
 This use case workflow:
@@ -222,3 +194,31 @@ Disadvantages:
 * multiple Jenkins project per Git(lab) repository
 * concurrent builds occur for the same Git(lab) repository
 * job / branch monitoring is not easy because of a large number of projects for a single Git(lab) repository
+
+For this option to become active, just turn it on in Jenkins global configuration.
+
+## Dependencies
+
+* [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.12 or higher
+* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.26 or higer
+
+
+## Logging
+
+In case you might want to inspect hook triggering (e.g. to check payload data), you can setup logging in Jenkins as [usual](https://wiki.jenkins-ci.org/display/JENKINS/Logging).<br/>
+Just add a new logger for **Class** (this is because of JRuby internals).
+
+## Contributing
+
+### Testing
+
+To help with testing, the spec/lib directory contains all the Java dependencies the plugin uses directly.
+The spec_helper loads them before each test run.
+
+In case you need to add new classes, please namespace them. See existing ones for details.
+
+Then running JRuby to execute tests, you'll need the following switches:
+
+* --1.9
+* -Xcext.enabled=true
+* -X+0

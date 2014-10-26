@@ -2,12 +2,19 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe CreateProjectForBranch do
+    let(:settings) { double(GitlabWebHookRootActionDescriptor, automatic_project_creation?: true) }
+    let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
     let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta') }
     let(:jenkins_project) { double(AbstractProject) }
     let(:master) { double(Project, name: 'discourse', jenkins_project: jenkins_project) }
     let(:get_jenkins_projects) { double(GetJenkinsProjects, master: master, named: []) }
     let(:build_scm) { double(BuildScm, with: double(GitSCM)) }
     let(:subject) { CreateProjectForBranch.new(get_jenkins_projects, build_scm) }
+
+    before(:each) do
+      allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+      allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
+    end
 
     context 'when not able to find a master project to copy from' do
       it 'raises appropriate exception' do
@@ -24,7 +31,7 @@ module GitlabWebHook
     end
 
     context 'when naming the branch project' do
-      before(:each) { allow(Settings).to receive(:use_master_project_name?) { true } }
+      before(:each) { allow(settings).to receive(:use_master_project_name?) { true } }
 
       it 'uses master project name with appropriate settings' do
         expect(subject.send(:get_new_project_name, master, details)).to match(master.name)

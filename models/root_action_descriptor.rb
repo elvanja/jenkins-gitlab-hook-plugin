@@ -6,24 +6,47 @@ java_import Java.hudson.model.listeners.SaveableListener
 class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
   # TODO a hook to delete artifacts from the feature branches would be nice
 
+  AUTOMATIC_PROJECT_CREATION_PROPERTY = 'automatic_project_creation'
+  MASTER_BRANCH_PROPERTY = 'master_branch'
+  USE_MASTER_PROJECT_NAME_PROPERTY = 'use_master_project_name'
+  DESCRIPTION_PROPERTY = 'description'
+  ANY_BRANCH_PATTERN_PROPERTY = 'any_branch_pattern'
+
   def initialize(*args)
     super
     load
   end
 
+  def automatic_project_creation?
+    !!@automatic_project_creation
+  end
+
+  def master_branch
+    @master_branch || "master"
+  end
+
+  def use_master_project_name?
+    !!@use_master_project_name
+  end
+
+  def description
+    @description || "Automatically created by Gitlab Web Hook plugin"
+  end
+
+  def any_branch_pattern
+    @any_branch_pattern || "**"
+  end
+
   def load
     return unless configFile.file.exists()
-    xmlfile = File.new(configFile.file.canonicalPath)
-    xmldoc = REXML::Document.new(xmlfile)
-    if xmldoc.root
 
-      @automatic_project_creation = xmldoc.root.elements['automatic_project_creation'].text == "true" ? true : false
-      @use_master_project_name = xmldoc.root.elements['use_master_project_name'].text == "true" ? true : false
-
-      @master_branch = xmldoc.root.elements['master_branch'].text
-      @description = xmldoc.root.elements['description'].text
-      @any_branch_pattern = xmldoc.root.elements['any_branch_pattern'].text
-
+    doc = REXML::Document.new(File.new(configFile.file.canonicalPath))
+    if doc.root
+      @automatic_project_creation   = read_property(doc, AUTOMATIC_PROJECT_CREATION_PROPERTY) == "true"
+      @use_master_project_name      = read_property(doc, USE_MASTER_PROJECT_NAME_PROPERTY) == "true"
+      @master_branch                = read_property(doc, MASTER_BRANCH_PROPERTY)
+      @description                  = read_property(doc, DESCRIPTION_PROPERTY)
+      @any_branch_pattern           = read_property(doc, ANY_BRANCH_PATTERN_PROPERTY)
     end
   end
 
@@ -38,11 +61,11 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     doc = REXML::Document.new
     doc.add_element('hudson.model.Descriptor', {"plugin" => "gitlab-hook"})
 
-    doc.root.add_element('automatic_project_creation').add_text(automatic_project_creation.to_s)
-    doc.root.add_element('master_branch').add_text(master_branch)
-    doc.root.add_element('use_master_project_name').add_text(use_master_project_name.to_s)
-    doc.root.add_element('description').add_text(description)
-    doc.root.add_element('any_branch_pattern').add_text(any_branch_pattern)
+    write_property(doc, AUTOMATIC_PROJECT_CREATION_PROPERTY, automatic_project_creation?)
+    write_property(doc, MASTER_BRANCH_PROPERTY, master_branch)
+    write_property(doc, USE_MASTER_PROJECT_NAME_PROPERTY, use_master_project_name?)
+    write_property(doc, DESCRIPTION_PROPERTY, description)
+    write_property(doc, ANY_BRANCH_PATTERN_PROPERTY, any_branch_pattern)
 
     f = File.open(configFile.file.canonicalPath, 'wb')
     f.puts("<?xml version='#{doc.version}' encoding='#{doc.encoding}'?>")
@@ -57,43 +80,23 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     f.closed?
   end
 
-  def automatic_project_creation?
-    automatic_project_creation
-  end
-
-  def master_branch
-    @master_branch || "master"
-  end
-
-  def use_master_project_name?
-    use_master_project_name
-  end
-
-  def description
-    @description || "Automatically created by Gitlab Web Hook plugin"
-  end
-
-  def any_branch_pattern
-    @any_branch_pattern || "**"
-  end
-
   private
 
   def parse(form)
-    @automatic_project_creation = form["autocreate"] ? true : false
+    @automatic_project_creation = form[AUTOMATIC_PROJECT_CREATION_PROPERTY] ? true : false
     if automatic_project_creation?
-      @master_branch              = form["autocreate"]["master_branch"]
-      @use_master_project_name    = form["autocreate"]["use_master_project_name"]
-      @description                = form["autocreate"]["description"]
-      @any_branch_pattern         = form["autocreate"]["any_branch_pattern"]
+      @master_branch              = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][MASTER_BRANCH_PROPERTY]
+      @use_master_project_name    = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][USE_MASTER_PROJECT_NAME_PROPERTY]
+      @description                = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][DESCRIPTION_PROPERTY]
+      @any_branch_pattern         = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][ANY_BRANCH_PATTERN_PROPERTY]
     end
   end
 
-  def automatic_project_creation
-    @automatic_project_creation.nil? ? false : @automatic_project_creation
+  def read_property(doc, property)
+    doc.root.elements[property].text
   end
 
-  def use_master_project_name
-    @use_master_project_name.nil? ? false : @use_master_project_name
+  def write_property(doc, property, value)
+    doc.root.add_element(property).add_text(value.to_s)
   end
 end

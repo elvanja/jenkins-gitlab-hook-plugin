@@ -64,8 +64,9 @@ module GitlabWebHook
           expect(subject.matches?(anything, anything, anything)).not_to be
         end
 
-        it 'when it is not git' do
+        it 'when it is not git and is not multiple smsc' do
           allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
+          allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
           expect(subject.matches?(anything, anything, anything)).not_to be
         end
 
@@ -87,6 +88,12 @@ module GitlabWebHook
 
       context 'it matches' do
         it 'when is buildable, is git, repo uris match and branches match' do
+          expect(subject.matches?(details_uri, anything, anything)).to be
+        end
+
+        it 'when is buildable, is multiple smsc, repo uris match and branches match' do
+          allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
+          allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
           expect(subject.matches?(details_uri, anything, anything)).to be
         end
       end

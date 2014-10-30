@@ -11,10 +11,11 @@ java_import Java.hudson.plugins.git.util.InverseBuildChooser
 
 java_import Java.java.util.logging.Logger
 
+MultipleScmsPluginAvailable = true
 begin
   java_import Java.org.jenkinsci.plugins.multiplescms.MultiSCM
 rescue NameError
-  MultiSCM = false
+  MultipleScmsPluginAvailable = false
 end
 
 module GitlabWebHook
@@ -29,6 +30,7 @@ module GitlabWebHook
     alias_method :to_s, :fullName
 
     attr_reader :jenkins_project
+    attr_reader :scms
 
     LOGGER = Logger.getLogger(Project.class.name)
 
@@ -36,31 +38,25 @@ module GitlabWebHook
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
       @logger = logger
-
-      @git_scm_list = []
-      if git?
-        @git_scm_list = [scm]
-      elsif multi_scm?
-        @git_scm_list = scm.getConfiguredSCMs().select { |s| s.java_kind_of?(GitSCM) }
-      end
+      setup_scms
     end
 
     def matches?(details_uri, branch, refspec, exactly = false)
       return false unless buildable?
-      return false unless git? or multi_scm?
+      return false unless (git? || multi_scm?)
       return false unless matches_repo_uri?(details_uri)
       matches_branch?(branch, refspec, exactly)
     end
 
     def ignore_notify_commit?
-      @git_scm_list.find { |s| s.isIgnoreNotifyCommit() }
+      scms.find { |scm| scm.isIgnoreNotifyCommit() }
     end
 
     def get_branch_name_parameter
       branch_name_param = get_default_parameters.find do |param|
-        @git_scm_list.find do |s|
-          next unless s.repositories.size > 0
-          s.branches.find do |scm_branch|
+        scms.find do |scm|
+          next unless scm.repositories.size > 0
+          scm.branches.find do |scm_branch|
             scm_branch.name.match(/.*\$?\{?#{param.name}\}?.*/)
           end
         end
@@ -82,19 +78,27 @@ module GitlabWebHook
     private
 
     def matches_repo_uri?(details_uri)
-      scm.repositories.find do |repo|
-        repo.getURIs().find { |project_repo_uri| details_uri.matches?(project_repo_uri) }
+      scms.find do |scm|
+        scm.repositories.find do |repo|
+          repo.getURIs().find { |project_repo_uri|
+            details_uri.matches?(project_repo_uri)
+          }
+        end
       end
     end
 
     def matches_branch?(branch, refspec, exactly = false)
       matched_refspecs = []
-      matched_branch = scm.branches.find do |scm_branch|
-        scm.repositories.find do |repo|
-          token = "#{repo.name}/#{branch}"
-          scm_refspecs = repo.getFetchRefSpecs().select { |scm_refspec| scm_refspec.matchSource(refspec) }
-          matched_refspecs.concat(scm_refspecs)
-          scm_refspecs.any? && (exactly ? scm_branch.name == token : scm_branch.matches(token))
+      matched_branch = nil
+
+      scms.find do |scm|
+        matched_branch = scm.branches.find do |scm_branch|
+          scm.repositories.find do |repo|
+            token = "#{repo.name}/#{branch}"
+            scm_refspecs = repo.getFetchRefSpecs().select { |scm_refspec| scm_refspec.matchSource(refspec) }
+            matched_refspecs.concat(scm_refspecs)
+            scm_refspecs.any? && (exactly ? scm_branch.name == token : scm_branch.matches(token))
+          end
         end
       end
 
@@ -104,37 +108,21 @@ module GitlabWebHook
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?
     end
 
-    def matches_repo_uri?(details_uri)
-      @match_repo_uri_scms = @git_scm_list.select do |s|
-        s.repositories.find do |repo|
-          repo.getURIs().find { |project_repo_uri| details_uri.matches?(project_repo_uri) }
-        end
-      end
-      !@match_repo_uri_scms.empty?
-    end
-
-    def matches_branch?(branch, exactly = false)
-      matched_branch = @match_repo_uri_scms.find do |s|
-        s.branches.find do |scm_branch|
-          s.repositories.find do |repo|
-            token = "#{repo.name}/#{branch}"
-            exactly ? scm_branch.name == token : scm_branch.matches(token)
-          end
-        end
-      end
-
-      matched_branch = get_branch_name_parameter if !matched_branch && parametrized?
-
-      build_chooser = matched_branch.buildChooser if matched_branch
-      build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? !matched_branch : matched_branch
-    end
-
     def git?
       scm && scm.java_kind_of?(GitSCM)
     end
 
     def multi_scm?
-      scm && MultiSCM && scm.java_kind_of?(MultiSCM)
+      scm && MultipleScmsPluginAvailable && scm.java_kind_of?(MultiSCM)
+    end
+
+    def setup_scms
+      @scms = []
+      if git?
+        @scms << scm
+      elsif multi_scm?
+        @scms.concat(scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
+      end
     end
 
     def logger

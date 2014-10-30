@@ -2,9 +2,16 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe Project do
+    let(:scm) { double(GitSCM) }
     let(:jenkins_project) { double(AbstractProject, fullName: 'diaspora') }
     let(:logger) { double }
     let(:subject) { Project.new(jenkins_project, logger) }
+
+    before(:each) do
+      allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+      allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+      allow(jenkins_project).to receive(:scm) { scm }
+    end
 
     context 'when initializing' do
       it 'requires jenkins project' do
@@ -29,7 +36,6 @@ module GitlabWebHook
     end
 
     context 'when determining if matches repository url and branch' do
-      let(:scm) { double(GitSCM) }
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
       let(:details_uri) { double(RepositoryUri) }
@@ -42,7 +48,6 @@ module GitlabWebHook
 
         allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
 
-        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
         allow(scm).to receive(:repositories) { [repository] }
         allow(scm).to receive(:branches) { [branch] }
         allow(scm).to receive(:buildChooser) { build_chooser }
@@ -51,8 +56,6 @@ module GitlabWebHook
 
         allow(repository).to receive(:getFetchRefSpecs) { [refspec] }
         allow(refspec).to receive(:matchSource).with(anything) { true }
-
-        allow(jenkins_project).to receive(:scm) { scm }
       end
 
       context 'it is not matching' do

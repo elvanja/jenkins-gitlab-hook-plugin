@@ -75,9 +75,14 @@ module GitlabWebHook
     end
 
     context 'when fetching all projects from jenkins instance' do
+      let(:scm) { double(GitSCM) }
       let(:jenkins_instance) { double(Java.jenkins.model.Jenkins, getAllItems: []) }
 
-      before(:each) { allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance } }
+      before(:each) do
+        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+        allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
+      end
 
       it 'elevates privileges and restores them' do
         expect(subject).to receive(:elevate_priviledges).ordered
@@ -86,7 +91,10 @@ module GitlabWebHook
       end
 
       it 'returns custom projects' do
-        allow(jenkins_instance).to receive(:getAllItems) { [double(Java.hudson.model.AbstractProject), double(Java.hudson.model.AbstractProject)] }
+        allow(jenkins_instance).to receive(:getAllItems) {[
+            double(Java.hudson.model.AbstractProject, scm: scm),
+            double(Java.hudson.model.AbstractProject, scm: scm)
+        ]}
 
         projects = subject.send(:all)
         expect(projects.size).to eq(2)

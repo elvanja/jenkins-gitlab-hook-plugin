@@ -44,8 +44,9 @@ module GitlabWebHook
     def matches?(details_uri, branch, refspec, exactly = false)
       return false unless buildable?
       return false unless (git? || multi_scm?)
-      return false unless matches_repo_uri?(details_uri)
-      matches_branch?(branch, refspec, exactly)
+      matching_scms = get_matching_scms(details_uri)
+      return false if matching_scms.empty?
+      matches_branch?(branch, refspec, matching_scms, exactly)
     end
 
     def ignore_notify_commit?
@@ -77,21 +78,21 @@ module GitlabWebHook
 
     private
 
-    def matches_repo_uri?(details_uri)
-      scms.find do |scm|
+    def get_matching_scms(details_uri)
+      scms.select do |scm|
         scm.repositories.find do |repo|
-          repo.getURIs().find { |project_repo_uri|
+          repo.getURIs().find do |project_repo_uri|
             details_uri.matches?(project_repo_uri)
-          }
+          end
         end
       end
     end
 
-    def matches_branch?(branch, refspec, exactly = false)
+    def matches_branch?(branch, refspec, matching_scms, exactly)
       matched_refspecs = []
       matched_branch = nil
 
-      scms.find do |scm|
+      matched_scm = matching_scms.find do |scm|
         matched_branch = scm.branches.find do |scm_branch|
           scm.repositories.find do |repo|
             token = "#{repo.name}/#{branch}"
@@ -104,7 +105,8 @@ module GitlabWebHook
 
       matched_branch = get_branch_name_parameter if !matched_branch && matched_refspecs.any? && parametrized?
 
-      build_chooser = scm.buildChooser
+      matched_scm = matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
+      build_chooser = matched_scm.buildChooser if matched_scm
       build_chooser && build_chooser.java_kind_of?(InverseBuildChooser) ? matched_branch.nil? : !matched_branch.nil?
     end
 

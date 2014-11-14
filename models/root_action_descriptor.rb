@@ -26,7 +26,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 
         @templates = get_templates xmldoc.root.elements['templates']
         @group_templates = get_templates xmldoc.root.elements['group_templates']
-        @template = xmldoc.root.elements['template'].text
+        @template = xmldoc.root.elements['template'] && xmldoc.root.elements['template'].text
 
       end
     end
@@ -117,11 +117,11 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
         @description                = form["autocreate"]["description"]
         @any_branch_pattern         = form["autocreate"]["any_branch_pattern"]
       end
-      @templates = form['templates'].inject({}) do |hash, item|
+      @templates = form['templates'] && form['templates'].inject({}) do |hash, item|
         hash[item['string']] = item['project']
         hash
       end
-      @group_templates = form['group_templates'].inject({}) do |hash, item|
+      @group_templates = form['group_templates'] && form['group_templates'].inject({}) do |hash, item|
         hash[item['string']] = item['project']
         hash
       end

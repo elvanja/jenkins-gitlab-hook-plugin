@@ -12,11 +12,11 @@ module GitlabWebHook
       before(:each) { allow(subject).to receive(:matching_uri) { [not_matching_project, matching_project] } }
 
       it 'finds projects matching details' do
-        expect(not_matching_project).to receive(:matches?).with(details, details.branch).and_return(false)
-        expect(matching_project).to receive(:matches?).with(details, details.branch).and_return(true)
+        expect(not_matching_project).to receive(:matches?).with(details).and_return(false)
+        expect(matching_project).to receive(:matches?).with(details).and_return(true)
 
         projects = subject.matching_uri.select do |project|
-          project.matches?(details, details.branch)
+          project.matches?(details)
         end
 
         expect(projects.size).to eq(1)

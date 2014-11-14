@@ -31,7 +31,7 @@ module GitlabWebHook
           projects << @create_project_for_branch.with(details) if projects.empty?
         else
           projects.select! do |project|
-            project.matches?(details, details.branch)
+            project.matches?(details)
           end
         end
       else

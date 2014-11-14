@@ -54,8 +54,9 @@ module GitlabWebHook
     end
 
     def get_template_project(template)
-      raise NotFoundException.new("could not found template '#{template}'") if @get_jenkins_projects.named(template).empty?
-      template
+      candidates = @get_jenkins_projects.named(template)
+      raise NotFoundException.new("could not found template '#{template}'") if candidates.empty?
+      candidates.first
     end
 
     def get_new_project_name(copy_from, details)

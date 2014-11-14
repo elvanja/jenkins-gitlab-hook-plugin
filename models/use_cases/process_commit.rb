@@ -26,12 +26,12 @@ module GitlabWebHook
       if projects.any?
         if settings.automatic_project_creation?
           projects.select! do |project|
-            project.matches?(details.repository_uri, details.branch, true)
+            project.matches?(details, details.branch, true)
           end
           projects << @create_project_for_branch.with(details) if projects.empty?
         else
           projects.select! do |project|
-            project.matches?(details.repository_uri, details.branch)
+            project.matches?(details, details.branch)
           end
         end
       else

@@ -37,9 +37,9 @@ module GitlabWebHook
       matches_repo_uri?(details_uri)
     end
 
-    def matches?(details_uri, branch, exactly = false)
+    def matches?(details, branch, exactly = false)
       return false unless buildable?
-      return false unless matches_uri?(details_uri)
+      return false unless matches_uri?(details.repository_uri)
       matches_branch?(branch, exactly).tap { |matches| logger.info("project #{self} #{matches ? "matches": "doesn't match"} the #{branch} branch") }
     end
 

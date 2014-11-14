@@ -15,7 +15,7 @@ module GitlabWebHook
 
       messages = []
       @get_jenkins_projects.matching_uri(details).select do |project|
-        project.matches?(details.repository_uri, details.branch, true)
+        project.matches?(details, details.branch, true)
       end.each do |project|
         messages << "project #{project} matches deleted branch but is not automatically created by the plugin, skipping" and next unless project.description.match /#{settings.description}/
         project.delete

@@ -12,12 +12,6 @@ module GitlabWebHook
     let(:get_jenkins_projects) { double(GetJenkinsProjects, master: master, named: []) }
     let(:build_scm) { double(BuildScm, with: double(GitSCM)) }
     let(:subject) { CreateProjectForBranch.new(get_jenkins_projects, build_scm) }
-    let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
-
-    before(:each) do
-      allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
-      allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
-    end
 
     before(:each) do
       allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }

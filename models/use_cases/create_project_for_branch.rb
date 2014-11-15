@@ -10,7 +10,6 @@ module GitlabWebHook
     include Settings
 
     def initialize(get_jenkins_projects = GetJenkinsProjects.new, build_scm = BuildScm.new)
-      @settings = Java.jenkins.model.Jenkins.instance.descriptor GitlabWebHookRootActionDescriptor.java_class
       @get_jenkins_projects = get_jenkins_projects
       @build_scm = build_scm
     end

@@ -32,7 +32,7 @@ module GitlabWebHook
       let(:scm) { double(GitSCM) }
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:details_uri) { double(RepositoryUri) }
-      let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri) }
+      let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
       let(:branch) { double('BranchSpec', matches: true) }
       let(:build_chooser) { double('BuildChooser') }
 
@@ -70,6 +70,11 @@ module GitlabWebHook
 
         it 'when branches do not match' do
           allow(branch).to receive(:matches) { false }
+          expect(subject.matches?(details)).not_to be
+        end
+
+        it 'when refspec does not match' do
+          allow(refspec).to receive(:matchSource).with(anything) { false }
           expect(subject.matches?(details)).not_to be
         end
       end
@@ -113,6 +118,11 @@ module GitlabWebHook
         it 'supports parameter usage without $' do
           allow(branch).to receive(:name) { 'origin/BRANCH_NAME' }
           expect(subject.matches?(details)).to be
+        end
+
+        it 'does not match when refspec do not match' do
+          allow(refspec).to receive(:matchSource).with(anything) { false }
+          expect(subject.matches?(details)).not_to be
         end
       end
 

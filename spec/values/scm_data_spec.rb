@@ -45,7 +45,7 @@ module GitlabWebHook
           expect(BranchSpec).to receive(:new).with('Diaspora/features_meta').and_return(:branchspec)
           end
           it 'prefixes details branch' do
-            expect(subject.branchlist).to eq([:branchspec])#'Diaspora/features_meta')
+            expect(subject.branchlist).to eq([:branchspec])
           end
         end
       end

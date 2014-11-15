@@ -129,14 +129,6 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     end
   end
 
-  def read_property(doc, property)
-    doc.root.elements[property].text
-  end
-
-  def write_property(doc, property, value)
-    doc.root.add_element(property).add_text(value.to_s)
-  end
-
   def get_templates(templates)
     return unless templates
     templates.elements.select{ |tpl| tpl.name == 'template' }.inject({}) do |hash, tpl|
@@ -145,4 +137,11 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     end
   end
 
+  def read_property(doc, property)
+    doc.root.elements[property].text
+  end
+
+  def write_property(doc, property, value)
+    doc.root.add_element(property).add_text(value.to_s)
+  end
 end

@@ -43,11 +43,14 @@ module GitlabWebHook
     end
 
     context 'when creating the branch project' do
+      let(:scm) { double(GitSCM) }
       let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
-      let(:new_jenkins_project) { double(AbstractProject).as_null_object }
+      let(:new_jenkins_project) { double(Java.hudson.model.AbstractProject, scm: scm).as_null_object }
 
       before(:each) do
-        allow(master).to receive(:scm) { double(GitSCM) }
+        allow(master).to receive(:scm) { scm }
+        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
         expect(jenkins_instance).to receive(:copy).with(jenkins_project, anything).and_return(new_jenkins_project)
       end

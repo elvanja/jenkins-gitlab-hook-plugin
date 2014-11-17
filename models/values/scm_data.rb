@@ -22,7 +22,7 @@ module GitlabWebHook
           @branchlist = source_scm.getBranches()
         else
           branch = @name.to_s.size > 0 ? "#{@name}/#{@details.branch}" : @details.branch
-          @branchlist = [BranchSpec.new(branch)]
+          @branchlist = java.util.ArrayList.new([BranchSpec.new(branch).java_object])
         end
         @refspec = config.getRefspec()
       end

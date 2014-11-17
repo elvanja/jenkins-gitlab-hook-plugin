@@ -29,7 +29,7 @@ module GitlabWebHook
 
     def build_scm(scm_data)
       GitSCM.new(
-          [UserRemoteConfig.new(scm_data.url, scm_data.name, scm_data.credentials)],
+          java.util.ArrayList.new([UserRemoteConfig.new(scm_data.url, scm_data.name, scm_data.credentials).java_object]),
           scm_data.branchlist,
           scm_data.source_scm.isDoGenerateSubmoduleConfigurations(),
           scm_data.source_scm.getSubmoduleCfg(),
@@ -42,7 +42,7 @@ module GitlabWebHook
     def build_legacy_scm(scm_data)
       GitSCM.new(
           scm_data.source_scm.getScmName().to_s.size > 0 ? "#{scm_data.source_scm.getScmName()}_#{scm_data.details.safe_branch}" : nil,
-          [UserRemoteConfig.new(scm_data.url, scm_data.name, nil)],
+          java.util.ArrayList.new([UserRemoteConfig.new(scm_data.url, scm_data.name, nil).java_object]),
           scm_data.branchlist,
           scm_data.source_scm.getUserMergeOptions(),
           scm_data.source_scm.getDoGenerate(),

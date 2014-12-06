@@ -73,10 +73,6 @@ module GitlabWebHook
           expect(subject.matches?(details)).not_to be
         end
 
-        it 'when refspec does not match' do
-          allow(refspec).to receive(:matchSource).with(anything) { false }
-          expect(subject.matches?(details)).not_to be
-        end
       end
 
       context 'it matches' do
@@ -120,10 +116,6 @@ module GitlabWebHook
           expect(subject.matches?(details)).to be
         end
 
-        it 'does not match when refspec do not match' do
-          allow(refspec).to receive(:matchSource).with(anything) { false }
-          expect(subject.matches?(details)).not_to be
-        end
       end
 
       context 'when matching exactly' do

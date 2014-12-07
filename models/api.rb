@@ -16,8 +16,6 @@ java_import Java.org.jruby.exceptions.RaiseException
 
 module GitlabWebHook
   class Api < Sinatra::Base
-    LOGGER = Logger.getLogger(Api.class.name)
-
     get '/ping' do
       'Gitlab Web Hook is up and running :-)'
     end
@@ -45,19 +43,19 @@ module GitlabWebHook
     def process_projects(action)
       details = parse_request
       messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
-      LOGGER.info(messages.join("\n"))
+      logger.info(messages.join("\n"))
       messages.collect { |message| message.gsub("\n", '<br>') }.join("<br>")
     rescue BadRequestException => e
-      LOGGER.warning(e.message)
+      logger.warning(e.message)
       status 400
       e.message.gsub("\n", '<br>')
     rescue NotFoundException => e
-      LOGGER.warning(e.message)
+      logger.warning(e.message)
       status 404
       e.message.gsub("\n", '<br>')
     rescue => e
       # avoid method signature warnings
-      severe = LOGGER.java_method(:log, [Level, java.lang.String, java.lang.Throwable])
+      severe = logger.java_method(:log, [Level, java.lang.String, java.lang.Throwable])
       severe.call(Level::SEVERE, e.message, RaiseException.new(e))
       status 500
       [e.message, '', 'Stack trace:', e.backtrace].flatten.join('<br>')
@@ -65,7 +63,7 @@ module GitlabWebHook
 
     def parse_request
       ParseRequest.new.from(params, request).tap do |details|
-        LOGGER.info([
+        logger.info([
             'gitlab web hook triggered for',
             "   - repo url: #{details.repository_url}",
             "   - branch: #{details.branch}",
@@ -84,9 +82,13 @@ module GitlabWebHook
           '   - /build_now',
           'See https://github.com/elvanja/jenkins-gitlab-hook-plugin for details'
       ].join("\n")
-      LOGGER.warning(message)
+      logger.warning(message)
       status 400
       message.gsub("\n", '<br>')
+    end
+
+    def logger
+      @logger ||= Logger.getLogger(Api.class.name)
     end
   end
 end

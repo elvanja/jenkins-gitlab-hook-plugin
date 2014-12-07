@@ -6,6 +6,8 @@ include Java
 
 java_import Java.hudson.model.ParametersDefinitionProperty
 java_import Java.hudson.model.StringParameterDefinition
+java_import Java.hudson.util.StreamTaskListener
+java_import Java.hudson.util.NullStream
 java_import Java.hudson.plugins.git.GitSCM
 java_import Java.hudson.plugins.git.util.InverseBuildChooser
 
@@ -31,8 +33,6 @@ module GitlabWebHook
 
     attr_reader :jenkins_project
     attr_reader :scms
-
-    LOGGER = Logger.getLogger(Project.class.name)
 
     def initialize(jenkins_project, logger = nil)
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
@@ -74,6 +74,13 @@ module GitlabWebHook
     def get_default_parameters
       # @see jenkins.model.ParameterizedJobMixIn.getDefaultParametersValues used in hudson.model.AbstractProject
       getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
+    end
+
+    def has_changes?
+      # explicitly using the correct constructor to remove annoying warning
+      poll(StreamTaskListener.java_class.constructor(java.io.OutputStream).new_instance(NullStream.new)).hasChanges()
+    rescue
+      true
     end
 
     private
@@ -128,7 +135,7 @@ module GitlabWebHook
     end
 
     def logger
-      @logger || LOGGER
+      @logger ||= Logger.getLogger(Project.class.name)
     end
   end
 end

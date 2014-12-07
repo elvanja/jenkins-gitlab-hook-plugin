@@ -6,12 +6,9 @@ include Java
 
 java_import Java.java.util.logging.Logger
 java_import Java.java.util.logging.Level
-java_import Java.hudson.util.StreamTaskListener
 
 module GitlabWebHook
   class BuildNow
-    LOGGER = Logger.getLogger(self.class.name)
-
     attr_reader :project
 
     def initialize(project, logger = nil)
@@ -23,11 +20,10 @@ module GitlabWebHook
     def with(details, cause_builder = GetBuildCause.new, actions_builder = GetBuildActions.new)
       return "#{project} is configured to ignore notify commit, skipping the build" if project.ignore_notify_commit?
       return "#{project} is not buildable (it is disabled or not saved), skipping the build" unless project.buildable?
+      return "no SCM changes on #{project}" unless project.has_changes?
       raise ArgumentError.new('details are required') unless details
 
       begin
-        poll_result = project.poll StreamTaskListener.new()
-        return "No SMC changes on #{project}" unless poll_result.has_changes?
         return "#{project} scheduled for build" if project.scheduleBuild2(project.getQuietPeriod(), cause_builder.with(details), actions_builder.with(project, details))
       rescue java.lang.Exception => e
         # avoid method signature warnings
@@ -41,7 +37,7 @@ module GitlabWebHook
     private
 
     def logger
-      @logger || LOGGER
+      @logger ||= Logger.getLogger(self.class.name)
     end
   end
 end

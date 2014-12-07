@@ -7,8 +7,6 @@ java_import Java.java.util.logging.Level
 
 module GitlabWebHook
   class NotifyCommit
-    LOGGER = Logger.getLogger(NotifyCommit.class.name)
-
     attr_reader :project
 
     def initialize(project, logger = nil)
@@ -35,7 +33,7 @@ module GitlabWebHook
     private
 
     def logger
-      @logger || LOGGER
+      @logger ||= Logger.getLogger(NotifyCommit.class.name)
     end
   end
 end

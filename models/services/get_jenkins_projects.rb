@@ -20,8 +20,6 @@ module GitlabWebHook
   class GetJenkinsProjects
     include Settings
 
-    LOGGER = Logger.getLogger(GetJenkinsProjects.class.name)
-
     def matching(details, exactly = false)
       all.select do |project|
         project.matches?(details.repository_uri, details.branch, details.full_branch_reference, exactly)
@@ -72,7 +70,11 @@ module GitlabWebHook
     end
 
     def log_matched(projects)
-      LOGGER.info(['matching projects:'].concat(projects.map { |project| "   - #{project}" }).join("\n"))
+      logger.info(['matching projects:'].concat(projects.map { |project| "   - #{project}" }).join("\n"))
+    end
+
+    def logger
+      @logger ||= Logger.getLogger(GetJenkinsProjects.class.name)
     end
   end
 end

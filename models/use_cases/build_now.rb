@@ -20,7 +20,6 @@ module GitlabWebHook
     def with(details, cause_builder = GetBuildCause.new, actions_builder = GetBuildActions.new)
       return "#{project} is configured to ignore notify commit, skipping the build" if project.ignore_notify_commit?
       return "#{project} is not buildable (it is disabled or not saved), skipping the build" unless project.buildable?
-      return "no SCM changes on #{project}" unless project.has_changes?
       raise ArgumentError.new('details are required') unless details
 
       begin

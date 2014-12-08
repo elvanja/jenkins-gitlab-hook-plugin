@@ -3,7 +3,7 @@ require 'spec_helper'
 module GitlabWebHook
   describe BuildNow do
     let(:details) { double(RequestDetails, payload: double) }
-    let(:project) { double(Project, ignore_notify_commit?: false, buildable?: true, getQuietPeriod: double, has_changes?: true) }
+    let(:project) { double(Project, ignore_notify_commit?: false, buildable?: true, getQuietPeriod: double) }
     let(:logger) { double }
     let(:subject) { BuildNow.new(project, logger) }
 
@@ -20,14 +20,6 @@ module GitlabWebHook
         allow(project).to receive(:buildable?) { false }
         expect(project).not_to receive(:scheduleBuild2)
         expect(subject.with(details, GetBuildActions.new, GetBuildCause.new)).to match('not buildable')
-      end
-    end
-
-    context 'when no changes detected' do
-      it 'skips the build' do
-        allow(project).to receive(:has_changes?) { false }
-        expect(project).not_to receive(:scheduleBuild2)
-        expect(subject.with(details, GetBuildActions.new, GetBuildCause.new)).to match('no SCM changes')
       end
     end
 

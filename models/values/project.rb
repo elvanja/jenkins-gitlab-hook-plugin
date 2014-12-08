@@ -24,7 +24,7 @@ module GitlabWebHook
   class Project
     extend Forwardable
 
-    def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description, :poll
+    def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
 
     alias_method :parametrized?, :isParameterized
     alias_method :buildable?, :isBuildable
@@ -73,13 +73,6 @@ module GitlabWebHook
     def get_default_parameters
       # @see jenkins.model.ParameterizedJobMixIn.getDefaultParametersValues used in hudson.model.AbstractProject
       getProperty(ParametersDefinitionProperty.java_class).getParameterDefinitions()
-    end
-
-    def has_changes?
-      # explicitly using the correct constructor to remove annoying warning
-      poll(StreamTaskListener.java_class.constructor(java.io.OutputStream).new_instance(NullStream.new)).hasChanges()
-    rescue
-      true
     end
 
     private

@@ -50,4 +50,35 @@ describe GitlabWebHookRootActionDescriptor do
         expect(subject.any_branch_pattern).to eq('**')
       end
     end
+
+    context '#template_fallback' do
+      it 'is defined' do
+        expect(subject).to respond_to(:template_fallback)
+      end
+
+      it 'evaluates to false by default' do
+        expect(subject.template_fallback).to be nil
+      end
+    end
+
+    context '#templated_groups' do
+      it 'is defined' do
+        expect(subject).to respond_to(:templated_groups)
+      end
+
+      it 'has empty default' do
+        expect(subject.templated_groups).to eq({})
+      end
+    end
+
+    context '#templated_jobs' do
+      it 'is defined' do
+        expect(subject).to respond_to(:templated_jobs)
+      end
+
+      it 'has empty default' do
+        expect(subject.templated_jobs).to eq({})
+      end
+    end
+
 end

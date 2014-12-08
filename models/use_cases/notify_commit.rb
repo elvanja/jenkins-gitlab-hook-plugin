@@ -7,9 +7,9 @@ java_import Java.java.util.logging.Level
 
 module GitlabWebHook
   class NotifyCommit
-    attr_reader :project
+    attr_reader :project, :logger
 
-    def initialize(project, logger = nil)
+    def initialize(project, logger = Logger.getLogger(NotifyCommit.class.name))
       raise ArgumentError.new('project is required') unless project
       @project = project
       @logger = logger
@@ -28,12 +28,6 @@ module GitlabWebHook
       end
 
       "#{project} could not be scheduled for polling, it is disabled or has no SCM trigger"
-    end
-
-    private
-
-    def logger
-      @logger ||= Logger.getLogger(NotifyCommit.class.name)
     end
   end
 end

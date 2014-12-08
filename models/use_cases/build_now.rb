@@ -9,9 +9,9 @@ java_import Java.java.util.logging.Level
 
 module GitlabWebHook
   class BuildNow
-    attr_reader :project
+    attr_reader :project, :logger
 
-    def initialize(project, logger = nil)
+    def initialize(project, logger = Logger.getLogger(self.class.name))
       raise ArgumentError.new('project is required') unless project
       @project = project
       @logger = logger
@@ -32,12 +32,6 @@ module GitlabWebHook
       end
 
       "#{project} could not be scheduled for build"
-    end
-
-    private
-
-    def logger
-      @logger ||= Logger.getLogger(self.class.name)
     end
   end
 end

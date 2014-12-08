@@ -31,10 +31,9 @@ module GitlabWebHook
     alias_method :name, :fullName
     alias_method :to_s, :fullName
 
-    attr_reader :jenkins_project
-    attr_reader :scms
+    attr_reader :jenkins_project, :scms, :logger
 
-    def initialize(jenkins_project, logger = nil)
+    def initialize(jenkins_project, logger = Logger.getLogger(Project.class.name))
       raise ArgumentError.new("jenkins project is required") unless jenkins_project
       @jenkins_project = jenkins_project
       @logger = logger
@@ -132,10 +131,6 @@ module GitlabWebHook
       elsif multi_scm?
         @scms.concat(scm.getConfiguredSCMs().select { |scm| scm.java_kind_of?(GitSCM) })
       end
-    end
-
-    def logger
-      @logger ||= Logger.getLogger(Project.class.name)
     end
   end
 end

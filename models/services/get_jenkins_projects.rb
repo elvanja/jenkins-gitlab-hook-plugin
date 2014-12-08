@@ -20,6 +20,12 @@ module GitlabWebHook
   class GetJenkinsProjects
     include Settings
 
+    attr_reader :logger
+
+    def initialize(logger = Logger.getLogger(GetJenkinsProjects.class.name))
+      @logger = logger
+    end
+
     def matching(details)
       matching_projects(details, false)
     end
@@ -75,10 +81,6 @@ module GitlabWebHook
 
     def log_matched(projects)
       logger.info(['matching projects:'].concat(projects.map { |project| "   - #{project}" }).join("\n"))
-    end
-
-    def logger
-      @logger ||= Logger.getLogger(GetJenkinsProjects.class.name)
     end
   end
 end

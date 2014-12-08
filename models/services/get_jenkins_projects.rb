@@ -20,14 +20,12 @@ module GitlabWebHook
   class GetJenkinsProjects
     include Settings
 
-    def matching(details, exactly = false)
-      all.select do |project|
-        project.matches?(details.repository_uri, details.branch, details.full_branch_reference, exactly)
-      end.tap { |projects| log_matched(projects) }
+    def matching(details)
+      matching_projects(details, false)
     end
 
     def exactly_matching(details)
-      matching(details, true)
+      matching_projects(details, true)
     end
 
     def named(name)
@@ -47,6 +45,12 @@ module GitlabWebHook
     end
 
     private
+
+    def matching_projects(details, exactly = false)
+      all.select do |project|
+        project.matches?(details.repository_uri, details.branch, details.full_branch_reference, exactly)
+      end.tap { |projects| log_matched(projects) }
+    end
 
     def all
       old_authentication_level = elevate_priviledges

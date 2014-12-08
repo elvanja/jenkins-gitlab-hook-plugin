@@ -81,7 +81,7 @@ describe GitlabWebHookRootActionDescriptor do
       end
     end
 
-    context 'read disk descriptor' do
+    context 'disk descriptor' do
 
       let(:xml_file) { double(exists: true, canonicalPath: 'spec/fixtures/descriptor.xml' ) }
       let(:config_file) { double('configFile', file: xml_file) }
@@ -90,6 +90,8 @@ describe GitlabWebHookRootActionDescriptor do
       before(:each) do
         expect(subject).to receive(:configFile) { config_file }
       end
+
+      context 'read' do
 
         it '#automatic_project_creation?' do
           expect(subject.automatic_project_creation?).to be true
@@ -122,6 +124,23 @@ describe GitlabWebHookRootActionDescriptor do
         it '#templated_jobs' do
           expect(subject.templated_jobs).to eq( { 'webapp-' => 'maven_project' , 'java-lib-' => 'artifactory_project' } )
         end
+
+      end
+
+      context 'write' do
+
+        let (:content) { File.read('spec/fixtures/descriptor.xml') }
+        let (:outfile) { StringIO.new }
+
+        it 'recovers disk content' do
+          expect(BulkChange).to receive(:contains) { false }
+          expect(File).to receive(:open) { outfile }
+          expect(SaveableListener).to receive(:fireOnChange)
+          subject.save
+          expect(outfile.string).to eq content
+        end
+
+      end
 
     end
 

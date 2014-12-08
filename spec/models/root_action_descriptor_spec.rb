@@ -87,11 +87,12 @@ describe GitlabWebHookRootActionDescriptor do
       let(:config_file) { double('configFile', file: xml_file) }
       let(:subject) { GitlabWebHookRootActionDescriptor.new }
 
-      before(:each) do
-        expect(subject).to receive(:configFile) { config_file }
-      end
-
       context 'read' do
+
+        before(:each) do
+          expect(subject).to receive(:configFile).twice { config_file }
+          subject.load
+        end
 
         it '#automatic_project_creation?' do
           expect(subject.automatic_project_creation?).to be true
@@ -133,6 +134,8 @@ describe GitlabWebHookRootActionDescriptor do
         let (:outfile) { StringIO.new }
 
         it 'recovers disk content' do
+          expect(subject).to receive(:configFile).and_return( config_file ).exactly(4).times
+          subject.load
           expect(BulkChange).to receive(:contains) { false }
           expect(File).to receive(:open) { outfile }
           expect(SaveableListener).to receive(:fireOnChange)

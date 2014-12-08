@@ -49,7 +49,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       @any_branch_pattern           = read_property(doc, ANY_BRANCH_PATTERN_PROPERTY)
       @templates                    = get_templates doc.root.elements['templates']
       @group_templates              = get_templates doc.root.elements['group_templates']
-      @template                     = doc.root.elements['template'] && xmldoc.root.elements['template'].text
+      @template                     = doc.root.elements['template'] && doc.root.elements['template'].text
     end
   end
 

@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.model.Descriptor plugin='gitlab-hook'>
+  <automatic_project_creation>true</automatic_project_creation>
+  <master_branch>primary</master_branch>
+  <use_master_project_name>true</use_master_project_name>
+  <description>Alternate description</description>
+  <any_branch_pattern>origin/*</any_branch_pattern>
+  <template>default_project</template>
+  <templates>
+    <template>
+      <string>webapp-</string>
+      <project>maven_project</project>
+    </template>
+    <template>
+      <string>java-lib-</string>
+      <project>artifactory_project</project>
+    </template>
+  </templates>
+  <group_templates>
+    <template>
+      <string>android</string>
+      <project>gradle_project</project>
+    </template>
+  </group_templates>
+</hudson.model.Descriptor>

@@ -70,6 +70,8 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     write_property(doc, DESCRIPTION_PROPERTY, description)
     write_property(doc, ANY_BRANCH_PATTERN_PROPERTY, any_branch_pattern)
 
+    doc.root.add_element( 'template' ).add_text( template_fallback )
+
     tpls = doc.root.add_element( 'templates' )
     templated_jobs.each do |k,v|
       new = tpls.add_element('template')

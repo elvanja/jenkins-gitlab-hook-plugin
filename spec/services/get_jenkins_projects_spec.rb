@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'spec/support/shared/settings'
 
+java_import Java.hudson.matrix.MatrixProject
+
 module GitlabWebHook
   describe GetJenkinsProjects do
     include_context 'settings'
@@ -99,6 +101,28 @@ module GitlabWebHook
         projects = subject.send(:all)
         expect(projects.size).to eq(2)
         projects.each { |project| expect(project).to be_kind_of(Project) }
+      end
+
+      it 'skips matrix configuration project axis' do
+        maven_project = double(Java.hudson.model.AbstractProject, scm: scm)
+        allow(maven_project).to receive(:java_kind_of?).with(MatrixConfiguration) { false }
+
+        matrix_project = double(Java.hudson.matrix.MatrixProject, scm: scm)
+        allow(matrix_project).to receive(:java_kind_of?).with(MatrixConfiguration) { false }
+
+        matrix_configuration = double(Java.hudson.matrix.MatrixConfiguration, scm: scm)
+        allow(matrix_configuration).to receive(:java_kind_of?).with(MatrixConfiguration) { true }
+
+        allow(jenkins_instance).to receive(:getAllItems) {[
+            maven_project,
+            matrix_project,
+            matrix_configuration,
+            matrix_configuration
+        ]}
+
+        projects = subject.send(:all)
+        expect(projects.size).to eq(2)
+        projects.each { |project| expect(project.jenkins_project.java_kind_of?(Java.hudson.matrix.MatrixConfiguration)).not_to be }
       end
     end
   end

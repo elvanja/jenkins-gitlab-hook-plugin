@@ -5,6 +5,7 @@ require_relative '../util/settings'
 include Java
 
 java_import Java.hudson.model.AbstractProject
+java_import Java.hudson.matrix.MatrixConfiguration
 java_import Java.hudson.security.ACL
 
 java_import Java.org.acegisecurity.Authentication
@@ -61,8 +62,8 @@ module GitlabWebHook
     def all
       old_authentication_level = elevate_priviledges
       projects = Java.jenkins.model.Jenkins.instance.getAllItems(AbstractProject.java_class).map do |jenkins_project|
-        Project.new(jenkins_project)
-      end
+        Project.new(jenkins_project) unless jenkins_project.java_kind_of?(MatrixConfiguration)
+      end - [nil]
       revert_priviledges(old_authentication_level)
       projects
     end

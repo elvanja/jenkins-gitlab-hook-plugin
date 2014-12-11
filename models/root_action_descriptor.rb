@@ -121,6 +121,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       @description                = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][DESCRIPTION_PROPERTY]
       @any_branch_pattern         = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][ANY_BRANCH_PATTERN_PROPERTY]
     end
+    @template = form['template']
     @templates = form['templates'] && form['templates'].inject({}) do |hash, item|
       hash[item['string']] = item['project']
       hash

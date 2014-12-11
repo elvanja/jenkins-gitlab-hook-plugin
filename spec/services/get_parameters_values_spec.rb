@@ -25,7 +25,7 @@ module GitlabWebHook
 
       it 'recognizes nested keys' do
         allow(project).to receive(:get_default_parameters) { [build_parameter('repository.url')] }
-        expect(subject.with(project, details)[0].value).to eq('git@example.com:diaspora.git')
+        expect(subject.with(project, details)[0].value).to eq('git@example.com:diaspora/diaspora.git')
       end
 
       it 'recognizes nested array elements' do

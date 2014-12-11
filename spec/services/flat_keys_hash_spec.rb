@@ -20,7 +20,7 @@ module GitlabWebHook
     it 'exposes root' do
       repository = subject.to_flat_keys['repository']
       expect(repository.keys.count).to eq(5)
-      expect(repository['url']).to eq('git@example.com:diaspora.git')
+      expect(repository['url']).to eq('git@example.com:diaspora/diaspora.git')
     end
 
     it 'indexes arrays' do

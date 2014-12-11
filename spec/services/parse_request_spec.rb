@@ -9,7 +9,7 @@ module GitlabWebHook
     context 'with data from params' do
       it 'builds parameters influenced details' do
         details = subject.from(parameters, nil)
-        expect(details.repository_url).to eq('http://localhost/peronospora')
+        expect(details.repository_url).to eq('http://localhost/diaspora/peronospora')
       end
     end
 

@@ -52,7 +52,7 @@ module GitlabWebHook
     def matches?(details, branch = false, exactly = false)
       return false unless buildable?
       return false unless matches_uri?(details.repository_uri)
-      matches_branch?(branch || details.branch, details.full_branch_reference, exactly)
+      matches_branch?(details, branch, exactly)
     end
 
     def ignore_notify_commit?
@@ -98,7 +98,9 @@ module GitlabWebHook
       end
     end
 
-    def matches_branch?(branch, refspec, exactly = false)
+    def matches_branch?(details, branch = false, exactly = false)
+      refspec = details.full_branch_reference
+      branch = details.branch unless branch
       matched_refspecs = []
       matched_branch = nil
 

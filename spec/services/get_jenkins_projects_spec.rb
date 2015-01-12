@@ -73,12 +73,6 @@ module GitlabWebHook
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
       end
 
-      it 'elevates privileges and restores them' do
-        expect(subject).to receive(:elevate_priviledges).ordered
-        expect(subject).to receive(:revert_priviledges).ordered
-        subject.send(:all)
-      end
-
       it 'returns custom projects' do
         allow(jenkins_instance).to receive(:getAllItems) {[
             double(Java.hudson.model.AbstractProject, scm: scm),

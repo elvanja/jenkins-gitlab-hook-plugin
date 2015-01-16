@@ -13,10 +13,14 @@ module GitlabWebHook
 
     def from_payload(details)
       notes = ['<br/>']
-      notes << "triggered by push on branch #{details.full_branch_reference}"
-      notes << "with #{details.commits_count} commit#{details.commits_count == '1' ? '' : 's' }:"
-      details.commits.each do |commit|
-        notes << "* <a href=\"#{commit.url}\">#{commit.message}</a>"
+      if details.kind == 'merge_request'
+        notes << "triggered by merge request #{details.branch} -> #{details.target_branch}"
+      else
+        notes << "triggered by push on branch #{details.full_branch_reference}"
+        notes << "with #{details.commits_count} commit#{details.commits_count == '1' ? '' : 's' }:"
+        details.commits.each do |commit|
+          notes << "* <a href=\"#{commit.url}\">#{commit.message}</a>"
+        end
       end
       notes
     end

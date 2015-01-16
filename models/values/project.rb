@@ -11,6 +11,7 @@ java_import Java.hudson.util.StreamTaskListener
 java_import Java.hudson.util.NullStream
 java_import Java.hudson.plugins.git.GitSCM
 java_import Java.hudson.plugins.git.util.InverseBuildChooser
+java_import Java.hudson.plugins.git.extensions.impl.PreBuildMerge
 
 java_import Java.java.util.logging.Logger
 
@@ -55,6 +56,16 @@ module GitlabWebHook
       matches_branch?(details, branch, exactly)
     end
 
+    def pre_build_merge?
+      pre_build_merge ? true : false
+    end
+
+    def merge_to?(branch)
+      return false unless pre_build_merge?
+      merge_params = pre_build_merge.get_options
+      merge_params.merge_target == branch
+    end
+
     def ignore_notify_commit?
       scms.find { |scm| scm.isIgnoreNotifyCommit() }
     end
@@ -83,6 +94,16 @@ module GitlabWebHook
     end
 
     private
+
+    def pre_build_merge
+      scm.extensions.get PreBuildMerge.java_class
+    end
+
+    def matches_repo_uri?(details_uri)
+      scm.repositories.find do |repo|
+        repo.getURIs().find { |project_repo_uri| details_uri.matches?(project_repo_uri) }
+      end
+    end
 
     def matching_scms?(details_uri)
       matching_scms(details_uri).any?

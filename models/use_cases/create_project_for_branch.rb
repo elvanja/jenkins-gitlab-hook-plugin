@@ -6,6 +6,12 @@ require_relative '../services/build_scm'
 require_relative '../util/settings'
 require_relative '../services/security'
 
+java_import Java.hudson.plugins.git.GitSCM
+java_import Java.hudson.plugins.git.BranchSpec
+java_import Java.hudson.plugins.git.UserRemoteConfig
+java_import Java.hudson.plugins.git.UserMergeOptions
+java_import Java.hudson.plugins.git.extensions.impl.PreBuildMerge
+
 module GitlabWebHook
   class CreateProjectForBranch
     include Settings
@@ -51,6 +57,27 @@ module GitlabWebHook
       Project.new(branch_project)
     end
 
+    def for_merge(details)
+      get_candidate_projects(details).collect do |copy_from|
+        new_project_name = "#{copy_from.name}-mr-#{details.safe_branch}"
+        cloned_scm = prepare_scm_from(copy_from.scm, details)
+        # What about candidates with pre-build merge enabled?
+        user_merge_options = UserMergeOptions.new('origin', details.target_branch, 'default')
+        cloned_scm.extensions.add PreBuildMerge.new(user_merge_options)
+        new_project = nil
+
+        Security.impersonate(ACL::SYSTEM) do
+          new_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
+          new_project.scm = cloned_scm
+          new_project.makeDisabled(false)
+          new_project.description = @settings.description
+          new_project.save
+        end
+
+        Project.new(new_project)
+      end
+    end
+
     private
 
     def get_project_to_copy_from(details)
@@ -64,11 +91,50 @@ module GitlabWebHook
       candidates.first
     end
 
+    def get_candidate_projects(details)
+      not_found_message = "could not find candidate for #{details.repository_name}::#{details.branch}"
+      @get_jenkins_projects.matching_uri(details).select do |project|
+        project.matches?(details, details.target_branch, true)
+      end || raise(NotFoundException.new(not_found_message))
+    end
+
     def get_new_project_name(copy_from, details)
       new_project_name = "#{settings.use_master_project_name? ? copy_from.name : details.repository_name}_#{details.safe_branch}"
       raise ConfigurationException.new("project #{new_project_name} already exists") unless @get_jenkins_projects.named(new_project_name).empty?
       new_project_name
     end
 
+    def prepare_scm_from(source_scm, details, is_template=false)
+      scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{details.safe_branch}" : nil
+
+      # refspec is skipped, we will build specific commit branch
+      remote_url, remote_name, remote_refspec = nil, nil, nil
+      scm_config = source_scm.getUserRemoteConfigs().first
+
+      remote_name = scm_config.getName()
+      remote_refspec = scm_config.getRefspec()
+
+      if is_template
+        remote_url = details.repository_url
+        branchlist = source_scm.getBranches()
+      else
+        remote_url = scm_config.getUrl()
+        remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
+        branchlist = java.util.ArrayList.new([BranchSpec.new(remote_branch).java_object])
+      end
+
+      raise ConfigurationException.new('remote repo clone url not found') unless remote_url
+
+      remote_credentials = source_scm.getUserRemoteConfigs().first.getCredentialsId()
+      GitSCM.new(
+        java.util.ArrayList.new([UserRemoteConfig.new(remote_url, remote_name, remote_refspec, remote_credentials).java_object]),
+        branchlist,
+        source_scm.isDoGenerateSubmoduleConfigurations(),
+        source_scm.getSubmoduleCfg(),
+        source_scm.getBrowser(),
+        source_scm.getGitTool(),
+        source_scm.getExtensions()
+      )
+    end
   end
 end

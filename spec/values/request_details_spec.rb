@@ -3,6 +3,10 @@ require 'spec_helper'
 module GitlabWebHook
   describe RequestDetails do
     context 'with validation' do
+      before :each do
+        allow(subject).to receive(:kind) { 'webhook' }
+      end
+
       it 'is valid when repository url is present' do
         allow(subject).to receive(:repository_url) { 'http://repo.url' }
         expect(subject.valid?).to be
@@ -25,27 +29,9 @@ module GitlabWebHook
       end
     end
 
-    context 'with repository url' do
-      it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
-      end
-    end
-
-    context 'with repository name' do
-      it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
-      end
-    end
-
-    context 'with repository homepage' do
-      it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
-      end
-    end
-
     context 'with full branch name' do
       it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
+        expect { subject.full_branch_reference }.to raise_exception(NameError)
       end
     end
 
@@ -112,7 +98,7 @@ module GitlabWebHook
 
     context 'with delete branch commit' do
       it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
+        expect { subject.repository_delete_branch_commit? }.to raise_exception(NameError)
       end
     end
 

@@ -6,6 +6,7 @@ require_relative 'exceptions/configuration_exception'
 require_relative 'exceptions/not_found_exception'
 require_relative 'use_cases/process_commit'
 require_relative 'use_cases/process_delete_commit'
+require_relative 'use_cases/process_merge_request'
 require_relative 'services/parse_request'
 
 include Java
@@ -42,7 +43,11 @@ module GitlabWebHook
 
     def process_projects(action)
       details = parse_request
-      messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
+      if details.classic?
+        messages = details.delete_branch_commit? ? ProcessDeleteCommit.new.with(details) : ProcessCommit.new.with(details, action)
+      else
+        messages = ProcessMergeRequest.new.with(details)
+      end
       logger.info(messages.join("\n"))
       messages.collect { |message| message.gsub("\n", '<br>') }.join("<br>")
     rescue BadRequestException => e
@@ -63,13 +68,17 @@ module GitlabWebHook
 
     def parse_request
       ParseRequest.new.from(params, request).tap do |details|
-        logger.info([
+      LOGGER.info("gitlab web hook triggered for repo url #{details.repository_url} and #{details.branch} branch") if details.classic?
+        msgs = [
             'gitlab web hook triggered for',
-            "   - repo url: #{details.repository_url}",
-            "   - branch: #{details.branch}",
             '   - with payload:',
             JSON.pretty_generate(details.payload)
-        ].join("\n"))
+        ]
+        msgs.insert( 1,
+            "   - repo url: #{details.repository_url}",
+            "   - branch: #{details.branch}",
+        ) if details.classic?
+        logger.info(msgs.join("\n"))
       end
     end
 

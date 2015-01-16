@@ -3,6 +3,7 @@ require_relative 'request_details'
 module GitlabWebHook
   class PayloadRequestDetails < RequestDetails
     def initialize(payload)
+      @kind = 'webhook'
       @payload = payload || raise(ArgumentError.new("request payload is required"))
     end
 
@@ -31,6 +32,10 @@ module GitlabWebHook
 
     def full_branch_reference
       payload["ref"].to_s.strip
+    end
+
+    def before
+      raise NameError.new("should be implemented in concrete implementation")
     end
 
     def delete_branch_commit?

@@ -40,7 +40,7 @@ module GitlabWebHook
       let(:refspec) { double('RefSpec') }
       let(:details_uri) { double(RepositoryUri) }
       let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
-      let(:branch) { double('BranchSpec', matches: true) }
+      #let(:branch) { BranchSpec.new('origin/master') }
       let(:build_chooser) { double('BuildChooser') }
 
       before(:each) do
@@ -54,7 +54,7 @@ module GitlabWebHook
         allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
 
         allow(scm).to receive(:repositories) { [repository] }
-        allow(scm).to receive(:branches) { [branch] }
+        allow(scm).to receive(:branches) { [BranchSpec.new('origin/master')] }
         allow(scm).to receive(:buildChooser) { build_chooser }
 
         allow(details_uri).to receive(:matches?) { true }
@@ -81,7 +81,7 @@ module GitlabWebHook
         end
 
         it 'when branches do not match' do
-          allow(branch).to receive(:matches) { false }
+          allow(scm).to receive(:branches) { [BranchSpec.new('origin/nonmatchingbranch')] }
           expect(subject.matches?(details)).not_to be
         end
 
@@ -113,8 +113,7 @@ module GitlabWebHook
           other_parameter = double(ParametersDefinitionProperty, name: 'OTHER_PARAMETER')
           allow(other_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { true }
 
-          allow(branch).to receive(:matches) { false }
-          allow(branch).to receive(:name) { 'origin/$BRANCH_NAME' }
+          allow(scm).to receive(:branches) { [BranchSpec.new('origin/$BRANCH_NAME')] }
 
           allow(subject).to receive(:parametrized?) { true }
           allow(subject).to receive(:get_default_parameters) { [branch_name_parameter, other_parameter] }
@@ -122,7 +121,7 @@ module GitlabWebHook
 
         it 'does not match when branch parameter not found' do
           allow(branch_name_parameter).to receive(:name) { 'NOT_BRANCH_PARAMETER' }
-          expect(subject.matches?(details, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
 
         it 'does not match when branch parameter is not of supported type' do
@@ -136,7 +135,7 @@ module GitlabWebHook
         end
 
         it 'supports parameter usage without $' do
-          allow(branch).to receive(:name) { 'origin/BRANCH_NAME' }
+          allow(scm).to receive(:branches) { [BranchSpec.new('origin/BRANCH_NAME')] }
           expect(subject.matches?(details)).to be
         end
 
@@ -149,12 +148,12 @@ module GitlabWebHook
 
       context 'when matching exactly' do
         it 'does not match when branches are not equal' do
-          allow(branch).to receive(:name) { 'origin/**' }
+          allow(scm).to receive(:branches) { [BranchSpec.new('origin/**')] }
           expect(subject.matches?(details, 'origin/master', true)).not_to be
         end
 
         it 'matches when branches are equal' do
-          allow(branch).to receive(:name) { 'origin/master' }
+          allow(scm).to receive(:branches) { [BranchSpec.new('origin/master')] }
           expect(subject.matches?(details, 'origin/master', true)).not_to be
         end
       end
@@ -167,7 +166,7 @@ module GitlabWebHook
         end
 
         it 'matches when regular strategy would not match' do
-          allow(branch).to receive(:matches) { false }
+          allow(scm).to receive(:branches) { [BranchSpec.new('origin/nonmatchingbranch')] }
           expect(subject.matches?(details)).to be
         end
       end
@@ -182,8 +181,8 @@ module GitlabWebHook
       let(:refspec) { double('RefSpec') }
       let(:details_uri) { double(RepositoryUri) }
       let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
-      let(:matching_branch) { double('BranchSpec', matches: true) }
-      let(:non_matching_branch) { double('BranchSpec', matches: false) }
+      let(:matching_branch) { double('BranchSpec', matches: true, name: 'origin') }
+      let(:non_matching_branch) { double('BranchSpec', matches: false, name: 'origin') }
       let(:default_build_chooser) { double('BuildChooser') }
       let(:inverse_build_chooser) { double('BuildChooser') }
 
@@ -249,5 +248,102 @@ module GitlabWebHook
         end
       end
     end
+
+    context "#matches?(branch='master')" do
+      include_context 'details'
+      let(:scm) { GitSCM.new( 'git@example.com:diaspora/diaspora.git' ) }
+
+      before (:each) do
+        allow(scm).to receive(:branches) { [branch] }
+        allow(jenkins_project).to receive(:scm) { scm }
+        allow(subject).to receive(:buildable?) { true }
+        allow(subject).to receive(:parametrized?) { false }
+      end
+
+      context "branchspec is 'master'" do
+        let(:branch) { BranchSpec.new('master') }
+        it "matches" do
+          expect( subject.matches?(details) ).to be(true)
+        end
+      end
+
+      context "branchspec is 'origin/master'" do
+        let(:branch) { BranchSpec.new('origin/master') }
+        it "matches" do
+          expect( subject.matches?(details) ).to be(true)
+        end
+      end
+
+      context "branchspec is 'other/master'" do
+        let(:branch) { BranchSpec.new('other/master') }
+        it "don't match" do
+          expect( subject.matches?(details) ).to be(false)
+        end
+      end
+
+      context "branchspec is '*/master'" do
+        let(:branch) { BranchSpec.new('*/master') }
+        it "match" do
+          expect( subject.matches?(details) ).to be(true)
+        end
+      end
+
+      context "branchspec is 'origin/otherbranch'" do
+        let(:branch) { BranchSpec.new('origin/otherbranch') }
+        it "don't match" do
+          expect( subject.matches?(details) ).to be(false)
+        end
+      end
+
+    end
+
+    context "#matches?(branch='master', exactly=true)" do
+      include_context 'details'
+      let(:scm) { GitSCM.new( 'git@example.com:diaspora/diaspora.git' ) }
+
+      before (:each) do
+        allow(scm).to receive(:branches) { [branch] }
+        allow(jenkins_project).to receive(:scm) { scm }
+        allow(subject).to receive(:buildable?) { true }
+        allow(subject).to receive(:parametrized?) { false }
+      end
+
+      context "branchspec is 'master'" do
+        let(:branch) { BranchSpec.new('master') }
+        it "matches" do
+          expect( subject.matches?(details, false, true) ).to be(true)
+        end
+      end
+
+      context "branchspec is 'origin/master'" do
+        let(:branch) { BranchSpec.new('origin/master') }
+        it "matches" do
+          expect( subject.matches?(details, false, true) ).to be(true)
+        end
+      end
+
+      context "when branchspec is 'other/master'" do
+        let(:branch) { BranchSpec.new('other/master') }
+        it "don't match" do
+          expect( subject.matches?(details, false, true) ).to be(false)
+        end
+      end
+
+      context "branchspec is '*/master'" do
+        let(:branch) { BranchSpec.new('*/master') }
+        it "matches" do
+          expect( subject.matches?(details, false, true) ).to be(true)
+        end
+      end
+
+      context "when branchspec is 'origin/otherbranch'" do
+        let(:branch) { BranchSpec.new('origin/otherbranch') }
+        it "don't match" do
+          expect( subject.matches?(details, false, true) ).to be(false)
+        end
+      end
+
+    end
+
   end
 end

@@ -9,9 +9,6 @@ gem 'sinatra'
 
 group :development do
   gem 'jpi', '~> 0.4.0'
-end
-
-group :test do
   gem 'rake'
   gem 'rspec', '>= 3.0.0'
 end

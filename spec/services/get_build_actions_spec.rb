@@ -1,9 +1,5 @@
 require 'spec_helper'
 
-include Java
-
-java_import Java.hudson.model.ParametersAction
-
 module GitlabWebHook
   describe GetBuildActions do
     let(:project) { double(Project, parametrized?: true) }

@@ -1,10 +1,5 @@
 require 'spec_helper'
 
-include Java
-
-java_import Java.hudson.model.StringParameterDefinition
-java_import Java.hudson.model.BooleanParameterValue
-
 module GitlabWebHook
   describe GetParametersValues do
     include_context 'details'
@@ -83,7 +78,7 @@ module GitlabWebHook
       end
 
       it 'leaves non string parameters as is' do
-        boolean_parameter = double(name: 'boolean', getDefaultParameterValue: BooleanParameterValue.new('boolean', true)).tap do |parameter|
+        boolean_parameter = double(name: 'boolean', getDefaultParameterValue: Java.hudson.model.BooleanParameterValue.new('boolean', true)).tap do |parameter|
           allow(parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { false }
         end
         allow(project).to receive(:get_default_parameters) { [boolean_parameter] }

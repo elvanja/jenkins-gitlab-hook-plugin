@@ -6,6 +6,7 @@ include Java
 
 java_import Java.hudson.model.ParametersDefinitionProperty
 java_import Java.hudson.model.StringParameterDefinition
+java_import Java.hudson.model.ChoiceParameterDefinition
 java_import Java.hudson.util.StreamTaskListener
 java_import Java.hudson.util.NullStream
 java_import Java.hudson.plugins.git.GitSCM
@@ -62,7 +63,7 @@ module GitlabWebHook
         end
       end
 
-      if branch_name_param && !branch_name_param.java_kind_of?(StringParameterDefinition)
+      if branch_name_param && !(branch_name_param.java_kind_of?(StringParameterDefinition) || branch_name_param.java_kind_of?(ChoiceParameterDefinition))
         logger.warning("only string parameters for branch parameter are supported")
         return nil
       end

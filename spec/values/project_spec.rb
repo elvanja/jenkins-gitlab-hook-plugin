@@ -50,6 +50,7 @@ module GitlabWebHook
 
         allow(subject).to receive(:buildable?) { true }
         allow(subject).to receive(:parametrized?) { false }
+        allow(subject).to receive(:pre_build_merge) { nil }
 
         allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
 
@@ -101,6 +102,23 @@ module GitlabWebHook
           allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
           allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
           expect(subject.matches?(details)).to be
+        end
+      end
+
+      context 'when is merge project' do
+        before(:each) do
+          allow(scm).to receive(:branches) { [BranchSpec.new('origin/nonmatchingbranch')] }
+        end
+
+        it 'and merged branch matchs' do
+          expect(logger).to receive(:info)
+          expect(subject).to receive(:merge_to?) { true }
+          expect(subject.matches?(details)).to be
+        end
+
+        it 'and merged branch matchs' do
+          expect(subject).to receive(:merge_to?) { false }
+          expect(subject.matches?(details)).not_to be
         end
       end
 
@@ -199,14 +217,17 @@ module GitlabWebHook
         allow(regular_git_scm).to receive(:java_kind_of?).with(GitSCM) { true }
         allow(regular_git_scm).to receive(:repositories) { [repository] }
         allow(regular_git_scm).to receive(:buildChooser) { default_build_chooser }
+        allow(regular_git_scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
 
         allow(inverse_git_scm).to receive(:java_kind_of?).with(GitSCM) { true }
         allow(inverse_git_scm).to receive(:repositories) { [repository] }
         allow(inverse_git_scm).to receive(:buildChooser) { inverse_build_chooser }
+        allow(inverse_git_scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
 
         allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
         allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
         allow(scm).to receive(:getConfiguredSCMs) { [regular_git_scm, not_git_scm, inverse_git_scm] }
+        allow(scm).to receive(:extensions) { double('ExtensionsList', get: nil) }
 
         allow(jenkins_project).to receive(:scm) { scm }
 

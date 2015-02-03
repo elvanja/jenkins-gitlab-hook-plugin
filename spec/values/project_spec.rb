@@ -124,7 +124,7 @@ module GitlabWebHook
         end
 
         it 'does not match when branch parameter is not of supported type' do
-          allow(branch_name_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { false }
+          Project::BRANCH_NAME_PARAMETER_ACCEPTED_TYPES.each { |type| allow(branch_name_parameter).to receive(:java_kind_of?).with(type) { false } }
           expect(logger).to receive(:warning)
           expect(subject.matches?(details_uri, anything, anything)).not_to be
         end

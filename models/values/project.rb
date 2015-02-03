@@ -23,6 +23,8 @@ end
 
 module GitlabWebHook
   class Project
+    BRANCH_NAME_PARAMETER_ACCEPTED_TYPES = [StringParameterDefinition, ChoiceParameterDefinition]
+
     extend Forwardable
 
     def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
@@ -63,8 +65,8 @@ module GitlabWebHook
         end
       end
 
-      if branch_name_param && !(branch_name_param.java_kind_of?(StringParameterDefinition) || branch_name_param.java_kind_of?(ChoiceParameterDefinition))
-        logger.warning("only string parameters for branch parameter are supported")
+      if branch_name_param && !BRANCH_NAME_PARAMETER_ACCEPTED_TYPES.any? { |type| branch_name_param.java_kind_of?(type) }
+        logger.warning("only string and choice parameters for branch parameter are supported")
         return nil
       end
 

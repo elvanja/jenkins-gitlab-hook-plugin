@@ -1,5 +1,9 @@
 require 'spec_helper'
 
+# NOTE : Since 1.565, implementation of RemoteCause.getShortDescription
+# calls Jenkins.getInstance().getMarkupFormatter(), with no simple mockup, so
+# we test for addr and note accessors
+
 module GitlabWebHook
   describe GetBuildCause do
     let(:repository_uri) { double(RepositoryUri, host: 'localhost') }
@@ -8,14 +12,14 @@ module GitlabWebHook
     context 'with repository details' do
       it 'contains repository host' do
         cause = subject.with(details)
-        expect(cause.shortDescription).to match('localhost')
+        expect(cause.addr).to match('localhost')
       end
     end
 
     context 'with no payload' do
       it 'contains default message' do
         cause = subject.with(details)
-        expect(cause.shortDescription).to match('no payload available')
+        expect(cause.note).to match('no payload available')
       end
     end
 
@@ -27,8 +31,8 @@ module GitlabWebHook
         allow(details).to receive(:commits) { [double(Commit, url: 'http://localhost/diaspora/peronospora/commits/123456', message: 'fix')] }
 
         cause = subject.with(details)
-        expect(cause.shortDescription).not_to match('no payload available')
-        expect(cause.shortDescription).to match('commits/123456')
+        expect(cause.note).not_to match('no payload available')
+        expect(cause.note).to match('commits/123456')
       end
     end
 

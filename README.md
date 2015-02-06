@@ -153,7 +153,9 @@ The plugin expects the request to have the appropriate structure, like this exam
 }
 ```
 
-## Automatic branch project creation
+## Automatic project creation
+
+### Create project for pushed branches
 
 In case you might want to approach multiple branches by having a separate Jenkins project for each Git(lab) repository, you can turn on the appropriate plugin option.<br/>
 This use case workflow:
@@ -196,6 +198,24 @@ Disadvantages:
 * job / branch monitoring is not easy because of a large number of projects for a single Git(lab) repository
 
 For this option to become active, just turn it on in Jenkins global configuration.
+
+### Templates for unknown repositories
+
+The plugin can be configured to automatically create projects when the hook is
+activated by a gitlab repo unknown to jenkins. The template must be an existing
+jenkins project, that could be an already running one or be spefically created
+for this purpose.
+
+The simplest case is the *last resort template*, where a single template is
+used for every unknown webhook. To get finer clasification, distinct templates
+can also be assigned to different gitlab groups, which can be useful, for
+example, to handle android development based on gradle projects while the
+remaining java repositories are created with a maven template.
+
+The finest grained templating can be achieved with the repository name. It can
+be applied if you have in use some naming scheme for those repos. Payload for
+projects whose name starts with *lib-java-* could be redirected to a template
+that is prepared to publish the artifact on a public maven repository.
 
 ## Dependencies
 

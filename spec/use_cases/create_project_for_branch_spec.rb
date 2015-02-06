@@ -1,10 +1,12 @@
 require 'spec_helper'
 
+require 'models/root_action_descriptor'
+
 module GitlabWebHook
   describe CreateProjectForBranch do
     let(:settings) { double(GitlabWebHookRootActionDescriptor, automatic_project_creation?: true) }
     let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
-    let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta') }
+    let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta', branch: 'features/meta') }
     let(:jenkins_project) { double(AbstractProject) }
     let(:master) { double(Project, name: 'discourse', jenkins_project: jenkins_project) }
     let(:get_jenkins_projects) { double(GetJenkinsProjects, master: master, named: []) }

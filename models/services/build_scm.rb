@@ -14,9 +14,9 @@ module GitlabWebHook
   class BuildScm
     GIT_PLUGIN_VERSION_WITH_NEW_FEATURES = '1.9.9'
 
-    def with(source_scm, details, gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git'))
+    def with(source_scm, details, gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git'), is_template=false)
       # refspec is skipped, we will build specific commit branch
-      scm_data = ScmData.new(source_scm, details)
+      scm_data = ScmData.new(source_scm, details, is_template)
 
       if gitplugin.isOlderThan(VersionNumber.new(GIT_PLUGIN_VERSION_WITH_NEW_FEATURES))
         build_legacy_scm(scm_data)
@@ -29,8 +29,8 @@ module GitlabWebHook
 
     def build_scm(scm_data)
       GitSCM.new(
-          [UserRemoteConfig.new(scm_data.url, scm_data.name, scm_data.credentials)],
-          [BranchSpec.new(scm_data.branch)],
+          java.util.ArrayList.new([UserRemoteConfig.new(scm_data.url, scm_data.name, scm_data.credentials).java_object]),
+          scm_data.branchlist,
           scm_data.source_scm.isDoGenerateSubmoduleConfigurations(),
           scm_data.source_scm.getSubmoduleCfg(),
           scm_data.source_scm.getBrowser(),
@@ -42,8 +42,8 @@ module GitlabWebHook
     def build_legacy_scm(scm_data)
       GitSCM.new(
           scm_data.source_scm.getScmName().to_s.size > 0 ? "#{scm_data.source_scm.getScmName()}_#{scm_data.details.safe_branch}" : nil,
-          [UserRemoteConfig.new(scm_data.url, scm_data.name, nil)],
-          [BranchSpec.new(scm_data.branch)],
+          java.util.ArrayList.new([UserRemoteConfig.new(scm_data.url, scm_data.name, nil).java_object]),
+          scm_data.branchlist,
           scm_data.source_scm.getUserMergeOptions(),
           scm_data.source_scm.getDoGenerate(),
           scm_data.source_scm.getSubmoduleCfg(),

@@ -47,6 +47,9 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       @master_branch                = read_property(doc, MASTER_BRANCH_PROPERTY)
       @description                  = read_property(doc, DESCRIPTION_PROPERTY)
       @any_branch_pattern           = read_property(doc, ANY_BRANCH_PATTERN_PROPERTY)
+      @templates                    = get_templates doc.root.elements['templates']
+      @group_templates              = get_templates doc.root.elements['group_templates']
+      @template                     = doc.root.elements['template'] && doc.root.elements['template'].text
     end
   end
 
@@ -67,6 +70,22 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     write_property(doc, DESCRIPTION_PROPERTY, description)
     write_property(doc, ANY_BRANCH_PATTERN_PROPERTY, any_branch_pattern)
 
+    doc.root.add_element( 'template' ).add_text( template_fallback )
+
+    tpls = doc.root.add_element( 'templates' )
+    templated_jobs.each do |k,v|
+      new = tpls.add_element('template')
+      new.add_element('string').add_text(k)
+      new.add_element('project').add_text(v)
+    end
+
+    tpls = doc.root.add_element( 'group_templates' )
+    templated_groups.each do |k,v|
+      new = tpls.add_element('template')
+      new.add_element('string').add_text(k)
+      new.add_element('project').add_text(v)
+    end
+
     f = File.open(configFile.file.canonicalPath, 'wb')
     f.puts("<?xml version='#{doc.version}' encoding='#{doc.encoding}'?>")
 
@@ -80,6 +99,18 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     f.closed?
   end
 
+  def templated_jobs
+    @templates || {}
+  end
+
+  def templated_groups
+    @group_templates || {}
+  end
+
+  def template_fallback
+    @template
+  end
+
   private
 
   def parse(form)
@@ -89,6 +120,23 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       @use_master_project_name    = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][USE_MASTER_PROJECT_NAME_PROPERTY]
       @description                = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][DESCRIPTION_PROPERTY]
       @any_branch_pattern         = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][ANY_BRANCH_PATTERN_PROPERTY]
+    end
+    @template = form['template']
+    @templates = form['templates'] && form['templates'].inject({}) do |hash, item|
+      hash[item['string']] = item['project']
+      hash
+    end
+    @group_templates = form['group_templates'] && form['group_templates'].inject({}) do |hash, item|
+      hash[item['string']] = item['project']
+      hash
+    end
+  end
+
+  def get_templates(templates)
+    return unless templates
+    templates.elements.select{ |tpl| tpl.name == 'template' }.inject({}) do |hash, tpl|
+      hash[tpl.elements['string'].text] = tpl.elements['project'].text
+      hash
     end
   end
 

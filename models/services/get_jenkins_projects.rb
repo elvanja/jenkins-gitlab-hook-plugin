@@ -27,12 +27,10 @@ module GitlabWebHook
       @logger = logger
     end
 
-    def matching(details)
-      matching_projects(details, false)
-    end
-
-    def exactly_matching(details)
-      matching_projects(details, true)
+    def matching_uri(details)
+      all.select do |project|
+        project.matches_uri?(details.repository_uri)
+      end.tap { |projects| log_matched(projects) }
     end
 
     def named(name)
@@ -43,21 +41,15 @@ module GitlabWebHook
 
     def master(details)
       projects = all.select do |project|
-        project.matches?(details.repository_uri, settings.any_branch_pattern, details.full_branch_reference)
+        project.matches?(details, settings.any_branch_pattern)
       end
 
       # find project for the repo and master branch
       # use any other branch matching the repo
-      projects.find { |project| project.matches?(details.repository_uri, settings.master_branch, details.full_branch_reference, true) } || projects.first
+      projects.find { |project| project.matches?(details, settings.master_branch, true) } || projects.first
     end
 
     private
-
-    def matching_projects(details, exactly = false)
-      all.select do |project|
-        project.matches?(details.repository_uri, details.branch, details.full_branch_reference, exactly)
-      end.tap { |projects| log_matched(projects) }
-    end
 
     def all
       old_authentication_level = elevate_priviledges

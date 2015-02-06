@@ -39,6 +39,7 @@ module GitlabWebHook
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
       let(:details_uri) { double(RepositoryUri) }
+      let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
       let(:branch) { double('BranchSpec', matches: true) }
       let(:build_chooser) { double('BuildChooser') }
 
@@ -65,40 +66,41 @@ module GitlabWebHook
       context 'it is not matching' do
         it 'when it is not buildable' do
           allow(subject).to receive(:buildable?) { false }
-          expect(subject.matches?(anything, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
 
         it 'when it is not git and is not multiple smsc' do
           allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
           allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
-          expect(subject.matches?(anything, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
 
         it 'when repo uris do not match' do
           allow(details_uri).to receive(:matches?) { false }
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
 
         it 'when branches do not match' do
           allow(branch).to receive(:matches) { false }
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
 
         it 'when refspec does not match' do
           allow(refspec).to receive(:matchSource).with(anything) { false }
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
+
       end
 
       context 'it matches' do
         it 'when is buildable, is git, repo uris match and branches match' do
-          expect(subject.matches?(details_uri, anything, anything)).to be
+          expect(subject.matches?(details)).to be
         end
 
         it 'when is buildable, is multiple smsc, repo uris match and branches match' do
           allow(scm).to receive(:java_kind_of?).with(GitSCM) { false }
           allow(scm).to receive(:java_kind_of?).with(MultiSCM) { true }
-          expect(subject.matches?(details_uri, anything, anything)).to be
+          expect(subject.matches?(details)).to be
         end
       end
 
@@ -120,39 +122,40 @@ module GitlabWebHook
 
         it 'does not match when branch parameter not found' do
           allow(branch_name_parameter).to receive(:name) { 'NOT_BRANCH_PARAMETER' }
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details, anything)).not_to be
         end
 
         it 'does not match when branch parameter is not of supported type' do
           Project::BRANCH_NAME_PARAMETER_ACCEPTED_TYPES.each { |type| allow(branch_name_parameter).to receive(:java_kind_of?).with(type) { false } }
           expect(logger).to receive(:warning)
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
 
         it 'matches when branch parameter found and is of supported type' do
-          expect(subject.matches?(details_uri, anything, anything)).to be
+          expect(subject.matches?(details)).to be
         end
 
         it 'supports parameter usage without $' do
           allow(branch).to receive(:name) { 'origin/BRANCH_NAME' }
-          expect(subject.matches?(details_uri, anything, anything)).to be
+          expect(subject.matches?(details)).to be
         end
 
         it 'does not match when refspec do not match' do
           allow(refspec).to receive(:matchSource).with(anything) { false }
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
+
       end
 
       context 'when matching exactly' do
         it 'does not match when branches are not equal' do
           allow(branch).to receive(:name) { 'origin/**' }
-          expect(subject.matches?(details_uri, 'origin/master', anything, true)).not_to be
+          expect(subject.matches?(details, 'origin/master', true)).not_to be
         end
 
         it 'matches when branches are equal' do
           allow(branch).to receive(:name) { 'origin/master' }
-          expect(subject.matches?(details_uri, 'origin/master', anything, true)).not_to be
+          expect(subject.matches?(details, 'origin/master', true)).not_to be
         end
       end
 
@@ -160,12 +163,12 @@ module GitlabWebHook
         before(:each) { allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { true } }
 
         it 'does not match when regular strategy would match' do
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
 
         it 'matches when regular strategy would not match' do
           allow(branch).to receive(:matches) { false }
-          expect(subject.matches?(details_uri, anything, anything)).to be
+          expect(subject.matches?(details)).to be
         end
       end
     end
@@ -178,6 +181,7 @@ module GitlabWebHook
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
       let(:details_uri) { double(RepositoryUri) }
+      let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
       let(:matching_branch) { double('BranchSpec', matches: true) }
       let(:non_matching_branch) { double('BranchSpec', matches: false) }
       let(:default_build_chooser) { double('BuildChooser') }
@@ -219,7 +223,7 @@ module GitlabWebHook
         end
 
         it 'does not match' do
-          expect(subject.matches?(details_uri, anything, anything)).not_to be
+          expect(subject.matches?(details)).not_to be
         end
       end
 
@@ -230,7 +234,7 @@ module GitlabWebHook
         end
 
         it 'matches' do
-          expect(subject.matches?(details_uri, anything, anything)).to be
+          expect(subject.matches?(details)).to be
         end
       end
 
@@ -241,7 +245,7 @@ module GitlabWebHook
         end
 
         it 'matches' do
-          expect(subject.matches?(details_uri, anything, anything)).to be
+          expect(subject.matches?(details)).to be
         end
       end
     end

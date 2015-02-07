@@ -9,7 +9,7 @@ module GitlabWebHook
 
     context 'when fetching projects by request details' do
       include_context 'projects'
-      let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: RepositoryUri.new('http://example.com/diaspora.git')) }
+      include_context 'details'
 
       before(:each) { allow(subject).to receive(:all) { all_projects } }
 
@@ -28,7 +28,7 @@ module GitlabWebHook
 
     context 'when fetching master project matching request details' do
       include_context 'projects'
-      let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: double(RepositoryUri, matches?: true)) }
+      include_context 'details'
 
       before(:each) { allow(subject).to receive(:all) { all_projects } }
 
@@ -37,7 +37,7 @@ module GitlabWebHook
       end
 
       it 'finds first projects matching details and any non master branch' do
-        expect(matching_project).to receive(:matches?).with(details.repository_uri, settings.master_branch, details.full_branch_reference, true).and_return(false)
+        expect(matching_project).to receive(:matches?).with(anything, anything, anything, true).and_return(false)
         expect(subject.master(details)).to eq(not_matching_project)
       end
     end

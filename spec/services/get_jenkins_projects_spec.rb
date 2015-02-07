@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'spec/support/shared/settings'
+require 'spec/support/shared'
 
 module GitlabWebHook
   describe GetJenkinsProjects do
@@ -34,21 +34,10 @@ module GitlabWebHook
     end
 
     context 'when fetching master project matching request details' do
+      include_context 'projects'
       let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: double(RepositoryUri, matches?: true)) }
-      let(:refspec) { double('RefSpec', matchSource: true) }
-      let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)], getFetchRefSpecs: [refspec]) }
-      let(:build_chooser) { double('BuildChooser') }
-      let(:scm1) { double(GitSCM, repositories: [repository], branches: [BranchSpec.new('origin/master')], buildChooser: build_chooser) }
-      let(:project1) { double(AbstractProject, fullName: 'matching project', scm: scm1, isBuildable: true, isParameterized: false) }
-      let(:scm2) { double(GitSCM, repositories: [repository], branches: [BranchSpec.new('origin/otherbranch')], buildChooser: build_chooser) }
-      let(:project2) { double(AbstractProject, fullName: 'not matching project', scm: scm2, isBuildable: true, isParameterized: false) }
-      let(:matching_project) { Project.new(project1, multi_scm?: false) }
-      let(:not_matching_project) { Project.new(project2, multi_scm?: false) }
 
       before(:each) do
-        allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
-        allow(scm1).to receive(:java_kind_of?).with(GitSCM) { true }
-        allow(scm2).to receive(:java_kind_of?).with(GitSCM) { true }
         allow(subject).to receive(:all) { [not_matching_project, matching_project] }
       end
 
@@ -58,7 +47,6 @@ module GitlabWebHook
 
       it 'finds first projects matching details and any non master branch' do
         expect(matching_project).to receive(:matches?).with(details.repository_uri, settings.master_branch, details.full_branch_reference, true).and_return(false)
-
         expect(subject.master(details)).to eq(not_matching_project)
       end
     end

@@ -8,25 +8,18 @@ module GitlabWebHook
     before(:each) { allow(subject).to receive(:log_matched) {} }
 
     context 'when fetching projects by request details' do
-      let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: double(RepositoryUri)) }
-      let(:matching_project) { double(Project) }
-      let(:not_matching_project) { double(Project) }
+      include_context 'projects'
+      let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: RepositoryUri.new('http://example.com/diaspora.git')) }
 
-      before(:each) { allow(subject).to receive(:all) { [not_matching_project, matching_project] } }
+      before(:each) { allow(subject).to receive(:all) { all_projects } }
 
       it 'finds projects matching details' do
-        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, details.branch, details.full_branch_reference, false).and_return(false)
-        expect(matching_project).to receive(:matches?).with(details.repository_uri, details.branch, details.full_branch_reference, false).and_return(true)
-
         projects = subject.matching(details)
         expect(projects.size).to eq(1)
         expect(projects[0]).to eq(matching_project)
       end
 
       it 'finds projects matching details exactly' do
-        expect(not_matching_project).to receive(:matches?).with(details.repository_uri, details.branch, details.full_branch_reference, true).and_return(false)
-        expect(matching_project).to receive(:matches?).with(details.repository_uri, details.branch, details.full_branch_reference, true).and_return(true)
-
         projects = subject.exactly_matching(details)
         expect(projects.size).to eq(1)
         expect(projects[0]).to eq(matching_project)
@@ -37,9 +30,7 @@ module GitlabWebHook
       include_context 'projects'
       let(:details) { double(RequestDetails, full_branch_reference: 'refs/heads/master', branch: 'master', repository_uri: double(RepositoryUri, matches?: true)) }
 
-      before(:each) do
-        allow(subject).to receive(:all) { [not_matching_project, matching_project] }
-      end
+      before(:each) { allow(subject).to receive(:all) { all_projects } }
 
       it 'finds project matching details and master branch' do
         expect(subject.master(details)).to eq(matching_project)
@@ -52,16 +43,18 @@ module GitlabWebHook
     end
 
     context 'when fetching projects by name' do
-      before(:each) { allow(subject).to receive(:all) { [double(Project, name: '1st'), double(Project, name: '2nd')] } }
+      include_context 'projects'
+
+      before(:each) { allow(subject).to receive(:all) { all_projects } }
 
       it 'finds project by name' do
-        projects = subject.named('2nd')
+        projects = subject.named('matching project')
         expect(projects.size).to eq(1)
-        expect(projects[0].name).to eq('2nd')
+        expect(projects[0].name).to eq('matching project')
       end
 
       it 'does not find project by name' do
-        projects = subject.named('3rd')
+        projects = subject.named('undefined project')
         expect(projects.size).to eq(0)
       end
     end

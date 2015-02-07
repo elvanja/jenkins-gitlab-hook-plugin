@@ -40,14 +40,4 @@ describe GitlabWebHookRootActionDescriptor do
         expect(subject.description).to eq('Automatically created by Gitlab Web Hook plugin')
       end
     end
-
-    context 'with any branch search pattern' do
-      it 'defines it' do
-        expect(subject).to respond_to(:any_branch_pattern)
-      end
-
-      it 'has default' do
-        expect(subject.any_branch_pattern).to eq('**')
-      end
-    end
 end

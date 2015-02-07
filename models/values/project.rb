@@ -46,7 +46,7 @@ module GitlabWebHook
 
     def matches_uri?(details_uri)
       return false unless (git? || multi_scm?)
-      matching_scms(details_uri).any?
+      matching_scms?(details_uri)
     end
 
     def matches?(details, branch = false, exactly = false)
@@ -83,6 +83,10 @@ module GitlabWebHook
     end
 
     private
+
+    def matching_scms?(details_uri)
+      matching_scms(details_uri).any?
+    end
 
     def matching_scms(details_uri)
       @matching_scms ||= scms.select do |scm|

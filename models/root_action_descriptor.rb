@@ -10,7 +10,6 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
   MASTER_BRANCH_PROPERTY = 'master_branch'
   USE_MASTER_PROJECT_NAME_PROPERTY = 'use_master_project_name'
   DESCRIPTION_PROPERTY = 'description'
-  ANY_BRANCH_PATTERN_PROPERTY = 'any_branch_pattern'
 
   def initialize(*args)
     super
@@ -33,10 +32,6 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     @description || "Automatically created by Gitlab Web Hook plugin"
   end
 
-  def any_branch_pattern
-    @any_branch_pattern || "**"
-  end
-
   def load
     return unless configFile.file.exists()
 
@@ -46,7 +41,6 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       @use_master_project_name      = read_property(doc, USE_MASTER_PROJECT_NAME_PROPERTY) == "true"
       @master_branch                = read_property(doc, MASTER_BRANCH_PROPERTY)
       @description                  = read_property(doc, DESCRIPTION_PROPERTY)
-      @any_branch_pattern           = read_property(doc, ANY_BRANCH_PATTERN_PROPERTY)
       @templates                    = get_templates doc.root.elements['templates']
       @group_templates              = get_templates doc.root.elements['group_templates']
       @template                     = doc.root.elements['template'] && doc.root.elements['template'].text
@@ -68,7 +62,6 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     write_property(doc, MASTER_BRANCH_PROPERTY, master_branch)
     write_property(doc, USE_MASTER_PROJECT_NAME_PROPERTY, use_master_project_name?)
     write_property(doc, DESCRIPTION_PROPERTY, description)
-    write_property(doc, ANY_BRANCH_PATTERN_PROPERTY, any_branch_pattern)
 
     doc.root.add_element( 'template' ).add_text( template_fallback )
 
@@ -119,7 +112,6 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
       @master_branch              = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][MASTER_BRANCH_PROPERTY]
       @use_master_project_name    = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][USE_MASTER_PROJECT_NAME_PROPERTY]
       @description                = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][DESCRIPTION_PROPERTY]
-      @any_branch_pattern         = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][ANY_BRANCH_PATTERN_PROPERTY]
     end
     @template = form['template']
     @templates = form['templates'] && form['templates'].inject({}) do |hash, item|

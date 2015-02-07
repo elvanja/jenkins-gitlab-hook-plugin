@@ -6,33 +6,27 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe GetBuildCause do
-    let(:repository_uri) { double(RepositoryUri, host: 'localhost') }
+    let(:repository_uri) { RepositoryUri.new('git@example.com:diaspora/diaspora.git') }
     let(:details) { double(RequestDetails, payload: nil, repository_uri: repository_uri) }
+    let(:cause) { subject.with(details) }
 
     context 'with repository details' do
       it 'contains repository host' do
-        cause = subject.with(details)
-        expect(cause.addr).to match('localhost')
+        expect(cause.addr).to match('example.com')
       end
     end
 
     context 'with no payload' do
       it 'contains default message' do
-        cause = subject.with(details)
         expect(cause.note).to match('no payload available')
       end
     end
 
     context 'with payload' do
+      include_context 'details'
       it 'contains payload details' do
-        allow(details).to receive(:payload) { true }
-        allow(details).to receive(:full_branch_reference) { 'master' }
-        allow(details).to receive(:commits_count) { 1 }
-        allow(details).to receive(:commits) { [double(Commit, url: 'http://localhost/diaspora/peronospora/commits/123456', message: 'fix')] }
-
-        cause = subject.with(details)
         expect(cause.note).not_to match('no payload available')
-        expect(cause.note).to match('commits/123456')
+        expect(cause.note).to match('commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327')
       end
     end
 

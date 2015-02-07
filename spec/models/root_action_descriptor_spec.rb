@@ -41,16 +41,6 @@ describe GitlabWebHookRootActionDescriptor do
       end
     end
 
-    context 'with any branch search pattern' do
-      it 'defines it' do
-        expect(subject).to respond_to(:any_branch_pattern)
-      end
-
-      it 'has default' do
-        expect(subject.any_branch_pattern).to eq('**')
-      end
-    end
-
     context '#template_fallback' do
       it 'is defined' do
         expect(subject).to respond_to(:template_fallback)
@@ -108,10 +98,6 @@ describe GitlabWebHookRootActionDescriptor do
 
         it '#description' do
           expect(subject.description).to eq 'Alternate description'
-        end
-
-        it '#any_branch_pattern' do
-          expect(subject.any_branch_pattern).to eq 'origin/*'
         end
 
         it '#template_fallback' do

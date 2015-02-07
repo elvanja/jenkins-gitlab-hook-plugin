@@ -12,7 +12,7 @@ module GitlabWebHook
     end
 
     def with(details, action)
-      projects = get_projects_to_process(details) # !!
+      projects = get_projects_to_process(details)
 
       messages = []
       projects.each do |project|

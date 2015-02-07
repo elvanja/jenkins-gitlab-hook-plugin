@@ -4,7 +4,6 @@
   <master_branch>primary</master_branch>
   <use_master_project_name>true</use_master_project_name>
   <description>Alternate description</description>
-  <any_branch_pattern>origin/*</any_branch_pattern>
   <template>default_project</template>
   <templates>
     <template>

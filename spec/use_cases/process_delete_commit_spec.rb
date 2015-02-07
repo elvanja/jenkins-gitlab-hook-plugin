@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'spec/support/shared/settings'
 
 module GitlabWebHook
   describe ProcessDeleteCommit do

@@ -7,15 +7,15 @@ java_import Java.hudson.model.BooleanParameterValue
 
 module GitlabWebHook
   describe GetParametersValues do
+    include_context 'details'
+
     def build_parameter(name, default = nil)
       double(name: name, getDefaultParameterValue: default ? StringParameterValue.new(name, default) : nil).tap do |parameter|
         allow(parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { true }
       end
     end
 
-    let(:payload) { JSON.parse(File.read('spec/fixtures/default_payload.json')) }
     let(:project) { double(Project, get_branch_name_parameter: nil) }
-    let(:details) { PayloadRequestDetails.new(payload) }
 
     context 'with parameters present in payload data' do
       it 'recognizes root keys' do

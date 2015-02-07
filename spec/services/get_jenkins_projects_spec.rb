@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'spec/support/shared'
 
 module GitlabWebHook
   describe GetJenkinsProjects do

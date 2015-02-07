@@ -29,7 +29,7 @@ module GitlabWebHook
 
     def build_scm(scm_data)
       GitSCM.new(
-          [UserRemoteConfig.new(scm_data.url, scm_data.name, scm_data.credentials)],
+          [UserRemoteConfig.new(scm_data.url, scm_data.name, nil, scm_data.credentials)],
           [BranchSpec.new(scm_data.branch)],
           scm_data.source_scm.isDoGenerateSubmoduleConfigurations(),
           scm_data.source_scm.getSubmoduleCfg(),

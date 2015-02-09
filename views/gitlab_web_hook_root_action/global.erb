@@ -1,6 +1,7 @@
 <%
   f = taglib("/lib/form")
   f.section(:title => "Gitlab Web Hook") do
+
     f.optionalBlock :title => "Automatic project creation", :name => 'automatic_project_creation', :checked => "#{descriptor.automatic_project_creation?}" do
       f.entry :title => 'Project master branch', :field => 'master_branch' do
         f.textbox :default => "#{descriptor.master_branch}"
@@ -14,42 +15,43 @@
         f.textbox :default => "#{descriptor.description}"
       end
 
-      f.advanced do
+    end
 
-        f.entry :title => 'Template based job creation' do
+    f.advanced do
 
-          f.repeatable :items => descriptor.templated_jobs.to_a, :var => 'templates', :add => 'Add new template' do
-            %><table width="100%"><%
-            f.entry :title => 'Match string', :field => 'string' do
-               f.textbox :default => "#{templates.nil? ? '' : templates.first }"
-	      end
-            f.entry :title => 'Base project', :field => 'project' do
-              f.textbox :default => "#{templates.nil? ? '' : templates.last }"
-            end
-            %></table><div align="right"><%f.repeatableDeleteButton%></div><%
+      f.entry :title => 'Template based job creation' do
+
+        f.repeatable :items => descriptor.templated_jobs.to_a, :var => 'templates', :add => 'Add new template' do
+          %><table width="100%"><%
+          f.entry :title => 'Match string', :field => 'string' do
+             f.textbox :default => "#{templates.nil? ? '' : templates.first }"
           end
-
-        end
-
-        f.entry :title => 'Templates for gitlab groups' do
-          f.repeatable :items => descriptor.templated_groups.to_a, :var => 'group_templates', :add => 'Add new group template' do
-            %><table width="100%"><%
-            f.entry :title => 'Match string', :field => 'string' do
-              f.textbox :default => "#{group_templates.nil? ? '' : group_templates.first }"
-	      end
-            f.entry :title => 'Base project', :field => 'project' do
-              f.textbox :default => "#{group_templates.nil? ? '' : group_templates.last }"
-            end
-            %></table><div align="right"><%f.repeatableDeleteButton%></div><%
+          f.entry :title => 'Base project', :field => 'project' do
+            f.textbox :default => "#{templates.nil? ? '' : templates.last }"
           end
-        end
-
-        f.entry :title => 'Last resort template', :field => 'template' do
-          f.textbox :default => "#{descriptor.template_fallback}"
+          %></table><div align="right"><%f.repeatableDeleteButton%></div><%
         end
 
       end
 
+      f.entry :title => 'Templates for gitlab groups' do
+        f.repeatable :items => descriptor.templated_groups.to_a, :var => 'group_templates', :add => 'Add new group template' do
+          %><table width="100%"><%
+          f.entry :title => 'Match string', :field => 'string' do
+            f.textbox :default => "#{group_templates.nil? ? '' : group_templates.first }"
+          end
+          f.entry :title => 'Base project', :field => 'project' do
+            f.textbox :default => "#{group_templates.nil? ? '' : group_templates.last }"
+          end
+          %></table><div align="right"><%f.repeatableDeleteButton%></div><%
+        end
+      end
+
+      f.entry :title => 'Last resort template', :field => 'template' do
+        f.textbox :default => "#{descriptor.template_fallback}"
+      end
+
     end
+
   end
 %>

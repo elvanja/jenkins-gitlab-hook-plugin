@@ -14,13 +14,32 @@ module GitlabWebHook
 
     context 'when building actions' do
       let(:parameters_values) { [] }
-      before(:each) { allow_any_instance_of(GetParametersValues).to receive(:with).with(project, details) { parameters_values } }
+      before :each do
+        allow_any_instance_of(GetParametersValues).to receive(:with).with(project, details) { parameters_values }
+        expect(details).to receive(:classic?) { true }
+      end
 
       it 'delegates parameter values build' do
         subject.with(project, details)
       end
 
       it 'returns parameters action' do
+        expect(subject.with(project, details).java_kind_of?(ParametersAction)).to be
+      end
+
+      it 'parameters action contain parameters values' do
+        expect(subject.with(project, details).getParameters()).to eq(parameters_values)
+      end
+    end
+
+    context 'when building due to a merge request' do
+      let(:parameters_values) { [] }
+      before :each do
+        allow_any_instance_of(GetParametersValues).to receive(:with_mr).with(project, details) { parameters_values }
+        expect(details).to receive(:classic?) { false }
+      end
+
+      it 'returns parameters action old' do
         expect(subject.with(project, details).java_kind_of?(ParametersAction)).to be
       end
 

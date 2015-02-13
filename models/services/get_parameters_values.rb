@@ -16,6 +16,12 @@ module GitlabWebHook
       values
     end
 
+    def with_mr(project, details)
+      project.get_default_parameters.collect do |parameter|
+        from_payload(parameter, details.payload) || parameter.getDefaultParameterValue()
+      end
+    end
+
     private
 
     def build_from_payload_or_default(details, project)

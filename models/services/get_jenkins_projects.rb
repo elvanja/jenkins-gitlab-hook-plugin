@@ -20,7 +20,7 @@ module GitlabWebHook
 
     attr_reader :logger
 
-    def initialize(logger = Logger.getLogger(GetJenkinsProjects.class.name))
+    def initialize(logger = Java.java.util.logging.Logger.getLogger(GetJenkinsProjects.class.name))
       @logger = logger
     end
 

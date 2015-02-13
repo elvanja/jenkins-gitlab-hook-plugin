@@ -1,0 +1,23 @@
+<%
+  f = taglib("/lib/form")
+
+  f.section(:title => "Gitlab Notifier Configuration") do
+
+    f.entry :title => 'Gitlab URL', :field => 'gitlab_url' do
+      f.textbox :default => "#{descriptor.gitlab_url}"
+    end
+
+    f.entry :title => 'Gitlab token', :field => 'token' do
+      f.textbox :default => "#{descriptor.token}"
+    end
+
+    f.entry :title => 'Send notification as commit statuses', :field => 'commit_status' do
+      f.checkbox :checked => "#{descriptor.commit_status?}"
+    end
+
+    f.entry :title => 'Only submit status for merge projects', :field => 'mr_status_only' do
+      f.checkbox :checked => "#{descriptor.mr_status_only?}"
+    end
+
+  end
+%>

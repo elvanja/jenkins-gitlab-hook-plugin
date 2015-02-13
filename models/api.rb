@@ -9,14 +9,13 @@ require_relative 'use_cases/process_delete_commit'
 require_relative 'use_cases/process_merge_request'
 require_relative 'services/parse_request'
 
-include Java
-
-java_import Java.java.util.logging.Logger
-java_import Java.java.util.logging.Level
 java_import Java.org.jruby.exceptions.RaiseException
 
 module GitlabWebHook
   class Api < Sinatra::Base
+
+  java_import Java.java.util.logging.Level
+
     get '/ping' do
       'Gitlab Web Hook is up and running :-)'
     end
@@ -97,7 +96,7 @@ module GitlabWebHook
     end
 
     def logger
-      @logger ||= Logger.getLogger(Api.class.name)
+      @logger ||= Java.java.util.logging.Logger.getLogger(Api.class.name)
     end
   end
 end

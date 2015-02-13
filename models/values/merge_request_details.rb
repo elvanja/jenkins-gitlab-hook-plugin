@@ -1,7 +1,7 @@
 require_relative 'abstract_details'
 require_relative '../exceptions/bad_request_exception'
 
-require 'net/http'
+require 'gitlab'
 
 module GitlabWebHook
   class MergeRequestDetails < AbstractDetails
@@ -74,20 +74,9 @@ module GitlabWebHook
     end
 
     def get_project_details
-
-      gitlab_url = 'http://localhost'
-      token = '********'
-
-      uri = URI "#{gitlab_url}/api/v3/projects/#{project_id}?private_token=#{token}"
-
-      req = Net::HTTP::Get.new uri.request_uri
-      req.verify_mode = OpenSSL::SSL::VERIFY_NONE
-
-      res = Net::HTTP.start(uri.host, uri.port, :use_ssl => uri.scheme == 'https') do |http|
-        http.request req
-      end
-
-      JSON.parse( res.body )
+      descriptor = Jenkins::Plugin.instance.descriptors[GitlabNotifier]
+      client = Gitlab::Client.new descriptor
+      do_request "projects/#{project_id}"
     end
 
     def throw_cross_repo_exception

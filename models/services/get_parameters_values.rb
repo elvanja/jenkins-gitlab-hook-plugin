@@ -17,9 +17,12 @@ module GitlabWebHook
     end
 
     def with_mr(project, details)
+      raise ArgumentError.new('project is required') unless project
+      raise ArgumentError.new('details are required') unless details
+
       project.get_default_parameters.collect do |parameter|
         from_payload(parameter, details.payload) || parameter.getDefaultParameterValue()
-      end
+      end.reject { |value| value.nil? }
     end
 
     private

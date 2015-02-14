@@ -1,15 +1,15 @@
-# Jenkins Gitlab Hook Plugin
+# Jenkins GitLab Hook Plugin
 
-Enables Gitlab web hooks to be used to trigger SMC polling on Gitlab projects<br/>
+Enables GitLab web hooks to be used to trigger SMC polling on GitLab projects<br/>
 Plugin details can be found at https://wiki.jenkins-ci.org/display/JENKINS/Gitlab+Hook+Plugin
 
 ## Why?
 
-For [Gitlab](http://gitlabhq.com) there is an existing solution that might work for you.<br/>
+For [GitLab](https://about.gitlab.com) there is an existing solution that might work for you.<br/>
 You can just use the notifyCommit hook on [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) like this:
 
 ```
-http://your-jenkins-server/git/notifyCommit?url=<URL of the Git repository for the Gitlab project>
+http://your-jenkins-server/git/notifyCommit?url=<URL of the Git repository for the GitLab project>
 ```
 
 But, with a large number of projects that are mostly polling (no hooks), the project might actually be built with a great delay (5 to 20 minutes).<br/>
@@ -20,18 +20,18 @@ It gives you the option to use build\_now or notify\_commit hook, whichever suit
 
 ### Build now hook
 
-Add this web hook on your Gitlab project: 
+Add this web hook on your GitLab project:
 
 ```
 http://your-jenkins-server/gitlab/build_now
 ```
 
-Plugin will parse the Gitlab payload and extract the branch for which the commit is being pushed and changes made.<br/>
+Plugin will parse the GitLab payload and extract the branch for which the commit is being pushed and changes made.<br/>
 It will then scan all Git projects in Jenkins and start the build for those that:
 
-* match url of the Gitlab repo
+* match url of the GitLab repo
 * match the configured refspec pattern if any
-* and match committed Gitlab branch
+* and match committed GitLab branch
 
 Notes:
 
@@ -42,7 +42,7 @@ Notes:
 #### Parameterized projects
 
 The plugin will recognize projects that are parametrized and will use payload data to fill their values.<br/>
-Only String type of parameters are supported at this moment, all others are passed on with their defaults.<br/>
+Only String and Choice parameter types are supported at this moment, all others are passed on with their defaults.<br/>
 You can reference any data from the payload, including arrays and entire sections.<br/>
 Here are a few examples:
 
@@ -71,13 +71,13 @@ Setup might look like this:
 With this configuration, you have the following options:
 
 1. you can start a manual Jenkins build of a project, and it will ask for a branch to build
-2. for builds per commit using the Gitlab build now hook, the branch parameter will be filled in with the commit branch extracted from the payload sent from Gitlab
+2. for builds per commit using the GitLab build now hook, the branch parameter will be filled in with the commit branch extracted from the payload sent from GitLab
 
 Advantages of this approach:
 
-* one Jenkins project per Git(lab) repository
+* one Jenkins project per GitLab repository
 * builds all branches
-* no concurrent builds occur for the same Git(lab) repository
+* no concurrent builds occur for the same GitLab repository
 
 Disadvantages:
 
@@ -86,7 +86,9 @@ Disadvantages:
 
 ### Notify commit hook
 
-Add this web hook on your Gitlab project: 
+**NOTE:** the notify commit feature is considered deprecated, and will be removed on a future version.
+
+Add this web hook on your GitLab project:
 
 ```
 http://your-jenkins-server/gitlab/notify_commit
@@ -103,14 +105,14 @@ This goes for both hooks:
 
 ### Delete branch commits
 
-In case Gitlab is triggering the deletion of a branch, the plugin will skip processing entirely unless automatic branch projects creation is enabled.<br/>
+In case GitLab is triggering the deletion of a branch, the plugin will skip processing entirely unless automatic branch projects creation is enabled.<br/>
 In that case, it will find the Jenkins project for that branch and delete it.<br/>
 This applies only to non master branches (master is defined in plugin configuration).<br/>
 Master branch project is never deleted.
 
 ### Hook data related
 
-Gitlab uses JSON POST to send the information to the defined hook.<br/>
+GitLab uses JSON POST to send the information to the defined hook.<br/>
 The plugin expects the request to have the appropriate structure, like this example:
 
 ```json
@@ -123,16 +125,17 @@ The plugin expects the request to have the appropriate structure, like this exam
   "project_id": 15,
   "repository": {
     "name": "Diaspora",
-    "url": "git@example.com:diaspora.git",
+    "url": "git@example.com:diaspora/diaspora.git",
     "description": "",
-    "homepage": "http://example.com/diaspora"
+    "homepage": "http://example.com/diaspora/diaspora",
+    "private": true
   },
   "commits": [
     {
       "id": "b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327",
       "message": "Update Catalan translation to e38cb41.",
       "timestamp": "2011-12-12T14:27:31+02:00",
-      "url": "http://example.com/diaspora/commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327",
+      "url": "http://example.com/diaspora/diaspora/commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327",
       "author": {
         "name": "John Smith",
         "email": "jsmith@example.com"
@@ -142,7 +145,7 @@ The plugin expects the request to have the appropriate structure, like this exam
       "id": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
       "message": "fixed readme",
       "timestamp": "2012-01-03T23:36:29+02:00",
-      "url": "http://example.com/diaspora/commits/da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
+      "url": "http://example.com/diaspora/diaspora/commits/da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
       "author": {
         "name": "John Smith the Second",
         "email": "jsmith2@example.com"
@@ -157,33 +160,25 @@ The plugin expects the request to have the appropriate structure, like this exam
 
 ### Create project for pushed branches
 
-In case you might want to approach multiple branches by having a separate Jenkins project for each Git(lab) repository, you can turn on the appropriate plugin option.<br/>
-This use case workflow:
+In case you might want to approach multiple branches by having a separate Jenkins project for each GitLab repository, you can turn on the appropriate plugin option. When enabled, if exists a Jenkins project that exactly maches the commited branch that project is build, and if no project exactly matches the commited branch, the plugin will
 
-* if exists a Jenkins project that exactly maches the commited branch
-  * build the matching project
-* else
-  * copy the master project
-  * name the project according to the repository and commited branch name
-  * adjust SCM settings to reflect the commited branch and repository
-  * build the new project
+1. copy the master project
+2. name the project according to the repository and commited branch name
+3. adjust SCM settings to reflect the commited branch and repository
+4. build the new project
 
 Notes:
 
 * above mentioned "master" can be one of the following (determined in given order):
-  * project that references the given repo url and master branch<br/>
-    master branch name can be set in Jenkins main configuration, "master" is the default
+  * project that references the given repo url and master branch configured for plugin (defaults to "master")
   * project that references the given repo url for any other branch
-* the master project for the given repo is required<br/>
-  because this is currently the only way to copy git settings (e.g. you could use ssh or http access)
-* everything you set on the master project will be copied to branch project<br/>
-  the only difference is that the branch project will be set to pull from the payload commit branch
-* copying includes parameters for the job<br/>
-  note that branch parameters will be unused but not removed from job definition
-* the new project name is constructed like this:
-  * if using master project name, "#{master project name}\_#{branch name}"
-  * else "#{repo name from payload}\_#{branch name}"
-* read the delete commit section below to see how branch deletion reflects this use case
+* a "master" project for the given repo is required to copy git settings, although templates functionality described below allow creation of jenkins projects for new projects
+* everything you set on the master project will be copied to branch project, except that the copied project will track the payload commit branch and the project description, which is set based on plugin configuration
+* copying includes all parameters for the job. Note that branch parameters will be unused but not removed from job definition
+* the new project name is suffixed with the branch name, and depending on the value of "using master project name" configuration
+ng whether "using master project name" is enabled on plugin configuration
+* the new project name is constructed differently depending whether "using master project name" is enabled on plugin configuration, the first part will be the master project name or the repository name taken from payload
+* these projects will be automatically deleted if the tracking branch is deleted, as far as the project description is in sync with the one configured in the plugin
 
 Advantages of this approach:
 
@@ -193,29 +188,32 @@ Advantages of this approach:
 
 Disadvantages:
 
-* multiple Jenkins project per Git(lab) repository
-* concurrent builds occur for the same Git(lab) repository
-* job / branch monitoring is not easy because of a large number of projects for a single Git(lab) repository
+* multiple Jenkins project per GitLab repository
+* concurrent builds occur for the same GitLab repository
+* job / branch monitoring is not easy because of a large number of projects for a single GitLab repository
 
 For this option to become active, just turn it on in Jenkins global configuration.
 
 ### Templates for unknown repositories
 
 The plugin can be configured to automatically create projects when the hook is
-activated by a gitlab repo unknown to jenkins. The template must be an existing
+activated by a GitLab repo unknown to jenkins. The template must be an existing
 jenkins project, that could be an already running one or be spefically created
-for this purpose.
+for this purpose. The template can be a disabled project, because the brand
+new project will be enabled on creation.
 
 The simplest case is the *last resort template*, where a single template is
-used for every unknown webhook. To get finer clasification, distinct templates
-can also be assigned to different gitlab groups, which can be useful, for
+used for every input webhook for an unknown projec. To get finer clasification, distinct templates
+can also be assigned to different GitLab groups, which can be useful, for
 example, to handle android development based on gradle projects while the
-remaining java repositories are created with a maven template.
+remaining java repositories are created with a maven template. Group matching
+is done using the exact group name.
 
 The finest grained templating can be achieved with the repository name. It can
 be applied if you have in use some naming scheme for those repos. Payload for
 projects whose name starts with *lib-java-* could be redirected to a template
-that is prepared to publish the artifact on a public maven repository.
+that is prepared to publish the artifact on a public maven repository. Matching
+for this case is done based on leading text of the repository name.
 
 ## Dependencies
 
@@ -237,8 +235,5 @@ The spec_helper loads them before each test run.
 
 In case you need to add new classes, please namespace them. See existing ones for details.
 
-Then running JRuby to execute tests, you'll need the following switches:
+No special options are required to execute the test on recent JRuby versions (such as 1.7.18)
 
-* --1.9
-* -Xcext.enabled=true
-* -X+0

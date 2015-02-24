@@ -39,7 +39,7 @@ module GitlabWebHook
       let(:repository) { double('RemoteConfig', name: 'origin', getURIs: [double(URIish)]) }
       let(:refspec) { double('RefSpec') }
       let(:details_uri) { double(RepositoryUri) }
-      let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: nil) }
+      let(:details) { double(RequestDetails, branch: 'master', repository_uri: details_uri, full_branch_reference: 'refs/heads/master', tagname: nil) }
       #let(:branch) { BranchSpec.new('origin/master') }
       let(:build_chooser) { double('BuildChooser') }
 
@@ -106,9 +106,11 @@ module GitlabWebHook
 
       context 'when parametrized' do
         let(:branch_name_parameter) { double(ParametersDefinitionProperty, name: 'BRANCH_NAME') }
+        let(:tagname_parameter) { double(ParametersDefinitionProperty, name: 'TAGNAME') }
 
         before(:each) do
           allow(branch_name_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { true }
+          allow(tagname_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { true }
 
           other_parameter = double(ParametersDefinitionProperty, name: 'OTHER_PARAMETER')
           allow(other_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { true }
@@ -144,6 +146,11 @@ module GitlabWebHook
           expect(subject.matches?(details)).not_to be
         end
 
+        it 'handles TAGNAME' do
+          allow(scm).to receive(:branches) { [BranchSpec.new('refs/tags/${TAGNAME}')] }
+          allow(subject).to receive(:get_default_parameters) { [branch_name_parameter, tagname_parameter] }
+          expect(subject.matches?(details)).not_to be
+        end
       end
 
       context 'when matching exactly' do
@@ -345,5 +352,63 @@ module GitlabWebHook
 
     end
 
+    context 'when tag was pushed' do
+      let(:scm) { double(GitSCM,
+                            repositories: [ double('RemoteConfig',
+                                                         name: 'origin',
+                                                         getURIs: [double(URIish)],
+                                                         getFetchRefSpecs: [refspec]
+	                                                 )],
+                            branches: [branch],
+                            extensions: double('ExtensionsList', get: nil),
+                            buildChooser: build_chooser
+	                    )}
+      let(:refspec) { double('RefSpec') }
+      let(:build_chooser) { double('BuildChooser') }
+      let(:details_uri) { double(RepositoryUri, matches?: true) }
+      let(:details) { double(RequestDetails, repository_uri: details_uri, full_branch_reference: 'refs/tags/v1.0.0', branch: 'tags/v1.0.0', tagname: 'v1.0.0') }
+
+      before (:each) do
+        allow(jenkins_project).to receive(:scm) { scm }
+        allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
+        allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
+
+        allow(refspec).to receive(:matchSource).with(anything) { true }
+        allow(build_chooser).to receive(:java_kind_of?).with(InverseBuildChooser) { false }
+
+        allow(subject).to receive(:buildable?) { true }
+      end
+
+      let(:branch_name_parameter) { double(ParametersDefinitionProperty, name: 'BRANCH_NAME') }
+      let(:tagname_parameter) { double(ParametersDefinitionProperty, name: 'TAGNAME') }
+
+      before (:each) do
+        allow(subject).to receive(:parametrized?) { true }
+        allow(subject).to receive(:get_default_parameters) { [branch_name_parameter, tagname_parameter] }
+        allow(branch_name_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { true }
+        allow(tagname_parameter).to receive(:java_kind_of?).with(StringParameterDefinition) { true }
+      end
+
+      context 'with fixed BranchSpec' do
+        let(:branch) { BranchSpec.new('origin/master') }
+        it 'skips building' do
+          expect(subject.matches?(details)).not_to be
+        end
+      end
+
+      context 'with other parameters on BranchSpec' do
+        let(:branch) { BranchSpec.new('origin/${BRANCH_NAME}') }
+        it 'skips building' do
+          expect(subject.matches?(details)).not_to be
+        end
+      end
+
+      context 'with tag ready BranchSpec' do
+        let(:branch) { BranchSpec.new('refs/tags/${TAGNAME}') }
+        it 'builds project' do
+          expect(subject.matches?(details)).to be
+        end
+      end
+    end
   end
 end

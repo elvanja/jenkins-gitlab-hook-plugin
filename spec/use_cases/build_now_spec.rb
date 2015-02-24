@@ -24,8 +24,8 @@ module GitlabWebHook
     end
 
     context 'when build triggered' do
-      let(:cause_builder) { double }
-      let(:actions_builder) { double }
+      let(:cause_builder) { double(with: true) }
+      let(:actions_builder) { double(with: true) }
 
       before(:each) do
         expect(cause_builder).to receive(:with).with(details)

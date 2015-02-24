@@ -38,6 +38,11 @@ module GitlabWebHook
       branch.gsub("/", "_")
     end
 
+    def tagname
+      return nil unless full_branch_reference.start_with?('refs/tags/')
+      full_branch_reference.sub('refs/tags/', '')
+    end
+
     def delete_branch_commit?
       raise NameError.new("should be implemented in concrete implementation")
     end
@@ -67,6 +72,7 @@ module GitlabWebHook
           :full_branch_reference,
           :branch
         ].each { |detail| flattened[detail.to_s] = self.send(detail) }
+        flattened['tagname'] = tagname unless tagname.nil?
       end
     end
 

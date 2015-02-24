@@ -142,7 +142,14 @@ module GitlabWebHook
         end
       end
 
-      matched_branch = get_branch_name_parameter if !matched_branch && matched_refspecs.any? && parametrized?
+      if !matched_branch && matched_refspecs.any? && parametrized?
+        branch_param = get_branch_name_parameter
+        if branch_param && branch_param.name.downcase == 'tagname'
+          matched_branch = branch_param if details.tagname
+        else
+          matched_branch = branch_param unless details.tagname
+        end
+      end
 
       matched_scm = @matching_scms.find { |scm| scm.buildChooser.java_kind_of?(InverseBuildChooser) } unless matched_scm
       build_chooser = matched_scm.buildChooser if matched_scm

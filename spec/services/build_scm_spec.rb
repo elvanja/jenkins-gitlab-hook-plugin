@@ -12,7 +12,7 @@ module GitlabWebHook
 
       it 'builds up to date git scm' do
         expect(subject).to receive(:build_scm)
-        subject.with(source_scm, details, git_plugin)
+        subject.with(source_scm, details, false, git_plugin)
       end
     end
 
@@ -21,7 +21,7 @@ module GitlabWebHook
 
       it 'builds legacy git scm' do
         expect(subject).to receive(:build_legacy_scm)
-        subject.with(source_scm, details, git_plugin)
+        subject.with(source_scm, details, false, git_plugin)
       end
     end
   end

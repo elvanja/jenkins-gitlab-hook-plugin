@@ -14,7 +14,7 @@ module GitlabWebHook
   class BuildScm
     GIT_PLUGIN_VERSION_WITH_NEW_FEATURES = '1.9.9'
 
-    def with(source_scm, details, gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git'), is_template=false)
+    def with(source_scm, details, is_template=false, gitplugin = Java.jenkins.model.Jenkins.instance.getPluginManager().getPlugin('git'))
       # refspec is skipped, we will build specific commit branch
       scm_data = ScmData.new(source_scm, details, is_template)
 

@@ -200,7 +200,10 @@ The plugin can be configured to automatically create projects when the hook is
 activated by a GitLab repo unknown to jenkins. The template must be an existing
 jenkins project, that could be an already running one or be spefically created
 for this purpose. The template can be a disabled project, because the brand
-new project will be enabled on creation.
+new project will be enabled on creation. To enable this feature is enough to
+supply values under the 'Advanced' part of the plugin section in the jenkins
+global configuration page.
+
 
 The simplest case is the *last resort template*, where a single template is
 used for every input webhook for an unknown projec. To get finer clasification, distinct templates

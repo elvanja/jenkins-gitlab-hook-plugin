@@ -67,7 +67,6 @@ module GitlabWebHook
 
     def parse_request
       ParseRequest.new.from(params, request).tap do |details|
-      LOGGER.info("gitlab web hook triggered for repo url #{details.repository_url} and #{details.branch} branch") if details.classic?
         msgs = [
             'gitlab web hook triggered for',
             '   - with payload:',

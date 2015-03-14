@@ -33,7 +33,7 @@ module Gitlab
       if mr_id.nil?
         post_commit_status(commit, status, ci_url)
       elsif mr_id == -1
-        post_commit_note(comit, status, ci_url)
+        post_commit_note(commit, status, ci_url)
       else
         post_mr_note(mr_id, status, ci_url)
       end
@@ -50,21 +50,16 @@ module Gitlab
 
     def post_commit_note(commit, status, ci_url)
       url = "projects/#{id}/repository/commits/#{commit}/comments"
-      do_request url, :note => comment(status, ci_url).to_json
+      do_request url, :note => comment(status, ci_url)
     end
 
     def post_mr_note(mr_id, status, ci_url)
       url = "projects/#{id}/merge_request/#{mr_id}/comments"
-      do_request url, :note => comment(status, ci_url).to_json
+      do_request url, :note => comment(status, ci_url)
     end
 
     def comment(status, ci_url)
-      {
-       :author => {
-          :id => me
-          },
-        :note => "[Jenkins CI result #{status}](#{ci_url})"
-      }
+      "[Jenkins CI result #{status}](#{ci_url})"
     end
 
     def me
@@ -99,8 +94,16 @@ module Gitlab
 
       res = http.request req
 
-      JSON.parse res.body
+      if [ "200" , "201" ].include? res.code
+        JSON.parse res.body
+      else
+        logger.severe "Bad Request '#{url}' : #{res.code} - #{res.msg}"
+        logger.info "Server response : #{res.body}"
+      end
     end
 
+    def logger
+      @logger ||= Java.java.util.logging.Logger.getLogger(Gitlab::Client.class.name)
+    end
   end
 end

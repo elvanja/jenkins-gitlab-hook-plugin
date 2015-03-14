@@ -70,7 +70,7 @@ module GitlabWebHook
           new_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
           new_project.scm = cloned_scm
           new_project.makeDisabled(false)
-          new_project.description = @settings.description
+          new_project.description = settings.description
           new_project.save
         end
 

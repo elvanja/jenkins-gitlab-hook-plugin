@@ -15,3 +15,28 @@ namespace :rspec do
     end
   end
 end
+
+namespace :acceptance do
+
+  desc "Run a server for tests"
+  task :server do
+    require 'jenkins/plugin/specification'
+    require 'jenkins/plugin/tools/server'
+
+    spec = Jenkins::Plugin::Specification.load('jenkins-gitlab-hook.pluginspec')
+    server = Jenkins::Plugin::Tools::Server.new(spec, 'work', nil, '8080')
+
+    logfd, err = IO.pipe
+    job = fork do
+      $stdout.reopen File.new('/dev/null', 'w')
+      $stderr.reopen err
+      server.run!
+    end
+    Process.detach job
+
+    until logfd.readline.include?("Jenkins is fully up and running")
+    end
+
+  end
+
+end

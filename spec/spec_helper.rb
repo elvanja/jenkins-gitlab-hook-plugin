@@ -1,6 +1,5 @@
 # test dependencies
 require 'json'
-require 'ostruct'
 
 # java dependencies
 Dir["spec/lib/**/*.jar"].each do |jar|

@@ -1,8 +1,8 @@
 require 'support/env'
+require 'support/common'
 
 require 'tmpdir'
 require 'fileutils'
-require 'net/http'
 
 feature 'GitLab WebHook' do
 
@@ -27,11 +27,7 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Creates project from template' do
-      uri = URI "http://localhost:8080/gitlab/build_now"
-      req = Net::HTTP::Post.new(uri, initheader = {'Content-Type' =>'application/json'})
-      req.body = File.read("spec/fixtures/payloads/first_push.json") % { repodir: testrepodir }
-      http = Net::HTTP.new uri.host, uri.port
-      response = Net::HTTP.start(uri.hostname, uri.port).request req
+      incoming_payload 'first_push', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
     end

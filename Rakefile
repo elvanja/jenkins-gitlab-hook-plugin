@@ -23,8 +23,23 @@ namespace :acceptance do
     require 'jenkins/plugin/specification'
     require 'jenkins/plugin/tools/server'
 
+    require 'open-uri'
+    require 'fileutils'
+
+    def transitive_dependency(name, version)
+      plugin = "work/plugins/#{name}.hpi"
+      return if File.exists? plugin
+      puts "Downloading #{name}-#{version} ..."
+      file = open "http://mirrors.jenkins-ci.org/plugins/#{name}/#{version}/#{name}.hpi?for=ruby-plugin"
+      FileUtils.cp file.path , plugin
+    end
+
     spec = Jenkins::Plugin::Specification.load('jenkins-gitlab-hook.pluginspec')
     server = Jenkins::Plugin::Tools::Server.new(spec, 'work', nil, '8080')
+
+    FileUtils.mkdir_p "work/plugins"
+    transitive_dependency 'scm-api', '0.2'
+    transitive_dependency 'git-client', '1.7.0'
 
     logfd, err = IO.pipe
     job = fork do

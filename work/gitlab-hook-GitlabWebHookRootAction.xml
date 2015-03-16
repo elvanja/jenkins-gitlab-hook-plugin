@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.model.Descriptor plugin='gitlab-hook'>
+  <automatic_project_creation>true</automatic_project_creation>
+  <master_branch>master</master_branch>
+  <use_master_project_name>false</use_master_project_name>
+  <description>Automatically created by Gitlab Web Hook plugin</description>
+  <templates/>
+  <group_templates/>
+  <template>simplejob</template>
+</hudson.model.Descriptor>

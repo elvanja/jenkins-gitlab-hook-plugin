@@ -1,0 +1,37 @@
+{
+  "before": "5c87f8a2e42643936c5a274cb348b50445065e52",
+  "after": "e3719eaab95642a63e90da0b9b23de0c9d384785",
+  "ref": "refs/heads/master",
+  "user_id": 1,
+  "user_name": "root",
+  "project_id": 1,
+  "repository": {
+    "name": "testrepo",
+    "url": "localhost:%{repodir}",
+    "description": "",
+    "homepage": "https://localhost/tmp/testrepo"
+  },
+  "commits": [
+    {
+      "id": "c1a1e6918fdbf9fe49ad70060508abcc88b876d4",
+      "message": "Second commit\n",
+      "timestamp": "2015-03-14T23:21:18+01:00",
+      "url": "https://localhost/tmp/testrepo/commit/c1a1e6918fdbf9fe49ad70060508abcc88b876d4",
+      "author": {
+        "name": "root",
+        "email": "root@localhost"
+      }
+    },
+    {
+      "id": "e3719eaab95642a63e90da0b9b23de0c9d384785",
+      "message": "Third commit\n",
+      "timestamp": "2015-03-14T23:23:15+01:00",
+      "url": "https://localhost/tmp/testrepo/commit/e3719eaab95642a63e90da0b9b23de0c9d384785",
+      "author": {
+        "name": "root",
+        "email": "root@localhost"
+      }
+    }
+  ],
+  "total_commits_count": 2
+}

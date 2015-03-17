@@ -34,5 +34,20 @@ feature 'GitLab WebHook' do
 
   end
 
+  feature 'Automatic project creation' do
+
+    scenario 'Finds cloneable project' do
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
+    end
+
+    scenario 'Creates project for new branch' do
+      incoming_payload 'branch_creation', testrepodir
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
+    end
+
+  end
+
 end
 

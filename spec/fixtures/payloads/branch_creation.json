@@ -1,0 +1,18 @@
+{
+  "before": "0000000000000000000000000000000000000000",
+  "after": "80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5",
+  "ref": "refs/heads/feature/branch",
+  "user_id": 1,
+  "user_name": "root",
+  "project_id": 1,
+  "repository": {
+    "name": "testrepo",
+    "url": "localhost:%{repodir}",
+    "description": "",
+    "homepage": "https://localhost/tmp/testrepo"
+  },
+  "commits": [
+
+  ],
+  "total_commits_count": 0
+}

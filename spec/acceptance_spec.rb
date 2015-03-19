@@ -35,8 +35,7 @@ feature 'GitLab WebHook' do
     scenario 'Builds a push to master branch' do
       File.write("#{testrepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
       incoming_payload 'master_push', testrepodir
-      sleep 30
-      visit '/job/testrepo'
+      wait_for '/job/testrepo', "//a[@href='/job/testrepo/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo/2/']")
     end
 

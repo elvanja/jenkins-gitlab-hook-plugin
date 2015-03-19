@@ -8,3 +8,12 @@ def incoming_payload(filename, tempdir)
   response = Net::HTTP.start(uri.hostname, uri.port).request req
 end
 
+def wait_for(url, xmlpath, waittime=60)
+  count = waittime / 5
+  begin
+    visit url
+    break if page.has_xpath? xmlpath
+    sleep 5
+  end until (count-=1).zero?
+end
+

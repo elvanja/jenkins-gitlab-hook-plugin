@@ -34,9 +34,9 @@ module GitlabWebHook
         context 'without source scm name' do
           before(:each) do
             expect(branchspec).to receive(:java_object).and_return(java_branchspec)
-            expect(BranchSpec).to receive(:new).with('features_meta').and_return(branchspec)
+            expect(BranchSpec).to receive(:new).with('origin/features_meta').and_return(branchspec)
           end
-          it 'uses details branch only' do
+          it 'uses prefixed details branch' do
             expect(remote_config).to receive(:getName).and_return(nil)
             expect(subject.branchlist).to eq([java_branchspec])
           end

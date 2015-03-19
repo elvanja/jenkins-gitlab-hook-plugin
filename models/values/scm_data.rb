@@ -16,12 +16,12 @@ module GitlabWebHook
     def from_config(config, is_template=false)
       if config
         @url = is_template ? details.repository_url : config.getUrl()
-        @name = config.getName()
+        @name = config.getName() || 'origin'
         @credentials = config.getCredentialsId()
         if is_template
           @branchlist = source_scm.getBranches()
         else
-          branch = @name.to_s.size > 0 ? "#{@name}/#{@details.branch}" : @details.branch
+          branch = "#{@name}/#{@details.branch}"
           @branchlist = java.util.ArrayList.new([BranchSpec.new(branch).java_object])
         end
         @refspec = config.getRefspec()

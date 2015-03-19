@@ -54,6 +54,13 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
     end
 
+    scenario 'Builds a push to feature branch' do
+      File.write("#{testrepodir}/refs/heads/feature/branch", 'ba46b858929aec55a84a9cb044e988d5d347b8de')
+      incoming_payload 'branch_push', testrepodir
+      wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/2/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/2/']")
+    end
+
   end
 
 end

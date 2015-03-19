@@ -17,3 +17,13 @@ def wait_for(url, xmlpath, waittime=60)
   end until (count-=1).zero?
 end
 
+def wait_idle(waittime=60)
+  uri = URI "http://localhost:8080/computer/api/json"
+  sleep 5
+  begin
+    info = JSON.parse Net::HTTP.get(uri)
+    break if info['busyExecutors'] == 0
+    sleep 1
+  end until (waittime-=1).zero?
+end
+

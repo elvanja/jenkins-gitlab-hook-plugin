@@ -30,6 +30,7 @@ feature 'GitLab WebHook' do
       incoming_payload 'first_push', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
+      wait_idle
     end
 
     scenario 'Builds a push to master branch' do
@@ -37,6 +38,7 @@ feature 'GitLab WebHook' do
       incoming_payload 'master_push', testrepodir
       wait_for '/job/testrepo', "//a[@href='/job/testrepo/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo/2/']")
+      wait_idle
     end
 
   end
@@ -52,6 +54,7 @@ feature 'GitLab WebHook' do
       incoming_payload 'branch_creation', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
+      wait_idle
     end
 
     scenario 'Builds a push to feature branch' do
@@ -59,6 +62,7 @@ feature 'GitLab WebHook' do
       incoming_payload 'branch_push', testrepodir
       wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/2/']")
+      wait_idle
     end
 
   end

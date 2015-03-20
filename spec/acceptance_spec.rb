@@ -65,6 +65,13 @@ feature 'GitLab WebHook' do
       wait_idle
     end
 
+    scenario 'Branch removal' do
+      incoming_payload 'branch_deletion', testrepodir
+      sleep 5
+      visit '/'
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
+    end
+
   end
 
 end

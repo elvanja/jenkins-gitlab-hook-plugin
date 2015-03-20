@@ -1,5 +1,4 @@
-require 'support/env'
-require 'support/common'
+require 'spec_helper'
 
 require 'tmpdir'
 require 'fileutils'

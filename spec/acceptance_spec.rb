@@ -74,5 +74,21 @@ feature 'GitLab WebHook' do
 
   end
 
+  feature 'Merge request handling' do
+
+    scenario 'Finds cloneable project' do
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
+    end
+
+    scenario 'Create project with merge request' do
+      incoming_payload 'merge_request', testrepodir
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_idle
+    end
+
+  end
+
 end
 

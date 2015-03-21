@@ -9,11 +9,13 @@ feature 'GitLab WebHook' do
 
   before(:all) do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), testrepodir
+    @server = Jenkins::Server.new
   end
 
   after(:all) do
     FileUtils.remove_dir testrepodir
     FileUtils.rm_rf Dir.glob('work/jobs/testrepo*')
+    @server.kill
   end
 
   # Fixture payloads generated on gitlab 7.2.2

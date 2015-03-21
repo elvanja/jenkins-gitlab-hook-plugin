@@ -14,7 +14,6 @@ feature 'GitLab WebHook' do
 
   after(:all) do
     FileUtils.remove_dir testrepodir
-    FileUtils.rm_rf Dir.glob('work/jobs/testrepo*')
     @server.kill
   end
 

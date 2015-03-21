@@ -8,7 +8,7 @@ require 'fileutils'
 class Jenkins::Server
 
   attr_reader :warname, :workdir
-  attr_reader :job
+  attr_reader :job, :std, :log
 
   REQUIRED_CORE = '1.532.3'
 
@@ -25,9 +25,10 @@ class Jenkins::Server
 
     FileUtils.cp_r Dir.glob('work/*'), workdir
 
-    log, err = IO.pipe
+    @std, out = IO.pipe
+    @log, err = IO.pipe
     @job = fork do
-      $stdout.reopen File.new('/dev/null', 'w')
+      $stdout.reopen out
       $stderr.reopen err
       server.run!
     end
@@ -47,6 +48,13 @@ class Jenkins::Server
   end
 
   private
+
+  def dump(instream, prefix='', outstream=$stdout)
+    begin
+      line = instream.readline
+      outstream.puts "#{prefix}#{line}"
+    end until instream.eof?
+  end
 
   def download_war(version)
     @warname = "vendor/bundle/jenkins-#{version}.war"

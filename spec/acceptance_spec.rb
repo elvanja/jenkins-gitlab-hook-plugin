@@ -88,6 +88,14 @@ feature 'GitLab WebHook' do
       wait_idle
     end
 
+    scenario 'Remove project once merged' do
+      incoming_payload 'accept_merge_request', testrepodir
+      sleep 5
+      visit '/'
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_idle
+    end
+
   end
 
 end

@@ -47,8 +47,17 @@ namespace :acceptance do
         FileUtils.cp file.path, plugin
       end
 
+      version = ENV['JENKINS_VERSION'] || '1.532.3'
+      warname = "vendor/bundle/jenkins-#{version}.war"
+      unless File.exists? warname
+        puts "Downloading jenkins #{version} ..."
+        FileUtils.mkdir_p 'vendor/bundle'
+        file = open "http://updates.jenkins-ci.org/download/war/#{version}/jenkins.war"
+        FileUtils.cp file.path, warname
+      end
+
       spec = Jenkins::Plugin::Specification.load('jenkins-gitlab-hook.pluginspec')
-      server = Jenkins::Plugin::Tools::Server.new(spec, 'work', nil, '8080')
+      server = Jenkins::Plugin::Tools::Server.new(spec, 'work', warname, '8080')
 
       FileUtils.mkdir_p "work/plugins"
       transitive_dependency 'scm-api', '0.2'

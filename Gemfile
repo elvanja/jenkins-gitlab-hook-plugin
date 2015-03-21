@@ -9,7 +9,6 @@ gem 'sinatra'
 
 group :development do
   gem 'jpi', '~> 0.4.0'
-  gem 'jenkins-war', '>= 1.532'
   gem 'rake'
   gem 'rspec', '>= 3.0.0'
   gem 'poltergeist'

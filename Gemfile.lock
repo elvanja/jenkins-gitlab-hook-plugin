@@ -69,7 +69,6 @@ PLATFORMS
 
 DEPENDENCIES
   jenkins-plugin-runtime (~> 0.2.3)
-  jenkins-war (>= 1.532)
   jpi (~> 0.4.0)
   poltergeist
   rake

@@ -1,12 +1,12 @@
+require 'support/phantom'
+
 require 'capybara/rspec'
 require 'capybara/poltergeist'
 
 Capybara.default_driver = :poltergeist
 Capybara.javascript_driver = :poltergeist
 Capybara.register_driver :poltergeist do |app|
-  opts = {
-    :phantomjs => `which phantomjs`.chomp
-  }
+  opts = { :phantomjs => phantom }
   Capybara::Poltergeist::Driver.new(app, opts)
 end
 

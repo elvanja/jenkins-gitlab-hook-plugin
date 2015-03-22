@@ -74,6 +74,8 @@ feature 'GitLab WebHook' do
 
   end
 
+  # MR payloads from gitlab 7.4.3, until a proper mockup is developed
+
   feature 'Merge request handling' do
 
     scenario 'Finds cloneable project' do

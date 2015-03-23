@@ -221,7 +221,7 @@ for this case is done based on leading text of the repository name.
 ## Dependencies
 
 * [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.12 or higher
-* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 1.1.26 or higer
+* [Git plugin](https://wiki.jenkins-ci.org/display/JENKINS/Git+Plugin) version 2.0 or higher
 
 
 ## Logging

@@ -33,6 +33,13 @@ feature 'GitLab WebHook' do
       wait_idle
     end
 
+    scenario 'Does nothing for tags' do
+      incoming_payload 'tag', testrepodir
+      sleep 5
+      visit '/job/testrepo'
+      expect(page).not_to have_xpath("//a[@href='/job/testrepo/2/']")
+    end
+
     scenario 'Builds a push to master branch' do
       File.write("#{testrepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
       incoming_payload 'master_push', testrepodir

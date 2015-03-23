@@ -11,4 +11,5 @@ group :development do
   gem 'jpi', '~> 0.4.0'
   gem 'rake'
   gem 'rspec', '>= 3.0.0'
+  gem 'poltergeist'
 end

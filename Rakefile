@@ -1,10 +1,16 @@
 require 'rake'
 require 'rspec/core/rake_task'
 
-task :default => :rspec
+if RUBY_PLATFORM == 'java'
+  task :default => :rspec
+else
+  task :default => :acceptance
+end
 
 desc "Run all RSpec code examples"
-RSpec::Core::RakeTask.new(:rspec)
+RSpec::Core::RakeTask.new(:rspec) do |t|
+  t.pattern = "spec/*/**/*_spec.rb"
+end
 
 SPEC_SUITES = (Dir.entries('spec') - ['.', '..','fixtures']).select {|e| File.directory? "spec/#{e}" }
 namespace :rspec do
@@ -15,3 +21,10 @@ namespace :rspec do
     end
   end
 end
+
+desc "Run acceptance tests"
+RSpec::Core::RakeTask.new(:acceptance) do |t|
+  t.pattern = "spec/acceptance_spec.rb"
+  t.rspec_opts = "--order default --format doc"
+end
+

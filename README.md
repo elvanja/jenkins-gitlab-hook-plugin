@@ -229,14 +229,13 @@ for this case is done based on leading text of the repository name.
 In case you might want to inspect hook triggering (e.g. to check payload data), you can setup logging in Jenkins as [usual](https://wiki.jenkins-ci.org/display/JENKINS/Logging).<br/>
 Just add a new logger for **Class** (this is because of JRuby internals).
 
-## Contributing
-
-### Testing
+## Testing
 
 To help with testing, the spec/lib directory contains all the Java dependencies the plugin uses directly.
-The spec_helper loads them before each test run.
-
-In case you need to add new classes, please namespace them. See existing ones for details.
+The spec_helper loads them before each test run. The package Rakefile behaviour
+changes depending on the platform used to run it. When executed under jruby, it
+runs the standard rspec examples, but when run on plain ruby starts a jenkins
+instance and executes the acceptance tests.
 
 No special options are required to execute the test on recent JRuby versions (such as 1.7.18)
 

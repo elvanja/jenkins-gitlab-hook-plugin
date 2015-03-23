@@ -1,25 +1,27 @@
 # test dependencies
 require 'json'
-require 'ostruct'
 
 # java dependencies
-Dir["spec/lib/**/*.jar"].each do |jar|
-  require jar
+java_libs = Dir["spec/lib/**/*.jar"]
+
+# the rest of the application
+model_files = %W(models/exceptions models/values models/services models/use_cases)
+
+if RUBY_PLATFORM == 'java'
+
+  java_libs.each do |jar|
+    require jar
+  end
+
+  model_files.each do |autoload_path|
+    Dir[File.expand_path("../../#{autoload_path}/**/*.rb", __FILE__)].each { |f| require f }
+  end
+
 end
 
 # supporting ruby files with custom matchers and macros, etc,
 # in spec/support/ and its subdirectories.
 Dir[File.expand_path('../support/**/*.rb', __FILE__)].each { |f| require f }
-
-# the rest of the application
-%W(
-  models/exceptions
-  models/values
-  models/services
-  models/use_cases
-).each do |autoload_path|
-  Dir[File.expand_path("../../#{autoload_path}/**/*.rb", __FILE__)].each { |f| require f }
-end
 
 RSpec.configure do |config|
   # disable should syntax, it wil become obsolete in future RSpec releases

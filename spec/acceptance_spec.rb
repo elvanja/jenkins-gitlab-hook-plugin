@@ -6,13 +6,21 @@ require 'fileutils'
 feature 'GitLab WebHook' do
 
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]
+  tagsrepodir = Dir.mktmpdir [ 'tagsrepo' , '.git' ]
 
   before(:all) do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), testrepodir
+    FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), tagsrepodir
+    File.open('work/jobs/tagbuilder/config.xml', 'w') do |outfd|
+      infd = File.open 'work/jobs/tagbuilder/config.xml.erb'
+      outfd.write( infd.read % { tagsrepodir: tagsrepodir } )
+      infd.close
+    end
     @server = Jenkins::Server.new
   end
 
   after(:all) do
+    FileUtils.remove_dir tagsrepodir
     FileUtils.remove_dir testrepodir
     @server.kill
   end
@@ -77,6 +85,17 @@ feature 'GitLab WebHook' do
       sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
+    end
+
+  end
+
+  feature 'Tag building' do
+
+    scenario 'Trigger build for tags' do
+      incoming_payload 'tag', tagsrepodir
+      wait_for '/job/tagbuilder', "//a[@href='/job/tagbuilder/1/']"
+      expect(page).to have_xpath("//a[@href='/job/tagbuilder/1/']")
+      wait_idle
     end
 
   end

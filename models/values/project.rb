@@ -170,11 +170,11 @@ module GitlabWebHook
         end
       end
 
-      if !matched_branch && matched_refspecs.any? && parametrized?
+      if !matched_branch && parametrized?
         branch_param = get_branch_name_parameter
         if branch_param && branch_param.name.downcase == 'tagname'
           matched_branch = branch_param if details.tagname
-        else
+        elsif matched_refspecs.any?
           matched_branch = branch_param unless details.tagname
         end
       end

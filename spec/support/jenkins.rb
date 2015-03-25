@@ -20,9 +20,10 @@ class Jenkins::Server
     spec = Jenkins::Plugin::Specification.load('jenkins-gitlab-hook.pluginspec')
     server = Jenkins::Plugin::Tools::Server.new(spec, workdir, warname, '8080')
 
-    # Actually required for git 2.1.0
-    #transitive_dependency 'scm-api', '0.2', workdir
-    #transitive_dependency 'git-client', '1.7.0', workdir
+    # Dependencies for git 2.0
+    transitive_dependency 'scm-api', '0.1', workdir
+    transitive_dependency 'git-client', '1.4.4', workdir
+    transitive_dependency 'ssh-agent', '1.3', workdir
 
     FileUtils.cp_r Dir.glob('work/*'), workdir
 

@@ -3,6 +3,8 @@ require 'spec_helper'
 require 'tmpdir'
 require 'fileutils'
 
+Autologin.enable
+
 feature 'GitLab WebHook' do
 
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]

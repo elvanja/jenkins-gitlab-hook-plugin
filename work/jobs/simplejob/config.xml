@@ -25,6 +25,13 @@
   <triggers/>
   <concurrentBuild>false</concurrentBuild>
   <builders/>
-  <publishers/>
+  <publishers>
+    <ruby-proxy-object>
+      <ruby-object ruby-class="Jenkins::Tasks::PublisherProxy" pluginid="gitlab-hook">
+        <pluginid pluginid="gitlab-hook" ruby-class="String">gitlab-hook</pluginid>
+        <object ruby-class="GitlabNotifier" pluginid="gitlab-hook"/>
+      </ruby-object>
+    </ruby-proxy-object>
+  </publishers>
   <buildWrappers/>
 </project>

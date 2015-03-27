@@ -156,6 +156,19 @@ The plugin expects the request to have the appropriate structure, like this exam
 }
 ```
 
+## Building tags
+
+Although tags are static entities and as such seem unsensible in anything
+_continuos_, there are many scenarios where you would like to get some job done
+by jenkins when _any_ tag is pushed to GitLab. The main problem to accomplish this
+task is that wildcard handling by git plugin does not cover `refs/tags/*`, and
+we need specific extensions to handle this use case.
+
+When incoming payload comes from the creation of a tag, the plugin parses the
+tag name and assings it to variable **TAGNAME**, that can be used on a parametrized
+job. So, setting the branch specifier to `'refs/tags/${TAGNAME}'` the job will be
+executed for every tag.
+
 ## Automatic project creation
 
 ### Create project for pushed branches

@@ -19,12 +19,14 @@ feature 'GitLab WebHook' do
       infd.close
     end
     @server = Jenkins::Server.new
+    @gitlab = GitLabMockup.new
   end
 
   after(:all) do
     FileUtils.remove_dir tagsrepodir
     FileUtils.remove_dir testrepodir
     @server.kill
+    @gitlab.kill
   end
 
   # Fixture payloads generated on gitlab 7.2.2

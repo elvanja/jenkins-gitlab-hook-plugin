@@ -75,7 +75,7 @@ module Gitlab
 
     def do_request(url, data=nil)
 
-      uri = URI "#{gitlab_url}/#{url}"
+      uri = URI "#{gitlab_url}/api/v3/#{url}"
 
       if data
         req = Net::HTTP::Post.new uri.request_uri

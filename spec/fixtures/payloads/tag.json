@@ -6,9 +6,9 @@
   "user_name": "root",
   "project_id": 1,
   "repository": {
-    "name": "testrepo",
+    "name": "%{reponame}",
     "url": "localhost:%{repodir}",
     "description": "",
-    "homepage": "https://localhost/tmp/testrepo"
+    "homepage": "https://localhost/tmp/%{reponame}"
   }
 }

@@ -1,9 +1,9 @@
 require 'net/http'
 
-def incoming_payload(filename, tempdir)
+def incoming_payload(filename, reponame, tempdir)
   uri = URI "http://localhost:8080/gitlab/build_now"
   req = Net::HTTP::Post.new(uri.request_uri, initheader = {'Content-Type' =>'application/json'})
-  req.body = File.read("spec/fixtures/payloads/#{filename}.json") % { repodir: tempdir }
+  req.body = File.read("spec/fixtures/payloads/#{filename}.json") % { reponame: reponame, repodir: tempdir }
   http = Net::HTTP.new uri.host, uri.port
   response = Net::HTTP.start(uri.hostname, uri.port).request req
 end

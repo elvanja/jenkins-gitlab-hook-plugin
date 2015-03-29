@@ -22,6 +22,7 @@ module GitlabWebHook
     end
 
     def with(details)
+      return if details.branch.empty?
       copy_from = get_project_to_copy_from(details)
       new_project_name = get_new_project_name(copy_from, details)
       new_project_scm = @build_scm.with(copy_from.scm, details)
@@ -40,6 +41,7 @@ module GitlabWebHook
     end
 
     def from_template(template, details)
+      return if details.branch.empty?
       # NOTE : returned value is an instance GitlabWebHook::Project, with some methods delegated to real jenkins object
       copy_from = get_template_project(template)
       new_project_name = details.repository_name

@@ -54,7 +54,7 @@ module GitlabWebHook
         end
       end
 
-      raise NotFoundException.new('no project references the given repo url and commit branch') if projects.empty?
+      raise NotFoundException.new('no project references the given repo url and commit branch') unless projects.any?
 
       projects
     end

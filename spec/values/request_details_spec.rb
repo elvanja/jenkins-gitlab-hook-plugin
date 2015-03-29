@@ -59,8 +59,7 @@ module GitlabWebHook
       it 'removes refs, heads and tags from result' do
         refs = ['ref', 'refs']
         heads = ['head', 'heads']
-        tags = ['tag', 'tags']
-        refs.product(heads, tags).each do |combination|
+        refs.product(heads).each do |combination|
           allow(subject).to receive(:full_branch_reference) { "#{combination.join('/')}/master" }
           expect(subject.branch).to eq('master')
         end

@@ -10,10 +10,10 @@ module GitlabWebHook
 
     def branch
       ref = full_branch_reference
-      return "" unless ref
+      return "" unless ref && tagname.nil?
 
       refs = ref.split("/")
-      refs.reject { |ref| ref =~ /\A(ref|head|tag)s?\z/ }.join("/")
+      refs.reject { |ref| ref =~ /\A(ref|head)s?\z/ }.join("/")
     end
 
     def tagname

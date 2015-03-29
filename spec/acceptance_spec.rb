@@ -36,23 +36,33 @@ feature 'GitLab WebHook' do
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_simplejob']")
     end
 
+    scenario 'Does not create project for tag' do
+      incoming_payload 'tag', 'testrepo', testrepodir
+      sleep 5
+      visit '/'
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_tag1']")
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_']")
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
+    end
+
     scenario 'Creates project from template' do
-      incoming_payload 'first_push', testrepodir
+      incoming_payload 'first_push', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
       wait_idle
     end
 
     scenario 'Does nothing for tags' do
-      incoming_payload 'tag', testrepodir
+      incoming_payload 'tag', 'testrepo', testrepodir
       sleep 5
-      visit '/job/testrepo'
-      expect(page).not_to have_xpath("//a[@href='/job/testrepo/2/']")
+      visit '/'
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_tag1']")
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_']")
     end
 
     scenario 'Builds a push to master branch' do
       File.write("#{testrepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
-      incoming_payload 'master_push', testrepodir
+      incoming_payload 'master_push', 'testrepo', testrepodir
       wait_for '/job/testrepo', "//a[@href='/job/testrepo/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo/2/']")
       wait_idle
@@ -68,7 +78,7 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Creates project for new branch' do
-      incoming_payload 'branch_creation', testrepodir
+      incoming_payload 'branch_creation', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
       wait_idle
@@ -76,14 +86,14 @@ feature 'GitLab WebHook' do
 
     scenario 'Builds a push to feature branch' do
       File.write("#{testrepodir}/refs/heads/feature/branch", 'ba46b858929aec55a84a9cb044e988d5d347b8de')
-      incoming_payload 'branch_push', testrepodir
+      incoming_payload 'branch_push', 'testrepo', testrepodir
       wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/2/']")
       wait_idle
     end
 
     scenario 'Branch removal' do
-      incoming_payload 'branch_deletion', testrepodir
+      incoming_payload 'branch_deletion', 'testrepo', testrepodir
       sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
@@ -94,10 +104,18 @@ feature 'GitLab WebHook' do
   feature 'Tag building' do
 
     scenario 'Trigger build for tags' do
-      incoming_payload 'tag', tagsrepodir
+      incoming_payload 'tag', 'tagsrepo', tagsrepodir
       wait_for '/job/tagbuilder', "//a[@href='/job/tagbuilder/1/']"
       expect(page).to have_xpath("//a[@href='/job/tagbuilder/1/']")
       wait_idle
+    end
+
+    scenario 'Does not process templates when a tag project exists' do
+      incoming_payload 'first_push', 'tagsrepo', tagsrepodir
+      sleep 5
+      visit '/'
+      pending 'unimplemented fix'
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_tagsrepo_master']")
     end
 
   end
@@ -112,14 +130,14 @@ feature 'GitLab WebHook' do
     end
 
     scenario 'Create project with merge request' do
-      incoming_payload 'merge_request', testrepodir
+      incoming_payload 'merge_request', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
     end
 
     scenario 'Remove project once merged' do
-      incoming_payload 'accept_merge_request', testrepodir
+      incoming_payload 'accept_merge_request', 'testrepo', testrepodir
       sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")

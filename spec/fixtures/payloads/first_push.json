@@ -6,17 +6,17 @@
   "user_name": "root",
   "project_id": 1,
   "repository": {
-    "name": "testrepo",
+    "name": "%{reponame}",
     "url": "localhost:%{repodir}",
     "description": "",
-    "homepage": "https://localhost/tmp/testrepo"
+    "homepage": "https://localhost/tmp/%{reponame}"
   },
   "commits": [
     {
       "id": "c1a1e6918fdbf9fe49ad70060508abcc88b876d4",
       "message": "Second commit\n",
       "timestamp": "2015-03-14T23:21:18+01:00",
-      "url": "https://localhost/tmp/testrepo/commit/c1a1e6918fdbf9fe49ad70060508abcc88b876d4",
+      "url": "https://localhost/tmp/%{reponame}/commit/c1a1e6918fdbf9fe49ad70060508abcc88b876d4",
       "author": {
         "name": "root",
         "email": "root@localhost"
@@ -26,7 +26,7 @@
       "id": "e3719eaab95642a63e90da0b9b23de0c9d384785",
       "message": "Third commit\n",
       "timestamp": "2015-03-14T23:23:15+01:00",
-      "url": "https://localhost/tmp/testrepo/commit/e3719eaab95642a63e90da0b9b23de0c9d384785",
+      "url": "https://localhost/tmp/%{reponame}/commit/e3719eaab95642a63e90da0b9b23de0c9d384785",
       "author": {
         "name": "root",
         "email": "root@localhost"

@@ -6,7 +6,7 @@ module GitlabWebHook
     include_context 'projects'
 
     let(:repository_uri) { RepositoryUri.new('http://example.com/discourse/discourse.git') }
-    let(:details) { double(PayloadRequestDetails, repository_uri: repository_uri, repository_name: 'discourse', safe_branch: 'features_meta', full_branch_reference: 'refs/heads/features/meta') }
+    let(:details) { double(PayloadRequestDetails, repository_uri: repository_uri, repository_name: 'discourse', branch: 'features/meta', safe_branch: 'features_meta', full_branch_reference: 'refs/heads/features/meta') }
     let(:master) { double(Project, name: 'discourse', jenkins_project: java_project1) }
     let(:get_jenkins_projects) { GetJenkinsProjects.new }
     let(:build_scm) { double(BuildScm, with: double(GitSCM)) }

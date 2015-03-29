@@ -18,16 +18,16 @@
     "description": "",
     "position": 0,
     "source": {
-      "name": "testrepo",
+      "name": "%{reponame}",
       "ssh_url": "localhost:%{repodir}",
-      "http_url": "https://localhost/tmp/testrepo.git",
+      "http_url": "https://localhost/tmp/%{reponame}.git",
       "namespace": "tmp",
       "visibility_level": 20
     },
     "target": {
-      "name": "testrepo",
+      "name": "%{reponame}",
       "ssh_url": "localhost:%{repodir}",
-      "http_url": "https://localhost/tmp/testrepo.git",
+      "http_url": "https://localhost/tmp/%{reponame}.git",
       "namespace": "tmp",
       "visibility_level": 20
     },
@@ -35,7 +35,7 @@
       "id": "ba46b858929aec55a84a9cb044e988d5d347b8de",
       "message": "Commit on branch\n",
       "timestamp": "2015-03-14T23:27:09+01:00",
-      "url": "https://localhost/tmp/testrepo/commit/ba46b858929aec55a84a9cb044e988d5d347b8de",
+      "url": "https://localhost/tmp/%{reponame}/commit/ba46b858929aec55a84a9cb044e988d5d347b8de",
       "author": {
         "name": "root",
         "email": "root@localhost"

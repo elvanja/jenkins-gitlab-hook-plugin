@@ -59,6 +59,10 @@ class GitLabMockup
       json [ mr_response ]
     end
 
+    post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do
+      json [ mr_response ]
+    end
+
     post "/api/v3/projects/:project_id/repository/commits/:sha/comments" do
       json 'state' => 200
     end

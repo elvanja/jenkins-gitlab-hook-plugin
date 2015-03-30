@@ -63,6 +63,10 @@ class GitLabMockup
       json 'state' => 200
     end
 
+    post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
+      json 'state' => 200
+    end
+
   end
 
 end

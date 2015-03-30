@@ -3,13 +3,13 @@ require 'sinatra/json'
 
 class GitLabMockup
 
-  def initialize
+  def initialize(name)
     @std, out = IO.pipe
     @log, err = IO.pipe
     @server = fork do
       $stdout.reopen out
       $stderr.reopen err
-      MyServer.run!
+      MyServer.start name
     end
     Process.detach @server
   end
@@ -29,7 +29,20 @@ class GitLabMockup
 
   class MyServer < Sinatra::Base
 
+    def self.start(name)
+      @@name = name
+      self.run!
+    end
+
     helpers do
+
+      def author
+        {
+            "id" => 1,
+            "name" => "root",
+            "username" => "root"
+        }
+      end
 
       def project_info(name)
         {
@@ -51,6 +64,10 @@ class GitLabMockup
       end
     end
 
+    get "/api/v3/projects/:project_id" do
+      json project_info(@@name)
+    end
+
     get "/api/v3/projects/search/:query" do
       json [ project_info(params['query']) ]
     end
@@ -60,15 +77,15 @@ class GitLabMockup
     end
 
     post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do
-      json [ mr_response ]
+      json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/comments" do
-      json 'state' => 200
+      json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
-      json 'state' => 200
+      json state: params[:state] , target_url: params[:target_url]
     end
 
   end

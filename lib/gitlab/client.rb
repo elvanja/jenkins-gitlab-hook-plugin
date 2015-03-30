@@ -33,6 +33,10 @@ module Gitlab
       return -1
     end
 
+    def details(project_id)
+      do_request("projects/#{project_id}")
+    end
+
     def post_status(commit, status, ci_url, mr_id=nil)
       if mr_id.nil?
         post_commit_status(commit, status, ci_url)

@@ -75,8 +75,7 @@ module GitlabWebHook
 
     def get_project_details
       descriptor = Jenkins::Plugin.instance.descriptors[GitlabNotifier]
-      client = Gitlab::Client.new descriptor
-      do_request "projects/#{project_id}"
+      Gitlab::Client.new(descriptor).details(project_id)
     end
 
     def throw_cross_repo_exception

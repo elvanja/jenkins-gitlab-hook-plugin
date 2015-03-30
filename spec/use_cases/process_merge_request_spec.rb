@@ -4,6 +4,7 @@ require 'models/root_action_descriptor'
 
 module GitlabWebHook
   describe ProcessMergeRequest do
+    include_context 'settings'
 
     let (:payload) { JSON.parse(File.read('spec/fixtures/new_merge_request_payload.json')) }
     let (:details) { MergeRequestDetails.new(payload) }

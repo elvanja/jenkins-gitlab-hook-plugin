@@ -2,6 +2,10 @@
   f = taglib("/lib/form")
   f.section(:title => "Gitlab Web Hook") do
 
+    f.entry :title => "Create new projects for merge requests", :field => 'merge_request_processing' do
+      f.checkbox :checked => "#{descriptor.merge_request_processing?}"
+    end
+
     f.optionalBlock :title => "Automatic project creation", :name => 'automatic_project_creation', :checked => "#{descriptor.automatic_project_creation?}" do
       f.entry :title => 'Project master branch', :field => 'master_branch' do
         f.textbox :default => "#{descriptor.master_branch}"

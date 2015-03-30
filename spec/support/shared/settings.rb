@@ -5,5 +5,6 @@ RSpec.shared_context 'settings' do
   before(:each) do
     allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
     allow(jenkins_instance).to receive(:descriptor) { settings }
+    allow(settings).to receive(:merge_request_processing?) { true }
   end
 end

@@ -231,6 +231,18 @@ projects whose name starts with *lib-java-* could be redirected to a template
 that is prepared to publish the artifact on a public maven repository. Matching
 for this case is done based on leading text of the repository name.
 
+### Building of merge requests
+
+The plugin is able to automatically create and delete projects for merge
+requests issued on GitLab. This behaviour is enabled by default, although it
+can be switched off in the global Jenkins configuration. If there is a project
+configured to build the target branch, a new project is created based on it,
+setting the _branch specification_ with the merge request source branch, and
+properly enabling _merge to_ option. Once created, any push to either source or
+target branch will cause a build of the project, which is named based on the
+original project and the merged branch, joined with _"-mr-"_ for easy
+identification.
+
 ## Dependencies
 
 * [Ruby runtime](https://github.com/jenkinsci/jenkins.rb) version 0.12 or higher

@@ -1,8 +1,10 @@
 require_relative '../services/get_jenkins_projects'
 require_relative 'create_project_for_branch.rb'
+require_relative '../util/settings'
 
 module GitlabWebHook
   class ProcessMergeRequest
+    include Settings
 
     def initialize(get_jenkins_projects = GetJenkinsProjects.new, create_project_for_branch = CreateProjectForBranch.new)
       @get_jenkins_projects = get_jenkins_projects
@@ -11,6 +13,7 @@ module GitlabWebHook
 
     def with(details)
       messages = []
+      return messages unless settings.merge_request_processing?
       if details.merge_status == 'cannot_be_merged' && details.state != 'closed'
         messages << "Skipping not ready merge request for #{details.repository_name} with #{details.merge_status} status"
       else

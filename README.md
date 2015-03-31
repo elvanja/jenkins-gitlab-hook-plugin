@@ -48,8 +48,6 @@ Here are a few examples:
 
 | Name | Type | Default Value | Value In Build | Note |
 | ------------- | ------------- | ------------- | ------------- | ------------- |
-| TRIGGERED | Boolean | true | true | Not a String parameter, using default value |
-| TRIGGERED_BY | String | N/A | N/A | Not found in payload or details, using default value |
 | USER_NAME | String | Default User | John Smith | From payload, first level, not using the default value |
 | REPOSITORY.HOMEPAGE | String | - | http://example.com/diaspora | From payload, nested value |
 | COMMITS.0.MESSAGE | String | - | Update Catalan translation to e38cb41. | From payload, nested value from array |
@@ -109,52 +107,6 @@ In case GitLab is triggering the deletion of a branch, the plugin will skip proc
 In that case, it will find the Jenkins project for that branch and delete it.<br/>
 This applies only to non master branches (master is defined in plugin configuration).<br/>
 Master branch project is never deleted.
-
-### Hook data related
-
-GitLab uses JSON POST to send the information to the defined hook.<br/>
-The plugin expects the request to have the appropriate structure, like this example:
-
-```json
-{
-  "before": "95790bf891e76fee5e1747ab589903a6a1f80f22",
-  "after": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
-  "ref": "refs/heads/master",
-  "user_id": 4,
-  "user_name": "John Smith",
-  "project_id": 15,
-  "repository": {
-    "name": "Diaspora",
-    "url": "git@example.com:diaspora/diaspora.git",
-    "description": "",
-    "homepage": "http://example.com/diaspora/diaspora",
-    "private": true
-  },
-  "commits": [
-    {
-      "id": "b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327",
-      "message": "Update Catalan translation to e38cb41.",
-      "timestamp": "2011-12-12T14:27:31+02:00",
-      "url": "http://example.com/diaspora/diaspora/commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327",
-      "author": {
-        "name": "John Smith",
-        "email": "jsmith@example.com"
-      }
-    },
-    {
-      "id": "da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
-      "message": "fixed readme",
-      "timestamp": "2012-01-03T23:36:29+02:00",
-      "url": "http://example.com/diaspora/diaspora/commits/da1560886d4f094c3e6c9ef40349f7d38b5d27d7",
-      "author": {
-        "name": "John Smith the Second",
-        "email": "jsmith2@example.com"
-      }
-    }
-  ],
-  "total_commits_count": 2
-}
-```
 
 ## Building tags
 

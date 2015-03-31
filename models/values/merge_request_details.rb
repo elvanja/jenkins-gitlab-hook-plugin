@@ -31,10 +31,6 @@ module GitlabWebHook
       "refs/heads/#{branch}"
     end
 
-    def before
-      '0000000000000000000000000000000000000000'
-    end
-
     def target_project_id
       return "" unless payload['target_project_id']
       payload['target_project_id'].to_s

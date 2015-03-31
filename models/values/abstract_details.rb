@@ -32,10 +32,6 @@ module GitlabWebHook
       raise NameError.new("should be implemented in concrete implementation")
     end
 
-    def before
-      raise NameError.new("should be implemented in concrete implementation")
-    end
-
     def safe_branch
       branch.gsub("/", "_")
     end

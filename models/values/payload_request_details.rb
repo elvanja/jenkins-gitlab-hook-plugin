@@ -34,10 +34,6 @@ module GitlabWebHook
       payload["ref"].to_s.strip
     end
 
-    def before
-      raise NameError.new("should be implemented in concrete implementation")
-    end
-
     def delete_branch_commit?
       after = payload["after"]
       after ? (after.strip.squeeze == "0") : false

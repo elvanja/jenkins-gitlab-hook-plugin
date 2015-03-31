@@ -160,7 +160,7 @@ The plugin expects the request to have the appropriate structure, like this exam
 
 Although tags are static entities and as such seem unsensible in anything
 _continuos_, there are many scenarios where you would like to get some job done
-by jenkins when _any_ tag is pushed to GitLab. The main problem to accomplish this
+by Jenkins when _any_ tag is pushed to GitLab. The main problem to accomplish this
 task is that wildcard handling by git plugin does not cover `refs/tags/*`, and
 we need specific extensions to handle this use case.
 
@@ -168,6 +168,25 @@ When incoming payload comes from the creation of a tag, the plugin parses the
 tag name and assings it to variable **TAGNAME**, that can be used on a parametrized
 job. So, setting the branch specifier to `'refs/tags/${TAGNAME}'` the job will be
 executed for every tag.
+
+## Build status notifications
+
+The plugin includes a publisher to inform GitLab about the build result that,
+when enabled, submits a comment with the build information. The default
+behaviour is to do only for merge requests, where the info will be shown on
+the discussion tab. It is possible to send the result for every commit built
+by Jenkins, unchecking _Only submit status for merge projects_ on global
+configuration, which will post a commit comment.
+
+### Commit statuses
+
+There is another way to sent this notifications, which requires a GitLab
+deployment patched with
+[merge request 240](https://gitlab.com/gitlab-org/gitlab-ce/merge_requests/240).
+This change stores the commit status as a _git note_, and includes status
+visualization on the commits list view, among other places. When this extension
+is in use, status of merge requests is not posted as a comment, but rendered
+in the accept panel when _CI build status_ service is enabled.
 
 ## Automatic project creation
 
@@ -185,7 +204,7 @@ Notes:
 * above mentioned "master" can be one of the following (determined in given order):
   * project that references the given repo url and master branch configured for plugin (defaults to "master")
   * project that references the given repo url for any other branch
-* a "master" project for the given repo is required to copy git settings, although templates functionality described below allow creation of jenkins projects for new projects
+* a "master" project for the given repo is required to copy git settings, although templates functionality described below allow creation of Jenkins projects for new projects
 * everything you set on the master project will be copied to branch project, except that the copied project will track the payload commit branch and the project description, which is set based on plugin configuration
 * copying includes all parameters for the job. Note that branch parameters will be unused but not removed from job definition
 * the new project name is suffixed with the branch name, and depending on the value of "using master project name" configuration
@@ -210,11 +229,11 @@ For this option to become active, just turn it on in Jenkins global configuratio
 ### Templates for unknown repositories
 
 The plugin can be configured to automatically create projects when the hook is
-activated by a GitLab repo unknown to jenkins. The template must be an existing
-jenkins project, that could be an already running one or be spefically created
+activated by a GitLab repo unknown to Jenkins. The template must be an existing
+Jenkins project, that could be an already running one or be spefically created
 for this purpose. The template can be a disabled project, because the brand
 new project will be enabled on creation. To enable this feature is enough to
-supply values under the 'Advanced' part of the plugin section in the jenkins
+supply values under the 'Advanced' part of the plugin section in the Jenkins
 global configuration page.
 
 
@@ -259,7 +278,7 @@ Just add a new logger for **Class** (this is because of JRuby internals).
 To help with testing, the spec/lib directory contains all the Java dependencies the plugin uses directly.
 The spec_helper loads them before each test run. The package Rakefile behaviour
 changes depending on the platform used to run it. When executed under jruby, it
-runs the standard rspec examples, but when run on plain ruby starts a jenkins
+runs the standard rspec examples, but when run on plain ruby starts a Jenkins
 instance and executes the acceptance tests.
 
 No special options are required to execute the test on recent JRuby versions (such as 1.7.18)

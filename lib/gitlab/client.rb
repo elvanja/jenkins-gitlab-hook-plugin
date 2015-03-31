@@ -20,13 +20,21 @@ module Gitlab
     end
 
     def merge_request(project)
-      source = project.scm.branches.first.name
+
+      src = project.scm.branches.first.name.split '/'
+      [ '*' , 'origin'].include?(src[0]) ? src.delete_at(0) : nil
+      source = src.join '/'
+
       if target = project.merge_target
         do_request("projects/#{id}/merge_requests?state=opened").each do |mr|
           return mr['id'] if mr['source_branch'] == source && mr['target_branch'] == target
         end
       end
       return -1
+    end
+
+    def details(project_id)
+      do_request("projects/#{project_id}")
     end
 
     def post_status(commit, status, ci_url, mr_id=nil)
@@ -75,7 +83,7 @@ module Gitlab
 
     def do_request(url, data=nil)
 
-      uri = URI "#{gitlab_url}/#{url}"
+      uri = URI "#{gitlab_url}/api/v3/#{url}"
 
       if data
         req = Net::HTTP::Post.new uri.request_uri

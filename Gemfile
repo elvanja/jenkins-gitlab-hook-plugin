@@ -8,6 +8,7 @@ gem 'jenkins-plugin-runtime', '~> 0.2.3'
 gem 'sinatra'
 
 group :development do
+  gem 'sinatra-json'
   gem 'jpi', '~> 0.4.0'
   gem 'rake'
   gem 'rspec', '>= 3.0.0'

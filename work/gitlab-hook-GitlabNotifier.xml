@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson.model.Descriptor plugin='gitlab-notifier'>
+  <gitlab_url>http://localhost:4567</gitlab_url>
+  <token>2GJJSdNJdxFnMX9vmMHh</token>
+  <commit_status>false</commit_status>
+  <mr_status_only>false</mr_status_only>
+</hudson.model.Descriptor>

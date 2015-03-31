@@ -2,6 +2,7 @@ require 'spec_helper'
 
 require 'tmpdir'
 require 'fileutils'
+require 'pathname'
 
 Autologin.enable
 
@@ -19,12 +20,14 @@ feature 'GitLab WebHook' do
       infd.close
     end
     @server = Jenkins::Server.new
+    @gitlab = GitLabMockup.new Pathname.new(testrepodir).basename('.git').to_s
   end
 
   after(:all) do
     FileUtils.remove_dir tagsrepodir
     FileUtils.remove_dir testrepodir
     @server.kill
+    @gitlab.kill
   end
 
   # Fixture payloads generated on gitlab 7.2.2
@@ -120,7 +123,29 @@ feature 'GitLab WebHook' do
 
   end
 
-  # MR payloads from gitlab 7.4.3, until a proper mockup is developed
+  feature 'Legacy (<7.4.3) merge request handling' do
+
+    scenario 'Finds cloneable project' do
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
+    end
+
+    scenario 'Create project with merge request' do
+      incoming_payload 'legacy/merge_request', 'testrepo', testrepodir
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_idle
+    end
+
+    scenario 'Remove project once merged' do
+      incoming_payload 'legacy/accept_merge_request', 'testrepo', testrepodir
+      sleep 5
+      visit '/'
+      expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_idle
+    end
+
+  end
 
   feature 'Merge request handling' do
 

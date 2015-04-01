@@ -14,6 +14,10 @@ class GitLabMockup
     Process.detach @server
   end
 
+  def last
+    MyServer.last
+  end
+
   def kill
     Process.kill 'TERM', @server
     Process.waitpid @server, Process::WNOHANG
@@ -29,9 +33,21 @@ class GitLabMockup
 
   class MyServer < Sinatra::Base
 
-    def self.start(name)
-      @@name = name
-      self.run!
+    class << self
+
+      def last
+        @@last
+      end
+
+      def last=(value)
+        @@last = value
+      end
+
+      def start(name)
+        @@name = name
+        run!
+      end
+
     end
 
     helpers do
@@ -77,14 +93,17 @@ class GitLabMockup
     end
 
     post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do
+      self.class.last = "/mr_comment/#{params[:mr_id]}"
       json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/comments" do
+      self.class.last = "/comment/#{params[:sha]}"
       json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
+      self.class.last = "/status/#{params[:sha]}"
       json state: params[:state] , target_url: params[:target_url]
     end
 

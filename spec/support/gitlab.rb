@@ -4,14 +4,13 @@ require 'sinatra/json'
 class GitLabMockup
 
   def initialize(name)
-    @std, out = IO.pipe
+    # We actully hide whole stderr, not only sinatra, but
+    # that's better than keep the noise added by request tracing
     @log, err = IO.pipe
-    @server = fork do
-      $stdout.reopen out
+    @server = Thread.fork do
       $stderr.reopen err
       MyServer.start name
     end
-    Process.detach @server
   end
 
   def last
@@ -19,9 +18,8 @@ class GitLabMockup
   end
 
   def kill
-    Process.kill 'TERM', @server
-    Process.waitpid @server, Process::WNOHANG
-  rescue Errno::ECHILD => e
+    @server.kill
+    @server.join
   end
 
   def dump(instream, prefix='', outstream=$stdout)

@@ -53,6 +53,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
       wait_idle
+      expect(@gitlab.last).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785'
     end
 
     scenario 'Does nothing for tags' do
@@ -69,6 +70,7 @@ feature 'GitLab WebHook' do
       wait_for '/job/testrepo', "//a[@href='/job/testrepo/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo/2/']")
       wait_idle
+      expect(@gitlab.last).to eq '/comment/6957dc21ae95f0c70931517841a9eb461f94548c'
     end
 
   end
@@ -85,6 +87,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
       wait_idle
+      expect(@gitlab.last).to eq '/comment/80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5'
     end
 
     scenario 'Builds a push to feature branch' do
@@ -93,6 +96,7 @@ feature 'GitLab WebHook' do
       wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/2/']")
       wait_idle
+      expect(@gitlab.last).to eq '/comment/ba46b858929aec55a84a9cb044e988d5d347b8de'
     end
 
     scenario 'Branch removal' do
@@ -135,6 +139,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
+      expect(@gitlab.last).to eq '/mr_comment/1'
     end
 
     scenario 'Remove project once merged' do
@@ -159,6 +164,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
+      expect(@gitlab.last).to eq '/mr_comment/1'
     end
 
     scenario 'Remove project once merged' do

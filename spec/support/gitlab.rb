@@ -34,7 +34,7 @@ class GitLabMockup
     class << self
 
       def last
-        @@last
+        @@last.tap{ @@last = nil }
       end
 
       def last=(value)

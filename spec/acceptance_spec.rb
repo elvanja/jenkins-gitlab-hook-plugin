@@ -53,6 +53,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
       wait_idle
+      expect(@server.result('testrepo', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785'
     end
 
@@ -70,6 +71,7 @@ feature 'GitLab WebHook' do
       wait_for '/job/testrepo', "//a[@href='/job/testrepo/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo/2/']")
       wait_idle
+      expect(@server.result('testrepo', 2)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/comment/6957dc21ae95f0c70931517841a9eb461f94548c'
     end
 
@@ -87,6 +89,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
       wait_idle
+      expect(@server.result('testrepo_feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/comment/80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5'
     end
 
@@ -96,6 +99,7 @@ feature 'GitLab WebHook' do
       wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/2/']"
       expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/2/']")
       wait_idle
+      expect(@server.result('testrepo_feature_branch', 2)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/comment/ba46b858929aec55a84a9cb044e988d5d347b8de'
     end
 
@@ -115,6 +119,7 @@ feature 'GitLab WebHook' do
       wait_for '/job/tagbuilder', "//a[@href='/job/tagbuilder/1/']"
       expect(page).to have_xpath("//a[@href='/job/tagbuilder/1/']")
       wait_idle
+      expect(@server.result('tagbuilder', 1)).to eq 'SUCCESS'
     end
 
     scenario 'Does not process templates when a tag project exists' do
@@ -139,6 +144,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
+      expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/mr_comment/1'
     end
 
@@ -164,6 +170,7 @@ feature 'GitLab WebHook' do
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
+      expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/mr_comment/1'
     end
 

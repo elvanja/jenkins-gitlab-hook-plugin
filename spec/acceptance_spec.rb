@@ -184,5 +184,34 @@ feature 'GitLab WebHook' do
 
   end
 
+  feature 'Report commit status' do
+
+    scenario 'Enables build status report' do
+      visit '/configure'
+      check '_.commit_status'
+      click_button 'Apply'
+      sleep 5
+    end
+
+    scenario 'Post status for push' do
+      incoming_payload 'master_push', 'testrepo', testrepodir
+      wait_for '/job/testrepo', "//a[@href='/job/testrepo/3/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo/3/']")
+      wait_idle
+      expect(@server.result('testrepo', 3)).to eq 'SUCCESS'
+      expect(@gitlab.last).to eq '/status/6957dc21ae95f0c70931517841a9eb461f94548c'
+    end
+
+    scenario 'Post status to source branch commit' do
+      incoming_payload 'merge_request', 'testrepo', testrepodir
+      visit '/'
+      expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_idle
+      expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
+      expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+    end
+
+  end
+
 end
 

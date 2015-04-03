@@ -4,20 +4,22 @@ require 'sinatra/json'
 class GitLabMockup
 
   def initialize(name)
-    @std, out = IO.pipe
+    # We actully hide whole stderr, not only sinatra, but
+    # that's better than keep the noise added by request tracing
     @log, err = IO.pipe
-    @server = fork do
-      $stdout.reopen out
+    @server = Thread.fork do
       $stderr.reopen err
       MyServer.start name
     end
-    Process.detach @server
+  end
+
+  def last
+    MyServer.last
   end
 
   def kill
-    Process.kill 'TERM', @server
-    Process.waitpid @server, Process::WNOHANG
-  rescue Errno::ECHILD => e
+    @server.kill
+    @server.join
   end
 
   def dump(instream, prefix='', outstream=$stdout)
@@ -29,9 +31,21 @@ class GitLabMockup
 
   class MyServer < Sinatra::Base
 
-    def self.start(name)
-      @@name = name
-      self.run!
+    class << self
+
+      def last
+        @@last.tap{ @@last = nil }
+      end
+
+      def last=(value)
+        @@last = value
+      end
+
+      def start(name)
+        @@name = name
+        run!
+      end
+
     end
 
     helpers do
@@ -77,14 +91,17 @@ class GitLabMockup
     end
 
     post "/api/v3/projects/:project_id/merge_request/:mr_id/comments" do
+      self.class.last = "/mr_comment/#{params[:mr_id]}"
       json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/comments" do
+      self.class.last = "/comment/#{params[:sha]}"
       json author: author , note: request.body.string
     end
 
     post "/api/v3/projects/:project_id/repository/commits/:sha/status" do
+      self.class.last = "/status/#{params[:sha]}"
       json state: params[:state] , target_url: params[:target_url]
     end
 

@@ -49,6 +49,13 @@ class Jenkins::Server
     FileUtils.rm_rf workdir
   end
 
+  def result(name, seq)
+    log = File.read "#{workdir}/jobs/#{name}/builds/#{seq}/log"
+    # Explicit array conversion required for 1.9.3
+    finished = log.lines.to_a.last.chomp
+    finished.split.last
+  end
+
   private
 
   def dump(instream, prefix='', outstream=$stdout)

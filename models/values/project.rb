@@ -12,6 +12,7 @@ java_import Java.hudson.util.NullStream
 java_import Java.hudson.plugins.git.GitSCM
 java_import Java.hudson.plugins.git.util.InverseBuildChooser
 java_import Java.hudson.plugins.git.extensions.impl.PreBuildMerge
+java_import Java.hudson.plugins.git.extensions.impl.RelativeTargetDirectory
 
 MultipleScmsPluginAvailable = true
 begin
@@ -98,6 +99,11 @@ module GitlabWebHook
     def merge_target
       return nil unless pre_build_merge?
       pre_build_merge.get_options.merge_target
+    end
+
+    def local_clone
+      local = scm.extensions.get RelativeTargetDirectory.java_class
+      return local.relative_target_dir if local
     end
 
     private

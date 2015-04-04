@@ -10,6 +10,7 @@ feature 'GitLab WebHook' do
 
   testrepodir = Dir.mktmpdir [ 'testrepo' , '.git' ]
   tagsrepodir = Dir.mktmpdir [ 'tagsrepo' , '.git' ]
+  xtrarepodir = Dir.mktmpdir [ 'xtrarepo' , '.git' ]
 
   before(:all) do
     FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), testrepodir
@@ -19,11 +20,16 @@ feature 'GitLab WebHook' do
       outfd.write( infd.read % { tagsrepodir: tagsrepodir } )
       infd.close
     end
+    FileUtils.cp_r Dir.glob("spec/fixtures/testrepo.git/*"), xtrarepodir
+    File.open('work/jobs/subdirjob/config.xml', 'w') do |outfd|
+      outfd.write File.read('work/jobs/subdirjob/config.xml.erb') % { xtrarepodir: xtrarepodir }
+    end
     @server = Jenkins::Server.new
     @gitlab = GitLabMockup.new Pathname.new(testrepodir).basename('.git').to_s
   end
 
   after(:all) do
+    FileUtils.remove_dir xtrarepodir
     FileUtils.remove_dir tagsrepodir
     FileUtils.remove_dir testrepodir
     @server.kill
@@ -187,6 +193,7 @@ feature 'GitLab WebHook' do
   feature 'Report commit status' do
 
     scenario 'Enables build status report' do
+      page.driver.headers = { 'Accept-Language' => 'en' }
       visit '/configure'
       check '_.commit_status'
       click_button 'Apply'
@@ -209,6 +216,30 @@ feature 'GitLab WebHook' do
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+    end
+
+    feature 'when cloning to subdir' do
+
+      scenario 'Post status for push' do
+        incoming_payload 'master_push', 'subdirjob', xtrarepodir
+        wait_for '/job/subdirjob', "//a[@href='/job/subdirjob/1/']"
+        expect(page).to have_xpath("//a[@href='/job/subdirjob/1/']")
+        wait_idle
+        expect(@server.result('subdirjob', 1)).to eq 'SUCCESS'
+        expect(@gitlab.last).to eq '/status/e3719eaab95642a63e90da0b9b23de0c9d384785'
+      end
+
+      scenario 'Post status to source branch commit' do
+        File.write("#{xtrarepodir}/refs/heads/master", '6957dc21ae95f0c70931517841a9eb461f94548c')
+        File.write("#{xtrarepodir}/refs/heads/feature/branch", 'ba46b858929aec55a84a9cb044e988d5d347b8de')
+        incoming_payload 'merge_request', 'subdirjob', xtrarepodir
+        visit '/'
+        expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_subdirjob-mr-feature_branch']")
+        wait_idle
+        expect(@server.result('subdirjob-mr-feature_branch', 1)).to eq 'SUCCESS'
+        expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
+      end
+
     end
 
   end

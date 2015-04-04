@@ -109,11 +109,22 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
 
   private
 
+  def clone_dir( build )
+    if local_branch = GitlabWebHook::Project.new(build.native.project).local_clone
+      build.workspace + local_branch
+    else
+      build.workspace
+    end
+  end
+
   def post_commit(current, build, listener)
     gitlog = StringIO.new
     launcher = build.workspace.create_launcher(listener)
-    launcher.execute('git', 'log', '-1', '--oneline' ,'--format=%P', {:out => gitlog, :chdir => build.workspace} )
-    parents = gitlog.string.split
+    if launcher.execute('git', 'log', '-1', '--oneline' ,'--format=%P', {:out => gitlog, :chdir => clone_dir(build)} ) == 0
+      parents = gitlog.string.split
+    else
+      listener.warning( "git-log failed : '#{parents.join(' ')}'" )
+    end
     parents[0] = current
     parents.last
   end

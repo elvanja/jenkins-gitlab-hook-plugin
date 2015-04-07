@@ -14,7 +14,7 @@ module GitlabWebHook
     private
 
     def from_config(config, is_template=false)
-      if config
+        raise ConfigurationException.new('No git configuration found') unless  config
         @url = is_template ? details.repository_url : config.getUrl()
         @name = config.getName() || 'origin'
         @credentials = config.getCredentialsId()
@@ -25,7 +25,6 @@ module GitlabWebHook
           @branchlist = java.util.ArrayList.new([BranchSpec.new(branch).java_object])
         end
         @refspec = config.getRefspec()
-      end
     end
 
     def valid?

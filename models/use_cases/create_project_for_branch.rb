@@ -29,7 +29,6 @@ module GitlabWebHook
       branch_project = nil
 
       Security.impersonate(ACL::SYSTEM) do
-        # TODO: set github url, requires github plugin reference
         branch_project = Java.jenkins.model.Jenkins.instance.copy(copy_from.jenkins_project, new_project_name)
         branch_project.scm = new_project_scm
         branch_project.makeDisabled(false)
@@ -42,7 +41,6 @@ module GitlabWebHook
 
     def from_template(template, details)
       return if details.branch.empty?
-      # NOTE : returned value is an instance GitlabWebHook::Project, with some methods delegated to real jenkins object
       copy_from = get_template_project(template)
       new_project_name = details.repository_name
       raise ConfigurationException.new("project #{new_project_name} already created from #{template}") unless @get_jenkins_projects.named(new_project_name).empty?
@@ -62,7 +60,7 @@ module GitlabWebHook
     def for_merge(details)
       get_candidate_projects(details).collect do |copy_from|
         new_project_name = "#{copy_from.name}-mr-#{details.safe_branch}"
-        cloned_scm = prepare_scm_from(copy_from.scm, details)
+        cloned_scm = @build_scm.with(copy_from.scm, details)
         # What about candidates with pre-build merge enabled?
         user_merge_options = UserMergeOptions.new('origin', details.target_branch, 'default')
         cloned_scm.extensions.add PreBuildMerge.new(user_merge_options)
@@ -106,37 +104,5 @@ module GitlabWebHook
       new_project_name
     end
 
-    def prepare_scm_from(source_scm, details, is_template=false)
-      scm_name = source_scm.getScmName() && source_scm.getScmName().size > 0 ? "#{source_scm.getScmName()}_#{details.safe_branch}" : nil
-
-      # refspec is skipped, we will build specific commit branch
-      remote_url, remote_name, remote_refspec = nil, nil, nil
-      scm_config = source_scm.getUserRemoteConfigs().first
-
-      remote_name = scm_config.getName()
-      remote_refspec = scm_config.getRefspec()
-
-      if is_template
-        remote_url = details.repository_url
-        branchlist = source_scm.getBranches()
-      else
-        remote_url = scm_config.getUrl()
-        remote_branch = remote_name && remote_name.size > 0 ? "#{remote_name}/#{details.branch}" : details.branch
-        branchlist = java.util.ArrayList.new([BranchSpec.new(remote_branch).java_object])
-      end
-
-      raise ConfigurationException.new('remote repo clone url not found') unless remote_url
-
-      remote_credentials = source_scm.getUserRemoteConfigs().first.getCredentialsId()
-      GitSCM.new(
-        java.util.ArrayList.new([UserRemoteConfig.new(remote_url, remote_name, remote_refspec, remote_credentials).java_object]),
-        branchlist,
-        source_scm.isDoGenerateSubmoduleConfigurations(),
-        source_scm.getSubmoduleCfg(),
-        source_scm.getBrowser(),
-        source_scm.getGitTool(),
-        source_scm.getExtensions()
-      )
-    end
   end
 end

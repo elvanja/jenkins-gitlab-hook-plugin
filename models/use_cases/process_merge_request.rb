@@ -1,6 +1,7 @@
 require_relative '../services/get_jenkins_projects'
 require_relative 'create_project_for_branch.rb'
 require_relative '../util/settings'
+require_relative '../services/security'
 
 module GitlabWebHook
   class ProcessMergeRequest
@@ -44,7 +45,7 @@ module GitlabWebHook
           end
         when 'closed', 'merged'
           candidates.each do |project|
-            project.delete
+            Security.impersonate(ACL::SYSTEM) { project.delete }
             messages << "Deleting merge-request project #{project.name}"
           end
         else

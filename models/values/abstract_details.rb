@@ -28,6 +28,10 @@ module GitlabWebHook
       raise NameError.new("should be implemented in concrete implementation")
     end
 
+    def tagname
+      return nil
+    end
+
     def full_branch_reference
       raise NameError.new("should be implemented in concrete implementation")
     end

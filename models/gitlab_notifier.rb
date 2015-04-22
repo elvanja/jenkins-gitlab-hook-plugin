@@ -26,6 +26,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   end
 
   def perform(build, launcher, listener)
+    client.name = repo_namespace(build) if client.name.nil?
     mr_id = client.merge_request(project)
     return if mr_id == -1 && descriptor.mr_status_only?
     env = build.native.environment listener

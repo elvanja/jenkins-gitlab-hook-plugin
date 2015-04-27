@@ -27,7 +27,7 @@ module GitlabWebHook
       it 'contains payload details' do
         cause = subject.with(details)
         expect(cause.note).not_to match('no payload available')
-        expect(cause.note).to match('commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327')
+        expect(cause.note).to match('branch master with 2 commits')
       end
       include_context 'mr_details'
       it 'contains merge request payload details' do

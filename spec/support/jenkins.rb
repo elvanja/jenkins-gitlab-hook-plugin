@@ -70,7 +70,11 @@ class Jenkins::Server
     return if File.exists? warname
     puts "Downloading jenkins #{version} ..."
     FileUtils.mkdir_p 'vendor/bundle'
-    file = open "http://updates.jenkins-ci.org/download/war/#{version}/jenkins.war"
+    if version == "1.532.3"
+      file = open "http://ks301030.kimsufi.com/war/#{version}/jenkins.war"
+    else
+      file = open "http://updates.jenkins-ci.org/download/war/#{version}/jenkins.war"
+    end
     FileUtils.cp file.path, warname
   end
 

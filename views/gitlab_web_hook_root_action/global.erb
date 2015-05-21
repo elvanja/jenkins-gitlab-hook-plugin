@@ -6,6 +6,10 @@
       f.checkbox :checked => "#{descriptor.merge_request_processing?}"
     end
 
+    f.entry :title => "Trigger build also when pushing to merged branches", :field => 'merged_branch_triggering' do
+      f.checkbox :checked => "#{descriptor.merged_branch_triggering?}"
+    end
+
     f.optionalBlock :title => "Automatic project creation", :name => 'automatic_project_creation', :checked => "#{descriptor.automatic_project_creation?}" do
       f.entry :title => 'Project master branch', :field => 'master_branch' do
         f.textbox :default => "#{descriptor.master_branch}"

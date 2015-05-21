@@ -1,6 +1,7 @@
 require 'forwardable'
 
 require_relative '../exceptions/configuration_exception'
+require_relative '../util/settings'
 
 include Java
 
@@ -25,6 +26,7 @@ module GitlabWebHook
   class Project
     BRANCH_NAME_PARAMETER_ACCEPTED_TYPES = [StringParameterDefinition, ChoiceParameterDefinition]
 
+    include Settings
     extend Forwardable
 
     def_delegators :@jenkins_project, :scm, :schedulePolling, :scheduleBuild2, :fullName, :isParameterized, :isBuildable, :getQuietPeriod, :getProperty, :delete, :description
@@ -64,7 +66,7 @@ module GitlabWebHook
     end
 
     def merge_to?(branch)
-      return false unless pre_build_merge?
+      return false unless pre_build_merge? && settings.merged_branch_triggering?
       merge_params = pre_build_merge.get_options
       merge_params.merge_target == branch
     end

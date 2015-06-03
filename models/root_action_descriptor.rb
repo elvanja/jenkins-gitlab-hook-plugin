@@ -14,7 +14,11 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 
   def initialize(*args)
     super
-    load
+    begin
+      load
+    rescue Exception => ex
+      logger.severe "Cannot load globan plugin configuration : #{ex}"
+    end
   end
 
   def merge_request_processing?
@@ -151,5 +155,9 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 
   def write_property(doc, property, value)
     doc.root.add_element(property).add_text(value.to_s)
+  end
+
+  def logger
+    @logger ||= Java.java.util.logging.Logger.getLogger(GitlabWebHookRootActionDescriptor.class.name)
   end
 end

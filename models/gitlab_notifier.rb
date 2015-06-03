@@ -21,7 +21,11 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     client.name = repo_namespace(build)
     return unless descriptor.commit_status?
     env = build.native.environment listener
-    sha = post_commit env['GIT_COMMIT'] , build, listener
+    if project.pre_build_merge?
+      sha = post_commit build, listener
+    else
+      sha = env['GIT_COMMIT']
+    end
     client.post_status( sha , 'running' , env['BUILD_URL'] )
   end
 
@@ -30,7 +34,11 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     mr_id = client.merge_request(project)
     return if mr_id == -1 && descriptor.mr_status_only?
     env = build.native.environment listener
-    sha = post_commit env['GIT_COMMIT'] , build, listener
+    if project.pre_build_merge?
+      sha = post_commit build, listener
+    else
+      sha = env['GIT_COMMIT']
+    end
     client.post_status( sha , build.native.result , env['BUILD_URL'] , descriptor.commit_status? ? nil : mr_id )
   end
 
@@ -118,7 +126,7 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     end
   end
 
-  def post_commit(current, build, listener)
+  def post_commit(build, listener)
     gitlog = StringIO.new
     launcher = build.workspace.create_launcher(listener)
     if launcher.execute('git', 'log', '-1', '--oneline' ,'--format=%P', {:out => gitlog, :chdir => clone_dir(build)} ) == 0
@@ -126,7 +134,6 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
     else
       listener.warning( "git-log failed : '#{parents.join(' ')}'" )
     end
-    parents[0] = current
     parents.last
   end
 

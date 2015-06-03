@@ -2,6 +2,8 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe Project do
+    include_context 'settings'
+
     let(:scm) { double(GitSCM) }
     let(:jenkins_project) { double(AbstractProject, fullName: 'diaspora') }
     let(:logger) { double }

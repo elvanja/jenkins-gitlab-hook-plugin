@@ -7,6 +7,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
   # TODO a hook to delete artifacts from the feature branches would be nice
 
   MERGE_REQUEST_PROCESSING = 'merge_request_processing'
+  MERGED_BRANCH_PROCESSING = 'merged_branch_triggering'
   AUTOMATIC_PROJECT_CREATION_PROPERTY = 'automatic_project_creation'
   MASTER_BRANCH_PROPERTY = 'master_branch'
   USE_MASTER_PROJECT_NAME_PROPERTY = 'use_master_project_name'
@@ -23,6 +24,10 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 
   def merge_request_processing?
     !!@merge_request_processing
+  end
+
+  def merged_branch_triggering?
+    !!@merged_branch_triggering
   end
 
   def automatic_project_creation?
@@ -47,6 +52,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     doc = REXML::Document.new(File.new(configFile.file.canonicalPath))
     if doc.root
       @merge_request_processing     = read_property(doc, MERGE_REQUEST_PROCESSING, "true") == "true"
+      @merged_branch_triggering     = read_property(doc, MERGED_BRANCH_PROCESSING, "false") == "true"
       @automatic_project_creation   = read_property(doc, AUTOMATIC_PROJECT_CREATION_PROPERTY) == "true"
       @use_master_project_name      = read_property(doc, USE_MASTER_PROJECT_NAME_PROPERTY) == "true"
       @master_branch                = read_property(doc, MASTER_BRANCH_PROPERTY)
@@ -69,6 +75,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
     doc.add_element('hudson.model.Descriptor', {"plugin" => "gitlab-hook"})
 
     write_property(doc, MERGE_REQUEST_PROCESSING, merge_request_processing?)
+    write_property(doc, MERGED_BRANCH_PROCESSING, merged_branch_triggering?)
     write_property(doc, AUTOMATIC_PROJECT_CREATION_PROPERTY, automatic_project_creation?)
     write_property(doc, MASTER_BRANCH_PROPERTY, master_branch)
     write_property(doc, USE_MASTER_PROJECT_NAME_PROPERTY, use_master_project_name?)
@@ -119,6 +126,7 @@ class GitlabWebHookRootActionDescriptor < Jenkins::Model::DefaultDescriptor
 
   def parse(form)
     @merge_request_processing = form[MERGE_REQUEST_PROCESSING] ? true : false
+    @merged_branch_triggering = form[MERGED_BRANCH_PROCESSING] ? true : false
     @automatic_project_creation = form[AUTOMATIC_PROJECT_CREATION_PROPERTY] ? true : false
     if automatic_project_creation?
       @master_branch              = form[AUTOMATIC_PROJECT_CREATION_PROPERTY][MASTER_BRANCH_PROPERTY]

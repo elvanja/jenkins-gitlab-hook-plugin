@@ -138,7 +138,8 @@ class GitlabNotifier < Jenkins::Tasks::Publisher
   def repo_namespace(build)
     @project = GitlabWebHook::Project.new build.native.project
     repo_url = @project.scm.repositories.first.getURIs.first
-    repo_url.to_s.split(':')[1]
+    repo_path = repo_url.path.split '/'
+    repo_path[-2..-1].join '/'
   end
 
 end

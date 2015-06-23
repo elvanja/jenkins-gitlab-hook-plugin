@@ -36,16 +36,25 @@ class Jenkins::Server
     end
     Process.detach job
 
-    until log.readline.include?('Jenkins is fully up and running')
-    end
+    begin
+      line = log.readline
+      puts " -> #{line}"
+    end until line.include?('Jenkins is fully up and running')
+
 
   end
 
   def kill
     Process.kill 'TERM', job
+    dump log, ' -> '
     Process.waitpid job, Process::WNOHANG
   rescue Errno::ECHILD => e
   ensure
+    Dir["#{workdir}/jobs/*/builds/?/log"].each do |file|
+      puts
+      puts "## #{file} ##"
+      puts File.read(file)
+    end
     FileUtils.rm_rf workdir
   end
 

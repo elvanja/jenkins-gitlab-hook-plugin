@@ -10,7 +10,7 @@ class Jenkins::Server
   attr_reader :warname, :workdir
   attr_reader :job, :std, :log
 
-  REQUIRED_CORE = '1.532.3'
+  REQUIRED_CORE = '1.554.3'
 
   def initialize
 
@@ -70,7 +70,7 @@ class Jenkins::Server
     return if File.exists? warname
     puts "Downloading jenkins #{version} ..."
     FileUtils.mkdir_p 'vendor/bundle'
-    if version == "1.532.3"
+    if [ "1.532.3" , "1.554.3" , "1.565.3" ].include? version
       file = open "http://ks301030.kimsufi.com/war/#{version}/jenkins.war"
     else
       file = open "http://updates.jenkins-ci.org/download/war/#{version}/jenkins.war"

@@ -1,6 +1,9 @@
 require 'jenkins/plugin/specification'
 require 'jenkins/plugin/tools/server'
 
+require 'net/http'
+require 'rexml/document'
+
 require 'tmpdir'
 require 'open-uri'
 require 'fileutils'
@@ -50,7 +53,10 @@ class Jenkins::Server
   end
 
   def result(name, seq)
-    log = File.read "#{workdir}/jobs/#{name}/builds/#{seq}/log"
+    uri = URI "http://localhost:8080/job/#{name}/#{seq}/console"
+    response = Net::HTTP.get uri
+    doc = REXML::Document.new response
+    log = doc.elements["//pre[contains(@class, 'console-output')]"].text
     # Explicit array conversion required for 1.9.3
     finished = log.lines.to_a.last.chomp
     finished.split.last

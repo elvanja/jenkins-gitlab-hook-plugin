@@ -47,7 +47,6 @@ feature 'GitLab WebHook' do
 
     scenario 'Does not create project for tag' do
       incoming_payload 'tag', 'testrepo', testrepodir
-      sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_tag1']")
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_']")
@@ -65,7 +64,6 @@ feature 'GitLab WebHook' do
 
     scenario 'Does nothing for tags' do
       incoming_payload 'tag', 'testrepo', testrepodir
-      sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_tag1']")
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_']")
@@ -111,7 +109,6 @@ feature 'GitLab WebHook' do
 
     scenario 'Branch removal' do
       incoming_payload 'branch_deletion', 'testrepo', testrepodir
-      sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
     end
@@ -130,7 +127,6 @@ feature 'GitLab WebHook' do
 
     scenario 'Does not process templates when a tag project exists' do
       incoming_payload 'first_push', 'tagsrepo', tagsrepodir
-      sleep 5
       visit '/'
       pending 'unimplemented fix'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_tagsrepo_master']")
@@ -156,7 +152,6 @@ feature 'GitLab WebHook' do
 
     scenario 'Remove project once merged' do
       incoming_payload 'legacy/accept_merge_request', 'testrepo', testrepodir
-      sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle
@@ -182,7 +177,6 @@ feature 'GitLab WebHook' do
 
     scenario 'Remove project once merged' do
       incoming_payload 'accept_merge_request', 'testrepo', testrepodir
-      sleep 5
       visit '/'
       expect(page).not_to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
       wait_idle

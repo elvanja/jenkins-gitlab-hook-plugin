@@ -6,6 +6,7 @@ def incoming_payload(filename, reponame, tempdir)
   req.body = File.read("spec/fixtures/payloads/#{filename}.json") % { reponame: reponame, repodir: tempdir }
   http = Net::HTTP.new uri.host, uri.port
   response = Net::HTTP.start(uri.hostname, uri.port).request req
+  sleep 10
 end
 
 def wait_for(url, xmlpath, waittime=60)

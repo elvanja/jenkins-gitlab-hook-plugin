@@ -53,6 +53,7 @@ class Jenkins::Server
   end
 
   def result(name, seq)
+    sleep 30
     uri = URI "http://localhost:8080/job/#{name}/#{seq}/console"
     response = Net::HTTP.get uri
     doc = REXML::Document.new response

@@ -1,6 +1,9 @@
 require 'jenkins/plugin/specification'
 require 'jenkins/plugin/tools/server'
 
+require 'net/http'
+require 'rexml/document'
+
 require 'tmpdir'
 require 'open-uri'
 require 'fileutils'
@@ -10,7 +13,7 @@ class Jenkins::Server
   attr_reader :warname, :workdir
   attr_reader :job, :std, :log
 
-  REQUIRED_CORE = '1.532.3'
+  REQUIRED_CORE = '1.554.3'
 
   def initialize
 
@@ -59,7 +62,11 @@ class Jenkins::Server
   end
 
   def result(name, seq)
-    log = File.read "#{workdir}/jobs/#{name}/builds/#{seq}/log"
+    sleep 30
+    uri = URI "http://localhost:8080/job/#{name}/#{seq}/console"
+    response = Net::HTTP.get uri
+    doc = REXML::Document.new response
+    log = doc.elements["//pre[contains(@class, 'console-output')]"].text
     # Explicit array conversion required for 1.9.3
     finished = log.lines.to_a.last.chomp
     finished.split.last
@@ -79,7 +86,7 @@ class Jenkins::Server
     return if File.exists? warname
     puts "Downloading jenkins #{version} ..."
     FileUtils.mkdir_p 'vendor/bundle'
-    if version == "1.532.3"
+    if [ "1.532.3" , "1.554.3" , "1.565.3" ].include? version
       file = open "http://ks301030.kimsufi.com/war/#{version}/jenkins.war"
     else
       file = open "http://updates.jenkins-ci.org/download/war/#{version}/jenkins.war"

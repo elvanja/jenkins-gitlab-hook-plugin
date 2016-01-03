@@ -57,6 +57,8 @@ feature 'GitLab WebHook' do
       incoming_payload 'first_push', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo']")
+      wait_for '/job/testrepo', "//a[@href='/job/testrepo/1/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo/1/']")
       wait_idle
       expect(@server.result('testrepo', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/comment/e3719eaab95642a63e90da0b9b23de0c9d384785'
@@ -92,6 +94,8 @@ feature 'GitLab WebHook' do
       incoming_payload 'branch_creation', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo_feature_branch']")
+      wait_for '/job/testrepo_feature_branch', "//a[@href='/job/testrepo_feature_branch/1/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo_feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo_feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/comment/80a89e1156d5d7e9471c245ccaeafb7bcb49c0a5'
@@ -145,6 +149,8 @@ feature 'GitLab WebHook' do
       incoming_payload 'legacy/merge_request', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/1/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/mr_comment/1'
@@ -170,6 +176,8 @@ feature 'GitLab WebHook' do
       incoming_payload 'merge_request', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/1/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/mr_comment/1'
@@ -207,6 +215,8 @@ feature 'GitLab WebHook' do
       incoming_payload 'merge_request', 'testrepo', testrepodir
       visit '/'
       expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_testrepo-mr-feature_branch']")
+      wait_for '/job/testrepo-mr-feature_branch', "//a[@href='/job/testrepo-mr-feature_branch/1/']"
+      expect(page).to have_xpath("//a[@href='/job/testrepo-mr-feature_branch/1/']")
       wait_idle
       expect(@server.result('testrepo-mr-feature_branch', 1)).to eq 'SUCCESS'
       expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'
@@ -229,6 +239,8 @@ feature 'GitLab WebHook' do
         incoming_payload 'merge_request', 'subdirjob', xtrarepodir
         visit '/'
         expect(page).to have_xpath("//table[@id='projectstatus']/tbody/tr[@id='job_subdirjob-mr-feature_branch']")
+        wait_for '/job/subdirjob-mr-feature_branch', "//a[@href='/job/subdirjob-mr-feature_branch/1/']"
+        expect(page).to have_xpath("//a[@href='/job/subdirjob-mr-feature_branch/1/']")
         wait_idle
         expect(@server.result('subdirjob-mr-feature_branch', 1)).to eq 'SUCCESS'
         expect(@gitlab.last).to eq '/status/ba46b858929aec55a84a9cb044e988d5d347b8de'

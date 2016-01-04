@@ -5,28 +5,34 @@ require 'net/http'
 require 'rexml/document'
 
 require 'tmpdir'
-require 'open-uri'
 require 'fileutils'
 
 class Jenkins::Server
 
-  attr_reader :warname, :workdir
+  attr_reader :workdir
   attr_reader :job, :std, :log
 
   REQUIRED_CORE = '1.554.3'
 
   def initialize
 
-    download_war( ENV['JENKINS_VERSION'] || REQUIRED_CORE )
+    version = ENV['JENKINS_VERSION'] || REQUIRED_CORE
+
+    FileUtils.mkdir_p 'vendor/bundle'
+    warname = "vendor/bundle/jenkins-#{version}.war"
+
+    download_war( version , warname )
+
     @workdir = Dir.mktmpdir 'work'
 
     spec = Jenkins::Plugin::Specification.load('jenkins-gitlab-hook.pluginspec')
     server = Jenkins::Plugin::Tools::Server.new(spec, workdir, warname, '8080')
 
     # Dependencies for git 2.0
-    transitive_dependency 'scm-api', '0.1', workdir
-    transitive_dependency 'git-client', '1.4.4', workdir
-    transitive_dependency 'ssh-agent', '1.3', workdir
+    FileUtils.mkdir_p "#{workdir}/plugins"
+    download_plugin 'scm-api', '0.1', "#{workdir}/plugins"
+    download_plugin 'git-client', '1.4.4', "#{workdir}/plugins"
+    download_plugin 'ssh-agent', '1.3', "#{workdir}/plugins"
 
     FileUtils.cp_r Dir.glob('work/*'), workdir
 
@@ -79,28 +85,6 @@ class Jenkins::Server
       line = instream.readline
       outstream.puts "#{prefix}#{line}"
     end until instream.eof?
-  end
-
-  def download_war(version)
-    @warname = "vendor/bundle/jenkins-#{version}.war"
-    return if File.exists? warname
-    puts "Downloading jenkins #{version} ..."
-    FileUtils.mkdir_p 'vendor/bundle'
-    if [ "1.532.3" , "1.554.3" , "1.565.3" ].include? version
-      file = open "http://ks301030.kimsufi.com/war/#{version}/jenkins.war"
-    else
-      file = open "http://updates.jenkins-ci.org/download/war/#{version}/jenkins.war"
-    end
-    FileUtils.cp file.path, warname
-  end
-
-  def transitive_dependency(name, version, work='work')
-    plugin = "#{work}/plugins/#{name}.hpi"
-    return if File.exists? plugin
-    puts "Downloading #{name}-#{version} ..."
-    FileUtils.mkdir_p "#{work}/plugins"
-    file = open "http://mirrors.jenkins-ci.org/plugins/#{name}/#{version}/#{name}.hpi?for=ruby-plugin"
-    FileUtils.cp file.path, plugin
   end
 
 end

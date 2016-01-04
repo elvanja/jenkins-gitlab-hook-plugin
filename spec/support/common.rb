@@ -1,4 +1,8 @@
 require 'net/http'
+require 'open-uri'
+require 'zip'
+
+require 'fileutils'
 
 def incoming_payload(filename, reponame, tempdir)
   uri = URI "http://localhost:8080/gitlab/build_now"
@@ -26,5 +30,48 @@ def wait_idle(waittime=60)
     break if info['busyExecutors'] == 0 and queue['items'].length == 0
     sleep 1
   end until (waittime-=1).zero?
+end
+
+def download_war(version, warname='jenkins.war')
+  return if File.exists? warname
+  puts "Downloading jenkins #{version} ..."
+  if [ "1.532.3" , "1.554.3" , "1.565.3" ].include? version
+    file = open "http://ks301030.kimsufi.com/war/#{version}/jenkins.war"
+  else
+    file = open "http://updates.jenkins-ci.org/download/war/#{version}/jenkins.war"
+  end
+  FileUtils.cp file.path, warname
+end
+
+def download_plugin(name, version, destdir='.')
+  plugin = "#{destdir}/#{name}.hpi"
+  return if File.exists? plugin
+  puts "Downloading #{name}-#{version} ..."
+  file = open "http://mirrors.jenkins-ci.org/plugins/#{name}/#{version}/#{name}.hpi?for=ruby-plugin"
+  FileUtils.cp file.path, plugin
+end
+
+def extract_jar(zipfile, destdir='spec/plugins')
+  FileUtils.mkdir_p "#{destdir}/WEB-INF/lib"
+  Zip::File.open(zipfile) do |zipfile|
+    zipfile.each do |entry|
+      if entry.name.end_with? '.jar'
+        outfile = "#{destdir}/#{entry.name}"
+        entry.extract(outfile) unless File.exist? outfile
+      end
+    end
+  end
+end
+
+def extract_classes(plugin, destdir='spec/plugins')
+  FileUtils.mkdir_p "#{destdir}/WEB-INF/classes"
+  Zip::File.open("#{plugin}.hpi") do |zipfile|
+    zipfile.each do |entry|
+      if entry.name.start_with? 'WEB-INF/classes'
+        outfile = "#{destdir}/#{entry.name}"
+        entry.extract(outfile) unless File.exist? outfile
+      end
+    end
+  end
 end
 

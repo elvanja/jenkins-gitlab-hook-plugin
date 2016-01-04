@@ -1,5 +1,6 @@
 # test dependencies
 require 'json'
+require 'support/common'
 
 # java dependencies
 java_libs = Dir["spec/lib/**/*.jar"]
@@ -8,6 +9,23 @@ java_libs = Dir["spec/lib/**/*.jar"]
 model_files = %W(models/exceptions models/values models/services models/use_cases)
 
 if RUBY_PLATFORM == 'java'
+
+  # jenkins core libraries
+  download_war '1.554.3'
+  extract_jar 'jenkins.war', 'spec/war'
+  java_libs = java_libs + Dir["spec/war/winstone.jar", "spec/war/WEB-INF/lib/*.jar"]
+
+  # required plugins
+  download_plugin 'git', '2.0'
+  download_plugin 'git-client', '1.4.4'
+  download_plugin 'multiple-scms', '0.4'
+  download_plugin 'matrix-project', '1.2'
+  download_plugin 'credentials', '1.18'
+  ['git', 'git-client', 'multiple-scms', 'matrix-project', 'credentials'].each{ |plugin| extract_jar "#{plugin}.hpi" }
+  java_libs = java_libs + Dir["spec/plugins/WEB-INF/lib/*.jar"]
+  # Some old versions do not have a jarfile with their own classes
+  ['git', 'git-client', 'credentials'].each{ |plugin| extract_classes plugin }
+  $CLASSPATH << 'spec/plugins/WEB-INF/classes'
 
   java_libs.each do |jar|
     require jar

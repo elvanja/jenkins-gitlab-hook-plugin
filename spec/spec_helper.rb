@@ -2,7 +2,7 @@
 require 'json'
 require 'support/common'
 
-REQUIRED_CORE = '1.554.3'
+REQUIRED_CORE = '1.596.3'
 
 # java dependencies
 java_libs = Dir["spec/lib/**/*.jar"]

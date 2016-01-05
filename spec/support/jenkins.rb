@@ -12,7 +12,7 @@ class Jenkins::Server
   attr_reader :workdir
   attr_reader :job, :std, :log
 
-  REQUIRED_CORE = '1.554.3'
+  REQUIRED_CORE = '1.596.3'
 
   def initialize
 

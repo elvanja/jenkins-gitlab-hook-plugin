@@ -41,6 +41,7 @@ class Jenkins::Server
     @job = fork do
       $stdout.reopen out
       $stderr.reopen err
+      ENV['JAVA_OPTS'] = "-XX:MaxPermSize=512m -Xms512m -Xmx1024m"
       server.run!
     end
     Process.detach job

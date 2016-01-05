@@ -2,6 +2,8 @@
 require 'json'
 require 'support/common'
 
+REQUIRED_CORE = '1.554.3'
+
 # java dependencies
 java_libs = Dir["spec/lib/**/*.jar"]
 
@@ -11,7 +13,7 @@ model_files = %W(models/exceptions models/values models/services models/use_case
 if RUBY_PLATFORM == 'java'
 
   # jenkins core libraries
-  download_war '1.554.3'
+  download_war( ENV['JENKINS_VERSION'] || REQUIRED_CORE )
   extract_jar 'jenkins.war', 'spec/war'
   java_libs = java_libs + Dir["spec/war/winstone.jar", "spec/war/WEB-INF/lib/*.jar"]
 

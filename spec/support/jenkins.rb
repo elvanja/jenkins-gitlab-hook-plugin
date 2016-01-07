@@ -65,6 +65,11 @@ class Jenkins::Server
       puts "## #{file} ##"
       puts File.read(file)
     end
+    Dir["#{workdir}/jobs/*/builds/?/build.xml"].each do |file|
+      puts
+      puts "## #{file} ##"
+      puts File.read(file)
+    end
     FileUtils.rm_rf workdir
   end
 

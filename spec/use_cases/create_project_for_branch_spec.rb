@@ -2,36 +2,33 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe CreateProjectForBranch do
-    let(:settings) { double(GitlabWebHookRootActionDescriptor, automatic_project_creation?: true) }
-    let(:jenkins_instance) { double(Java.jenkins.model.Jenkins) }
-    let(:details) { double(RequestDetails, repository_name: 'discourse', safe_branch: 'features_meta') }
-    let(:jenkins_project) { double(AbstractProject) }
-    let(:master) { double(Project, name: 'discourse', jenkins_project: jenkins_project) }
-    let(:get_jenkins_projects) { double(GetJenkinsProjects, master: master, named: []) }
+    include_context 'settings'
+    include_context 'projects'
+
+    let(:repository_uri) { RepositoryUri.new('http://example.com/discourse/discourse.git') }
+    let(:details) { double(PayloadRequestDetails, repository_uri: repository_uri, repository_name: 'discourse', branch: 'features/meta', safe_branch: 'features_meta', full_branch_reference: 'refs/heads/features/meta') }
+    let(:master) { double(Project, name: 'discourse', jenkins_project: java_project1) }
+    let(:get_jenkins_projects) { GetJenkinsProjects.new }
     let(:build_scm) { double(BuildScm, with: double(GitSCM)) }
     let(:subject) { CreateProjectForBranch.new(get_jenkins_projects, build_scm) }
 
-    before(:each) do
-      allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
-      allow(jenkins_instance).to receive(:descriptor) { GitlabWebHookRootActionDescriptor.new }
-    end
+    before(:each) { allow(get_jenkins_projects).to receive(:all) { all_projects } }
 
     context 'when not able to find a master project to copy from' do
       it 'raises appropriate exception' do
-        allow(get_jenkins_projects).to receive(:master).with(details) { nil }
+        all_projects.delete(autocreate_match_project)
         expect { subject.with(details) }.to raise_exception(NotFoundException)
       end
     end
 
     context 'when branch project already exists' do
       it 'raises appropriate exception' do
-        allow(get_jenkins_projects).to receive(:named) { [double] }
+        expect(get_jenkins_projects).to receive(:named).and_return([not_matching_project])
         expect { subject.with(details) }.to raise_exception(ConfigurationException)
       end
     end
 
     context 'when naming the branch project' do
-      before(:each) { allow(settings).to receive(:use_master_project_name?) { true } }
 
       it 'uses master project name with appropriate settings' do
         expect(subject.send(:get_new_project_name, master, details)).to match(master.name)
@@ -52,7 +49,8 @@ module GitlabWebHook
         allow(scm).to receive(:java_kind_of?).with(GitSCM) { true }
         allow(scm).to receive(:java_kind_of?).with(MultiSCM) { false }
         allow(Java.jenkins.model.Jenkins).to receive(:instance) { jenkins_instance }
-        expect(jenkins_instance).to receive(:copy).with(jenkins_project, anything).and_return(new_jenkins_project)
+        expect(get_jenkins_projects).to receive(:master).and_return( master )
+        expect(jenkins_instance).to receive(:copy).with(java_project1, anything).and_return(new_jenkins_project)
       end
 
       it 'returns a new project' do

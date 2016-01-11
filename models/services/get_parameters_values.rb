@@ -16,6 +16,15 @@ module GitlabWebHook
       values
     end
 
+    def with_mr(project, details)
+      raise ArgumentError.new('project is required') unless project
+      raise ArgumentError.new('details are required') unless details
+
+      project.get_default_parameters.collect do |parameter|
+        from_payload(parameter, details.payload) || parameter.getDefaultParameterValue()
+      end.reject { |value| value.nil? }
+    end
+
     private
 
     def build_from_payload_or_default(details, project)
@@ -31,8 +40,11 @@ module GitlabWebHook
     def apply_branch(project, details, values)
       branch_parameter = project.get_branch_name_parameter
       if branch_parameter
-        values.reject! { |value| value.name.downcase == branch_parameter.name.downcase }
-        values << StringParameterValue.new(branch_parameter.name, details.branch)
+        tagname = branch_parameter.name.downcase == 'tagname'
+        if ( tagname && details.tagname ) || ( !tagname && details.tagname.nil? )
+          values.reject! { |value| value.name.downcase == branch_parameter.name.downcase }
+          values << StringParameterValue.new(branch_parameter.name, tagname ? details.tagname : details.branch)
+        end
       end
     end
 

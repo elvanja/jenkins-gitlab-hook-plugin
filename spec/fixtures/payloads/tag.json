@@ -1,0 +1,14 @@
+{
+  "ref": "refs/tags/tag1",
+  "before": "0000000000000000000000000000000000000000",
+  "after": "c1a1e6918fdbf9fe49ad70060508abcc88b876d4",
+  "user_id": 1,
+  "user_name": "root",
+  "project_id": 1,
+  "repository": {
+    "name": "%{reponame}",
+    "url": "localhost:%{repodir}",
+    "description": "",
+    "homepage": "https://localhost/tmp/%{reponame}"
+  }
+}

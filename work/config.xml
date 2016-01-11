@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<hudson>
+  <numExecutors>1</numExecutors>
+  <mode>NORMAL</mode>
+  <useSecurity>true</useSecurity>
+  <authorizationStrategy class="hudson.security.GlobalMatrixAuthorizationStrategy">
+    <permission>hudson.model.Hudson.Administer:anonymous</permission>
+    <permission>hudson.model.Item.Read:anonymous</permission>
+    <permission>hudson.model.View.Read:anonymous</permission>
+  </authorizationStrategy>
+  <securityRealm class="hudson.security.SecurityRealm$None"/>
+</hudson>

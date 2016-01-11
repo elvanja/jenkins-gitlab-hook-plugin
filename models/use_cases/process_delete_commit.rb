@@ -1,5 +1,6 @@
 require_relative '../services/get_jenkins_projects'
 require_relative '../util/settings'
+require_relative '../services/security'
 
 module GitlabWebHook
   class ProcessDeleteCommit
@@ -16,9 +17,13 @@ module GitlabWebHook
       return ["branch #{commit_branch} is deleted, but relates to master project so will not delete, skipping processing"] if commit_branch == settings.master_branch
 
       messages = []
-      @get_jenkins_projects.exactly_matching(details).each do |project|
+      @get_jenkins_projects.matching_uri(details).select do |project|
+        project.matches?(details, details.branch, true)
+      end.each do |project|
         messages << "project #{project} matches deleted branch but is not automatically created by the plugin, skipping" and next unless project.description.match /#{settings.description}/
-        project.delete
+        Security.impersonate(ACL::SYSTEM) do
+            project.delete
+        end
         messages << "deleted #{project} project"
       end
       messages << "no project matches the #{commit_branch} branch" if messages.empty?

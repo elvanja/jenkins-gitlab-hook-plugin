@@ -11,9 +11,17 @@ module GitlabWebHook
       end
     end
 
+    it '#classic? is true' do
+      expect(subject.classic?).to eq(true)
+    end
+
+    it '#kind is parameter request' do
+      expect(subject.kind).to eq('parameters')
+    end
+
     context 'with repository url' do
       it 'extracts from parameters' do
-        expect(subject.repository_url).to eq('http://localhost/peronospora')
+        expect(subject.repository_url).to eq('http://localhost/diaspora/peronospora')
       end
 
       it 'returns empty when no repository details found' do
@@ -35,7 +43,7 @@ module GitlabWebHook
 
     context 'with repository homepage' do
       it 'extracts from parameters' do
-        expect(subject.repository_homepage).to eq('http://localhost/peronospora')
+        expect(subject.repository_homepage).to eq('http://localhost/diaspora/peronospora')
       end
 
       it 'returns empty when no repository details found' do

@@ -3,6 +3,10 @@ require 'spec_helper'
 module GitlabWebHook
   describe RequestDetails do
     context 'with validation' do
+      before :each do
+        allow(subject).to receive(:kind) { 'webhook' }
+      end
+
       it 'is valid when repository url is present' do
         allow(subject).to receive(:repository_url) { 'http://repo.url' }
         expect(subject.valid?).to be
@@ -25,27 +29,9 @@ module GitlabWebHook
       end
     end
 
-    context 'with repository url' do
-      it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
-      end
-    end
-
-    context 'with repository name' do
-      it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
-      end
-    end
-
-    context 'with repository homepage' do
-      it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
-      end
-    end
-
     context 'with full branch name' do
       it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
+        expect { subject.full_branch_reference }.to raise_exception(NameError)
       end
     end
 
@@ -73,8 +59,7 @@ module GitlabWebHook
       it 'removes refs, heads and tags from result' do
         refs = ['ref', 'refs']
         heads = ['head', 'heads']
-        tags = ['tag', 'tags']
-        refs.product(heads, tags).each do |combination|
+        refs.product(heads).each do |combination|
           allow(subject).to receive(:full_branch_reference) { "#{combination.join('/')}/master" }
           expect(subject.branch).to eq('master')
         end
@@ -96,11 +81,23 @@ module GitlabWebHook
         allow(subject).to receive(:full_branch_reference) { 'refs/heads/feature/new_hot_feature' }
         expect(subject.branch).to eq('feature/new_hot_feature')
       end
+
+      it 'returns no tagname' do
+        allow(subject).to receive(:full_branch_reference) { 'refs/heads/master' }
+        expect(subject.tagname).to eq(nil)
+      end
+    end
+
+    context 'with tag' do
+      it 'extracts tag name from payload' do
+        allow(subject).to receive(:full_branch_reference) { 'refs/tags/v1.0.0' }
+        expect(subject.tagname).to eq('v1.0.0')
+      end
     end
 
     context 'with delete branch commit' do
       it 'expects to implemented in concrete implementation' do
-        expect { subject.repository_url }.to raise_exception(NameError)
+        expect { subject.repository_delete_branch_commit? }.to raise_exception(NameError)
       end
     end
 
@@ -140,9 +137,9 @@ module GitlabWebHook
 
     context 'with flat payload' do
       details = {
-        repository_url: 'git@example.com:diaspora.git',
+        repository_url: 'git@example.com:diaspora/diaspora.git',
         repository_name: 'Diaspora',
-        repository_homepage: 'http://example.com/diaspora',
+        repository_homepage: 'http://example.com/diaspora/diaspora',
         full_branch_reference: 'refs/heads/master',
         branch: 'master'
       }
@@ -164,9 +161,18 @@ module GitlabWebHook
         end
       end
 
+      it 'tagname absent' do
+        expect(subject.flat_payload.keys).not_to include( 'tagname' )
+      end
+
       it 'memoizes flattened payload' do
         expect(payload).to receive(:to_flat_keys).once.and_return({})
         10.times { subject.flat_payload }
+      end
+
+      it 'returns tagname if present' do
+        allow(subject).to receive('full_branch_reference') { 'refs/tags/v1.0.0' }
+        expect(subject.flat_payload['tagname']).to eq('v1.0.0')
       end
     end
   end

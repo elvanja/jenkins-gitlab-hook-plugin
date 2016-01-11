@@ -1,13 +1,11 @@
 require_relative '../services/get_jenkins_projects'
 
-include Java
-
-java_import Java.java.util.logging.Logger
-java_import Java.java.util.logging.Level
-
 module GitlabWebHook
   class NotifyCommit
     attr_reader :project, :logger
+
+    java_import Java.java.util.logging.Logger
+    java_import Java.java.util.logging.Level
 
     def initialize(project, logger = Logger.getLogger(NotifyCommit.class.name))
       raise ArgumentError.new('project is required') unless project

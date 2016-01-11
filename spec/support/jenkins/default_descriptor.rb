@@ -18,5 +18,7 @@ module Jenkins
   end
 end
 
-# explicitly require stuff from models root folder, due to above mock(s)
-require 'models/root_action_descriptor'
+if RUBY_PLATFORM == 'java'
+  # explicitly require stuff from models root folder, due to above mock(s)
+  require 'models/root_action_descriptor'
+end

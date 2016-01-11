@@ -1,6 +1,15 @@
 <%
   f = taglib("/lib/form")
   f.section(:title => "Gitlab Web Hook") do
+
+    f.entry :title => "Create new projects for merge requests", :field => 'merge_request_processing' do
+      f.checkbox :checked => "#{descriptor.merge_request_processing?}"
+    end
+
+    f.entry :title => "Trigger build also when pushing to merged branches", :field => 'merged_branch_triggering' do
+      f.checkbox :checked => "#{descriptor.merged_branch_triggering?}"
+    end
+
     f.optionalBlock :title => "Automatic project creation", :name => 'automatic_project_creation', :checked => "#{descriptor.automatic_project_creation?}" do
       f.entry :title => 'Project master branch', :field => 'master_branch' do
         f.textbox :default => "#{descriptor.master_branch}"
@@ -14,9 +23,50 @@
         f.textbox :default => "#{descriptor.description}"
       end
 
-      f.entry :title => 'Any branch pattern', :field => 'any_branch_pattern' do
-        f.textbox :default => "#{descriptor.any_branch_pattern}"
-      end
     end
+
+    f.advanced do
+
+      f.block do
+%><div style="margin-left:12em"><br/>
+Template based job creation allows to automatically create projects for repositories not already built by jenkins.
+An already existing jenkins project will be used as base, and different kind of string matching is performed against the repository name.
+</div><br/><%
+      end
+
+      f.entry :title => 'Template based job creation', :description => 'The incoming repository name leading text is compared with the match string' do
+
+        f.repeatable :items => descriptor.templated_jobs.to_a, :var => 'templates', :add => 'Add new template' do
+          %><table width="100%"><%
+          f.entry :title => 'Match string', :field => 'string' do
+             f.textbox :default => "#{templates.nil? ? '' : templates.first }"
+          end
+          f.entry :title => 'Base project', :field => 'project' do
+            f.textbox :default => "#{templates.nil? ? '' : templates.last }"
+          end
+          %></table><div align="right"><%f.repeatableDeleteButton%></div><%
+        end
+
+      end
+
+      f.entry :title => 'Templates for gitlab groups', :description => 'Full string comparison is performed with the incoming repository' do
+        f.repeatable :items => descriptor.templated_groups.to_a, :var => 'group_templates', :add => 'Add new group template' do
+          %><table width="100%"><%
+          f.entry :title => 'GitLab group/namespace', :field => 'string' do
+            f.textbox :default => "#{group_templates.nil? ? '' : group_templates.first }"
+          end
+          f.entry :title => 'Base project', :field => 'project' do
+            f.textbox :default => "#{group_templates.nil? ? '' : group_templates.last }"
+          end
+          %></table><div align="right"><%f.repeatableDeleteButton%></div><%
+        end
+      end
+
+      f.entry :title => 'Last resort template', :field => 'template' do
+        f.textbox :default => "#{descriptor.template_fallback}"
+      end
+
+    end
+
   end
 %>

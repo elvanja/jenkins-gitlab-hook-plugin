@@ -24,8 +24,8 @@ module GitlabWebHook
     end
 
     context 'when build triggered' do
-      let(:cause_builder) { double }
-      let(:actions_builder) { double }
+      let(:cause_builder) { double(with: true) }
+      let(:actions_builder) { double(with: true) }
 
       before(:each) do
         expect(cause_builder).to receive(:with).with(details)
@@ -45,9 +45,9 @@ module GitlabWebHook
           expect(project).to receive(:scheduleBuild2).and_raise(exception)
 
           severe = Proc.new {}
-          expect(severe).to receive(:call).with(Level::SEVERE, 'message', exception)
+          expect(severe).to receive(:call).with(Java.java.util.logging.Level::SEVERE, 'message', exception)
 
-          expect(logger).to receive(:java_method).with(:log, [Level, java.lang.String, java.lang.Throwable]).and_return(severe)
+          expect(logger).to receive(:java_method).with(:log, [Java.java.util.logging.Level, java.lang.String, java.lang.Throwable]).and_return(severe)
         end
 
         it 'logs error' do

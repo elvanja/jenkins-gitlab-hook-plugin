@@ -12,7 +12,11 @@ module GitlabWebHook
 
       return [] unless project.parametrized? # no need to process if not parameterized
 
-      ParametersAction.new(GetParametersValues.new.with(project, details))
+      if details.classic?
+        ParametersAction.new( java.util.ArrayList.new(GetParametersValues.new.with(project, details)) )
+      else
+        ParametersAction.new( java.util.ArrayList.new(GetParametersValues.new.with_mr(project, details)) )
+      end
     end
   end
 end

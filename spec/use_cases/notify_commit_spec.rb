@@ -36,9 +36,9 @@ module GitlabWebHook
           expect(project).to receive(:schedulePolling).and_raise(exception)
 
           severe = Proc.new {}
-          expect(severe).to receive(:call).with(Level::SEVERE, 'message', exception)
+          expect(severe).to receive(:call).with(Java.java.util.logging.Level::SEVERE, 'message', exception)
 
-          expect(logger).to receive(:java_method).with(:log, [Level, java.lang.String, java.lang.Throwable]).and_return(severe)
+          expect(logger).to receive(:java_method).with(:log, [Java.java.util.logging.Level, java.lang.String, java.lang.Throwable]).and_return(severe)
         end
 
         it 'logs error' do

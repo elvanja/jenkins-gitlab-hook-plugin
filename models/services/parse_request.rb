@@ -3,6 +3,7 @@ require 'json'
 require_relative '../exceptions/bad_request_exception'
 require_relative '../values/parameters_request_details'
 require_relative '../values/payload_request_details'
+require_relative '../values/merge_request_details'
 
 module GitlabWebHook
   class ParseRequest
@@ -14,6 +15,9 @@ module GitlabWebHook
 
       body = read_request_body(request)
       details = PayloadRequestDetails.new(parse_request_body(body))
+      return details if details.valid?
+
+      details = MergeRequestDetails.new(parse_request_body(body))
       throw_bad_request_exception(body, parameters) unless details.valid?
       details
     end

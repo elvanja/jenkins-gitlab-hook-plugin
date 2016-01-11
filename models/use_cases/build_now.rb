@@ -2,14 +2,12 @@ require_relative '../services/get_jenkins_projects'
 require_relative '../services/get_build_cause'
 require_relative '../services/get_build_actions'
 
-include Java
-
-java_import Java.java.util.logging.Logger
-java_import Java.java.util.logging.Level
-
 module GitlabWebHook
   class BuildNow
     attr_reader :project, :logger
+
+    java_import Java.java.util.logging.Logger
+    java_import Java.java.util.logging.Level
 
     def initialize(project, logger = Logger.getLogger(self.class.name))
       raise ArgumentError.new('project is required') unless project

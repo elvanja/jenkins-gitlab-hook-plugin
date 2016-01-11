@@ -11,9 +11,17 @@ module GitlabWebHook
       end
     end
 
+    it '#classic? is true' do
+      expect(subject.classic?).to eq(true)
+    end
+
+    it '#kind is web hook' do
+      expect(subject.kind).to eq('webhook')
+    end
+
     context 'with repository url' do
       it 'extracts from payload' do
-        expect(subject.repository_url).to eq('git@example.com:diaspora.git')
+        expect(subject.repository_url).to eq('git@example.com:diaspora/diaspora.git')
       end
 
       it 'returns empty when no repository details found' do
@@ -35,7 +43,7 @@ module GitlabWebHook
 
     context 'with repository homepage' do
       it 'extracts from payload' do
-        expect(subject.repository_homepage).to eq('http://example.com/diaspora')
+        expect(subject.repository_homepage).to eq('http://example.com/diaspora/diaspora')
       end
 
       it 'returns empty when no repository details found' do
@@ -70,10 +78,10 @@ module GitlabWebHook
       it 'extracts from payload' do
         expect(subject.commits.size).to eq(2)
 
-        expect(subject.commits[0].url).to eq('http://example.com/diaspora/commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327')
+        expect(subject.commits[0].url).to eq('http://example.com/diaspora/diaspora/commits/b6568db1bc1dcd7f8b4d5a946b0b91f9dacd7327')
         expect(subject.commits[0].message).to eq('Update Catalan translation to e38cb41.')
 
-        expect(subject.commits[1].url).to eq('http://example.com/diaspora/commits/da1560886d4f094c3e6c9ef40349f7d38b5d27d7')
+        expect(subject.commits[1].url).to eq('http://example.com/diaspora/diaspora/commits/da1560886d4f094c3e6c9ef40349f7d38b5d27d7')
         expect(subject.commits[1].message).to eq('fixed readme')
       end
 

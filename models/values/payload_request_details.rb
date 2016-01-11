@@ -3,6 +3,7 @@ require_relative 'request_details'
 module GitlabWebHook
   class PayloadRequestDetails < RequestDetails
     def initialize(payload)
+      @kind = 'webhook'
       @payload = payload || raise(ArgumentError.new("request payload is required"))
     end
 
@@ -10,6 +11,11 @@ module GitlabWebHook
       return "" unless payload["repository"]
       return "" unless payload["repository"]["url"]
       payload["repository"]["url"].strip
+    end
+
+    def repository_group
+      return "" unless repository_homepage
+      repository_homepage.split('/')[-2]
     end
 
     def repository_name

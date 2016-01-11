@@ -1,3 +1,10 @@
 language: ruby
+env:
+  - JENKINS_VERSION=1.596.3
+  - JENKINS_VERSION=1.609.3
+  - JENKINS_VERSION=1.625.3
+  - JENKINS_VERSION=latest
 rvm:
+  - ruby
   - jruby-19mode # JRuby in 1.9 mode
+sudo: false

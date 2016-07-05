@@ -1,6 +1,6 @@
 # Jenkins Gitlab Hook Plugin
 
-Enables Gitlab web hooks to be used to trigger SMC polling on Gitlab projects<br/>
+Enables Gitlab web hooks to be used to trigger SCM polling on Gitlab projects<br/>
 Plugin details can be found at https://wiki.jenkins-ci.org/display/JENKINS/Gitlab+Hook+Plugin
 
 ## Why?

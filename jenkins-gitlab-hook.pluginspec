@@ -9,5 +9,5 @@ Jenkins::Plugin::Specification.new do |plugin|
   plugin.uses_repository :github => "elvanja/jenkins-gitlab-hook-plugin"
 
   plugin.depends_on 'ruby-runtime', '0.12'
-  plugin.depends_on 'git', '1.1.26'
+  plugin.depends_on 'git', '2.3.1'
 end

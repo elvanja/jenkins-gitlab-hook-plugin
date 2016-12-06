@@ -140,9 +140,9 @@ module GitlabWebHook
 
     context 'with flat payload' do
       details = {
-        repository_url: 'git@example.com:diaspora.git',
+        repository_url: 'git@example.com:diaspora/diaspora.git',
         repository_name: 'Diaspora',
-        repository_homepage: 'http://example.com/diaspora',
+        repository_homepage: 'http://example.com/diaspora/diaspora',
         full_branch_reference: 'refs/heads/master',
         branch: 'master'
       }

@@ -24,7 +24,7 @@ module GitlabWebHook
         allow(details).to receive(:payload) { true }
         allow(details).to receive(:full_branch_reference) { 'master' }
         allow(details).to receive(:commits_count) { 1 }
-        allow(details).to receive(:commits) { [double(Commit, url: 'http://localhost/peronospora/commits/123456', message: 'fix')] }
+        allow(details).to receive(:commits) { [double(Commit, url: 'http://localhost/diaspora/peronospora/commits/123456', message: 'fix')] }
 
         cause = subject.with(details)
         expect(cause.shortDescription).not_to match('no payload available')

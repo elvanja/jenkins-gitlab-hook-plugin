@@ -2,11 +2,11 @@ require 'spec_helper'
 
 module GitlabWebHook
   describe RepositoryUri do
-    let(:subject) { RepositoryUri.new('http://localhost/diaspora') }
+    let(:subject) { RepositoryUri.new('http://localhost/diaspora/diaspora') }
 
     context 'with attributes' do
       it 'has url' do
-        expect(subject.url).to eq('http://localhost/diaspora')
+        expect(subject.url).to eq('http://localhost/diaspora/diaspora')
       end
 
       it 'has host' do
@@ -26,14 +26,14 @@ module GitlabWebHook
         end
 
         it 'with regular uris' do
-          other = URIish.new('http://localhost/diaspora')
+          other = URIish.new('http://localhost/diaspora/diaspora')
           expect(subject.matches?(other)).to be
         end
       end
 
       context 'it is not matching' do
         it 'when repo uris do not match' do
-          other = URIish.new('http://localhost/other')
+          other = URIish.new('http://localhost/diaspora/other')
           expect(subject.matches?(other)).not_to be
         end
       end

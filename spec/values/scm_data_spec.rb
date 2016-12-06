@@ -3,17 +3,17 @@ require 'spec_helper'
 module GitlabWebHook
   describe ScmData do
     let(:details) { double(RequestDetails, repository_name: 'discourse', branch: 'features_meta', safe_branch: 'features_meta') }
-    let(:remote_config) { double(UserRemoteConfig, getUrl: 'http://localhost/diaspora', getName: 'Diaspora', getCredentialsId: 'id') }
+    let(:remote_config) { double(UserRemoteConfig, getUrl: 'http://localhost/diaspora/diaspora', getName: 'Diaspora', getCredentialsId: 'id') }
     let(:source_scm) { double(GitSCM, getScmName: 'git', getUserRemoteConfigs: [remote_config, double(UserRemoteConfig)]).as_null_object }
     let(:subject) { described_class.new(source_scm, details) }
 
     context 'when building' do
       it 'it uses source scm first configuration' do
-        expect(subject.url).to eq('http://localhost/diaspora')
+        expect(subject.url).to eq('http://localhost/diaspora/diaspora')
       end
 
       it 'takes url from source scm configuration' do
-        expect(subject.url).to eq('http://localhost/diaspora')
+        expect(subject.url).to eq('http://localhost/diaspora/diaspora')
       end
 
       it 'takes name from source scm configuration' do
